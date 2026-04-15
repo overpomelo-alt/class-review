@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四年級社會 考前複習</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+  :root {
+    --sky: #5A7A9A;
+    --sun: #C8A84B;
+    --grass: #4A7055;
+    --soil: #7A5840;
+    --water: #4A7A72;
+    --cloud: #F5F5F0;
+    --dark: #2A3440;
+    --mid: #4A5C6A;
+    --light: #F2F4F6;
+    --accent: #8A4848;
+    --purple: #4A4870;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', '微軟正黑體', sans-serif;
+    background: #FAFAF7;
+    color: #5A5650;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--sky) 0%, #2B7DBF 100%);
+    padding: 32px 24px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 28px;
+    background: var(--light);
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.06em;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header .subtitle {
+    color: rgba(255,255,255,0.95);
+    font-size: 1rem;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .badges {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255,255,255,0.22);
+    border: 1.5px solid rgba(255,255,255,0.5);
+    color: #fff;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  /* ── NAV TABS ── */
+  .nav {
+    display: flex;
+    gap: 0;
+    padding: 18px 16px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .tab-btn {
+    background: #C9DFF0;
+    border: none;
+    border-radius: 12px 12px 0 0;
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--mid);
+    cursor: pointer;
+    transition: all .18s;
+    margin: 0 2px;
+  }
+  .tab-btn.active {
+    background: #fff;
+    color: var(--sky);
+    box-shadow: 0 -2px 0 var(--sky) inset;
+  }
+  .tab-btn:hover:not(.active) { background: #d8ecf8; }
+
+  /* ── PANELS ── */
+  .panels {
+    background: #fff;
+    border-radius: 0 0 16px 16px;
+    margin: 0 16px 24px;
+    padding: 24px 20px;
+    box-shadow: 0 4px 18px rgba(30,42,56,0.1);
+    min-height: 400px;
+  }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn .25s ease; }
+
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+
+  /* ── UNIT CARDS ── */
+  .unit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .unit-card {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(30,42,56,0.1);
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .unit-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(30,42,56,0.14); }
+  .unit-card-header {
+    padding: 14px 16px 10px;
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.05rem;
+  }
+  .unit-card-body { padding: 14px 16px; background: #fff; font-size: 0.9rem; line-height: 1.7; }
+  .unit-card-body .tag {
+    display: inline-block;
+    border-radius: 6px;
+    padding: 2px 9px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin: 3px 3px 3px 0;
+  }
+
+  .c-green .unit-card-header { background: linear-gradient(135deg, #5BB860, #3A8E40); }
+  .c-blue .unit-card-header { background: linear-gradient(135deg, #4BA3D9, #2B7DBF); }
+  .c-orange .unit-card-header { background: linear-gradient(135deg, #F7A048, #D96B3A); }
+  .c-purple .unit-card-header { background: linear-gradient(135deg, #A07BDE, #6B3DBF); }
+  .c-teal .unit-card-header { background: linear-gradient(135deg, #3ABFB0, #1E8E80); }
+
+  .tag-green { background: #D6F0D8; color: #2A7030; }
+  .tag-blue  { background: #D0E8F8; color: #1B5E8A; }
+  .tag-orange { background: #FDEBD8; color: #B0440A; }
+  .tag-purple { background: #EDE4FA; color: #5230A0; }
+  .tag-red { background: #FFE0D8; color: #B02010; }
+
+  /* ── ACCORDION ── */
+  .acc-item {
+    border: 1.5px solid #DDE8F0;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .acc-trigger {
+    width: 100%;
+    background: #F0F7FC;
+    border: none;
+    text-align: left;
+    padding: 13px 16px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--dark);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background .15s;
+  }
+  .acc-trigger:hover { background: #DFF0FA; }
+  .acc-trigger .arrow { transition: transform .2s; font-size: 1.1rem; }
+  .acc-trigger.open .arrow { transform: rotate(90deg); }
+  .acc-content {
+    display: none;
+    padding: 14px 16px 16px;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    background: #fff;
+    border-top: 1px solid #DDE8F0;
+  }
+  .acc-content.open { display: block; animation: fadeIn .2s; }
+
+  /* ── QUIZ ── */
+  .quiz-card {
+    background: #FAFCFF;
+    border: 2px solid #C5DFF0;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .quiz-q {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .quiz-q .qnum {
+    display: inline-block;
+    background: var(--sky);
+    color: #fff;
+    border-radius: 50%;
+    width: 26px; height: 26px;
+    text-align: center;
+    line-height: 26px;
+    font-size: 0.85rem;
+    margin-right: 8px;
+  }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-opt {
+    background: #EBF5FC;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all .15s;
+  }
+  .quiz-opt:hover { border-color: var(--sky); background: #D8EDF8; }
+  .quiz-opt.correct { background: #D8F2DC; border-color: var(--grass); color: #1C5E22; font-weight: 700; }
+  .quiz-opt.wrong { background: #FFE0D8; border-color: var(--soil); color: #8B2200; }
+  .quiz-opt.show-correct { background: #D8F2DC; border-color: var(--grass); }
+  .quiz-result { margin-top: 12px; font-size: 0.88rem; padding: 8px 12px; border-radius: 8px; display: none; }
+  .quiz-result.show { display: block; }
+  .quiz-result.ok { background: #D8F2DC; color: #1C5E22; }
+  .quiz-result.no { background: #FFE0D8; color: #8B2200; }
+
+  /* ── FLASHCARDS ── */
+  .fc-wrap { perspective: 900px; margin-bottom: 16px; }
+  .fc {
+    width: 100%; min-height: 160px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform .45s;
+    cursor: pointer;
+    border-radius: 14px;
+  }
+  .fc.flipped { transform: rotateY(180deg); }
+  .fc-front, .fc-back {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+    text-align: center;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  .fc-front { background: linear-gradient(135deg, var(--sky), #2B7DBF); color: #fff; font-weight: 700; font-size: 1.1rem; }
+  .fc-back { background: #fff; color: var(--dark); transform: rotateY(180deg); border: 2px solid #C5DFF0; font-size: 0.92rem; }
+  .fc-hint { font-size: 0.75rem; opacity: 0.7; margin-top: 8px; }
+
+  .fc-nav { display: flex; gap: 10px; justify-content: center; margin: 10px 0 18px; }
+  .fc-nav button {
+    background: var(--sky); color: #fff; border: none; border-radius: 8px;
+    padding: 8px 20px; font-family: inherit; font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; transition: background .15s;
+  }
+  .fc-nav button:hover { background: #3A8FCA; }
+  .fc-nav button:disabled { background: #B0CEDF; cursor: default; }
+  .fc-counter { text-align: center; color: var(--mid); font-size: 0.85rem; margin-bottom: 8px; }
+
+  /* ── CHEATSHEET ── */
+  .cs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .cs-box {
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 0.88rem;
+    line-height: 1.75;
+  }
+  .cs-box h3 { font-size: 0.95rem; font-weight: 900; margin-bottom: 8px; }
+  .cs-box ul { padding-left: 18px; }
+  .cs-box li { margin-bottom: 4px; }
+  .cs-b1 { background: #D6F0D8; }
+  .cs-b2 { background: #D0E8F8; }
+  .cs-b3 { background: #FDEBD8; }
+  .cs-b4 { background: #EDE4FA; }
+  .cs-b5 { background: #FFF8D8; }
+  .cs-b6 { background: #FFE0E8; }
+
+  /* ── CONFUSE TABLE ── */
+  .cf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin-top: 6px;
+  }
+  .cf-table th {
+    background: var(--sky);
+    color: #fff;
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 700;
+  }
+  .cf-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #DDE8F0;
+    vertical-align: top;
+    line-height: 1.65;
+  }
+  .cf-table tr:nth-child(even) td { background: #F3F9FD; }
+  .cf-table .vs { text-align: center; color: var(--accent); font-weight: 900; font-size: 1rem; }
+
+  /* ── MISC ── */
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--sky);
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 2.5px solid #C5DFF0;
+  }
+  .chip {
+    display: inline-block;
+    background: var(--sun);
+    color: var(--dark);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .highlight { background: #FFF3C0; border-radius: 4px; padding: 0 3px; }
+  .red { color: var(--accent); font-weight: 700; }
+  .score-display {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--sky);
+    margin: 16px 0;
+  }
+  .reset-btn {
+    display: block; margin: 0 auto;
+    background: #E8F4FD; border: 2px solid var(--sky);
+    color: var(--sky); border-radius: 8px;
+    padding: 8px 24px; font-family: inherit;
+    font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; transition: all .15s;
+  }
+  .reset-btn:hover { background: var(--sky); color: #fff; }
+
+  @media(max-width:500px) {
+    .header h1 { font-size: 1.55rem; }
+    .panels { padding: 18px 14px; }
+    .tab-btn { padding: 8px 12px; font-size: 0.82rem; }
+    .cf-table { font-size: 0.80rem; }
+  }
+  .print-hint { text-align:center; color:#7A90A4; font-size:0.78rem; margin-top:18px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🌏 四年級社會 考前複習</h1>
+  <div class="subtitle">第一單元 家鄉的產業 ＋ 第二單元 家鄉的人口</div>
+</div>
+
+<!-- 貼心提醒區 -->
+<div style="margin: 18px 16px 0; display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:12px;">
+
+  <div style="background:#FFF8E0; border-left:4px solid #F7C948; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#B07800; margin-bottom:5px;">⚠️ 最容易考錯！</div>
+    寒流來 → <b>加熱</b>提高水溫<br>
+    颱風來 → <b>加蓋</b>魚塭<br>
+    千萬不要混淆喔！
+  </div>
+
+  <div style="background:#D8F2DC; border-left:4px solid #3A8E40; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#1C5E22; margin-bottom:5px;">📝 三級產業記清楚</div>
+    第一級 🌾 農漁畜牧<br>
+    第二級 🏭 工業（加工製造）<br>
+    第三級 🛒 服務業（提供服務）
+  </div>
+
+  <div style="background:#EDE4FA; border-left:4px solid #6B3DBF; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#4A1E9E; margin-bottom:5px;">👥 人口四大原因</div>
+    增加：<b>出生、移入</b><br>
+    減少：<b>死亡、移出</b><br>
+    四個缺一不可！
+  </div>
+
+  <div style="background:#D0E8F8; border-left:4px solid #2B7DBF; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#1B5E8A; margin-bottom:5px;">🏔️ 地形 vs 人口</div>
+    平原盆地 → 人口<b>多</b><br>
+    山地丘陵 → 人口<b>少</b><br>
+    （有礦產時例外，如九份）
+  </div>
+
+  <div style="background:#FDEBD8; border-left:4px solid #D96B3A; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#8B3300; margin-bottom:5px;">🆕 新興職業怎麼來？</div>
+    <b>社會變遷 + 生活需求改變</b><br>
+    例：寵物視為家人<br>
+    → 寵物保母、寵物美容師出現
+  </div>
+
+  <div style="background:#FFE8EC; border-left:4px solid #C0392B; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#8B0000; margin-bottom:5px;">💪 考試小叮嚀</div>
+    遇到不確定的題目<br>
+    先把<b>選項一個一個排除</b><br>
+    相信自己，你讀過了！🌟
+  </div>
+
+</div>
+
+<div class="nav" style="margin-top:18px;">
+  <button class="tab-btn active" onclick="switchTab('overview',this)">📋 重點整理</button>
+  <button class="tab-btn" onclick="switchTab('flashcard',this)">🃏 翻翻卡</button>
+  <button class="tab-btn" onclick="switchTab('quiz',this)">✏️ 練習題</button>
+  <button class="tab-btn" onclick="switchTab('confuse',this)">❓ 容易搞混</button>
+  <button class="tab-btn" onclick="switchTab('cheatsheet',this)">⚡ 速覽表</button>
+</div>
+
+<div class="panels">
+
+<!-- ══ PANEL 1: 重點整理 ══ -->
+<div class="panel active" id="panel-overview">
+  <p class="section-title">📌 本次考試範圍單元</p>
+  <div class="unit-grid">
+
+    <div class="unit-card c-green">
+      <div class="unit-card-header">🌾 第1課：農、漁、畜牧業</div>
+      <div class="unit-card-body">
+        <span class="tag tag-green">第一級產業</span>
+        <p>依自然環境從事生產，滿足日常生活所需或提供其他產業原料。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🌱 農、漁、畜牧業的種類 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>農業：</b>種植稻米、蔬果、茶葉等農作物<br>
+            <b>漁業：</b>捕撈（近海、遠洋）或養殖魚、蝦、貝類<br>
+            <b>畜牧業：</b>飼養雞、鴨、牛、豬、羊等禽畜<br>
+            <br>📍 <span class="highlight">靠山吃山、靠海吃海</span> → 說明居民依自然環境從事生產
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🔬 農業如何改進？ <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ① 建造<b>溫室</b>→降低病蟲害、延長採收時程<br>
+            ② 申請<b>產銷履歷</b>→讓消費者安心、建立品牌<br>
+            ③ <b>品種改良</b>→提升甜度、風味（如愛文/金煌芒果）<br>
+            ④ <b>遠端監控</b>→溫度、溼度、光照<br>
+            ⚠️ 常考：產銷履歷 = 讓消費者<span class="red">了解來源</span>，不是保證最便宜
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🐟 漁業&畜牧業如何改進？ <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>養殖漁業：</b><br>
+            ・遠端監控魚塭水質<br>
+            ・寒流→加熱設施提高水溫，<span class="red">預防魚群凍死</span><br><br>
+            <b>畜牧業：</b><br>
+            ・培育抗病力較強的品種<br>
+            ・自動投餵飼料、給水裝置<br>
+            ・申請產銷履歷（水產品和畜牧產品也可以申請）<br>
+            ・規畫寬敞自然空間讓雞隻舒適生長
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🌲 林業補充（考試可能出現） <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・過去大量砍伐→水土保持和生態問題<br>
+            ・民國80年：政府<b>禁止砍伐天然林</b><br>
+            ・林場轉型：保育、教育、<b>觀光休閒</b><br>
+            ・現在：種植<b>人工林</b>、推廣林業文化園區、森林療癒<br>
+            📝 太平山的「蹦蹦車」：從載木材→載旅客
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="unit-card c-blue">
+      <div class="unit-card-header">🏭 第2課：家鄉的工業</div>
+      <div class="unit-card-body">
+        <span class="tag tag-blue">第二級產業</span>
+        <p>使用機器將原物料加工製成食品、衣物、電子產品，滿足食衣住行育樂需求。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🔧 工業種類例子 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・牛奶工廠（食品）<br>
+            ・襪子工廠（衣物）→機器一天可生產好幾百雙<br>
+            ・自行車工廠（零件組裝，人力+機器）<br>
+            ・電子工廠（無塵室、自動化）<br>
+            ・鳳梨酥工廠（食品，電腦管理）
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🔄 工業如何轉型？ <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>早期：</b>需要較多人力<br>
+            <b>現在：</b>機器取代人力、遠端監控、降低成本、提高產量<br><br>
+            ⚠️ 工廠工人需<span class="red">持續學習新技術</span>，否則可能被機器取代<br><br>
+            📌 鳳梨酥：手工→電腦管理自動化大量生產<br>
+            📌 紡織業：人力外移→研發<b>機能布料</b>、回收寶特瓶製環保衣料
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="unit-card c-orange">
+      <div class="unit-card-header">🛒 第3課：家鄉的服務業</div>
+      <div class="unit-card-body">
+        <span class="tag tag-orange">第三級產業</span>
+        <p>滿足居民日常生活中食、衣、住、行、育、樂各種需求。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">👩‍💼 常見服務業工作 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・火車司機（載運乘客、需輪班）<br>
+            ・便利商店店員（販售商品、代收費用）<br>
+            ・記者（採訪、撰寫報導）<br>
+            ・銀行行員（開戶、存提款、金融諮詢）<br>
+            ・圖書館館員、美髮師、外送員等
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🌐 服務方式的多樣化 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            科技讓服務更多樣：<br>
+            <b>食：</b>親自到店 OR 網路平台訂購外送到家<br>
+            <b>衣：</b>自助結帳（感應掃描）<br>
+            <b>住：</b>科技模擬家具擺放場景<br>
+            <b>行：</b>手機App搜尋車輛直接租車<br><br>
+            美容美髮院 vs 快速剪髮店 → 不同需求選不同服務
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🆕 新興職業 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            社會變遷+生活需求改變 → 產生新興職業：<br>
+            ・網路媒體從業人員（YouTuber）<br>
+            ・線上教學教師<br>
+            ・長照護理師<br>
+            ・寵物保母、寵物美容師、寵物禮儀師<br>
+            ・寵物旅館保母<br>
+            ⚠️ 新興職業出現的原因：<span class="red">社會變遷、生活需求改變</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="unit-card c-purple">
+      <div class="unit-card-header">👥 第4課：家鄉人口的分布</div>
+      <div class="unit-card-body">
+        <span class="tag tag-purple">第二單元</span>
+        <p>人口分布不平均，與地形、自然資源、產業、交通有關。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🏔️ 地形影響人口 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>平原、盆地、台地</b>（地勢平坦）：<br>
+            → 開發容易、可種農作物、從事工商業<br>
+            → <span class="red">人口多</span>（例：臺中市清水區）<br><br>
+            <b>丘陵、山地</b>（地勢起伏）：<br>
+            → 開發不易<br>
+            → <span class="red">人口少</span>（例：臺中市和平區）
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">⛏️ 自然資源影響人口 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            豐富礦產、森林 → 人口聚集<br><br>
+            📍 <b>九份（新北市）</b>：盛產金礦、煤礦 → 1939年人口達1萬8千人 → 停止採礦 → 人口減少 → 現為觀光景點<br><br>
+            📍 <b>林田山（花蓮）</b>：檜木 → 全盛期2千多人 → 禁止伐木 → 轉型林業文化園區
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🏗️ 產業與交通影響人口 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            工商業發達 + 交通便利 → 人口聚集<br><br>
+            📍 <b>臺南市永康區</b>：<br>
+            有高速公路交流道+火車站 + 鄰近南部科學園區<br>
+            → 交通便利、工作機會多 → 人口較多
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="unit-card c-teal">
+      <div class="unit-card-header">📊 第5課：家鄉人口的變化</div>
+      <div class="unit-card-body">
+        <span class="tag tag-blue">第二單元</span>
+        <p>人口可分三個年齡階段；人口數因出生、死亡、移入、移出而變化。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">👶 三階段年齡人口 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>幼年人口</b>（0～未成年）<br>
+            <b>青壯年人口</b>（主要從事生產活動，扶養幼年與老年）<br>
+            <b>老年人口</b><br><br>
+            透過<b>人口總數變化圖</b>和<b>三階段年齡人口數變化圖</b>了解變化
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">📈 人口變化的原因 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>人口增加：</b>出生、移入<br>
+            <b>人口減少：</b>死亡、移出<br><br>
+            出生受：生育觀念、養育費用影響<br>
+            死亡受：醫療技術、衛生保健、自然災害影響<br>
+            移入/移出受：結婚、工作機會、教育環境、交通及公共建設影響
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">⚠️ 人口變化的影響 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>少子化</b>（出生人口少）→<br>
+            政府推動：生育補助、育兒補助、廣設幼兒園、延長托育<br><br>
+            <b>高齡化</b>（老年人口多）→<br>
+            政府推動：長期照顧政策、社區照顧服務、辦理休閒活動<br><br>
+            <b>人口移入過多</b>：交通擁擠、環境汙染、居住空間狹窄<br>
+            <b>青壯年大量移出</b>：勞動力不足、老年人獨居缺照顧
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end unit-grid -->
+</div>
+
+<!-- ══ PANEL 2: 翻翻卡 ══ -->
+<div class="panel" id="panel-flashcard">
+  <p class="section-title">🃏 翻翻卡練習</p>
+  <p style="font-size:0.88rem;color:#6A8AA0;margin-bottom:16px;">點擊卡片翻面，看看你記住了嗎？</p>
+  <div class="fc-counter" id="fc-counter">第 1 張 / 共 16 張</div>
+  <div class="fc-wrap">
+    <div class="fc" id="fc-card" onclick="flipCard()">
+      <div class="fc-front" id="fc-front">載入中…</div>
+      <div class="fc-back" id="fc-back">載入中…</div>
+    </div>
+  </div>
+  <div class="fc-nav">
+    <button onclick="fcPrev()" id="fc-prev-btn" disabled>◀ 上一張</button>
+    <button onclick="fcFlip()">翻面</button>
+    <button onclick="fcNext()" id="fc-next-btn">下一張 ▶</button>
+  </div>
+</div>
+
+<!-- ══ PANEL 3: 練習題 ══ -->
+<div class="panel" id="panel-quiz">
+  <p class="section-title">✏️ 練習題</p>
+  <div id="quiz-container"></div>
+  <div class="score-display" id="quiz-score" style="display:none"></div>
+  <button class="reset-btn" id="quiz-reset-btn" onclick="resetQuiz()" style="display:none">重新作答</button>
+</div>
+
+<!-- ══ PANEL 4: 容易搞混 ══ -->
+<div class="panel" id="panel-confuse">
+  <p class="section-title">❓ 容易搞混的地方</p>
+  <table class="cf-table">
+    <tr>
+      <th style="width:30%">A</th>
+      <th style="width:10%" class="vs">VS</th>
+      <th style="width:60%">B（重要差別）</th>
+    </tr>
+    <tr>
+      <td><b>農業、漁業、畜牧業</b><br>（第一級產業）</td>
+      <td class="vs">≠</td>
+      <td><b>工業</b>（第二級）是把原料<u>加工製造</u>成產品，不是直接採集自然資源</td>
+    </tr>
+    <tr>
+      <td><b>捕撈漁業</b></td>
+      <td class="vs">≠</td>
+      <td><b>養殖漁業</b>：養殖是在魚塭裡養，可用科技（遠端監控、加熱設施）</td>
+    </tr>
+    <tr>
+      <td><b>產銷履歷</b><br>= 讓消費者安心了解來源</td>
+      <td class="vs">≠</td>
+      <td>不是保證最便宜，也不是保證最好吃，是<b>透明化</b>農產品資訊</td>
+    </tr>
+    <tr>
+      <td><b>寒流來時（漁業）</b><br>用加熱設施<u>提高</u>水溫</td>
+      <td class="vs">≠</td>
+      <td>颱風時漁業不是「加熱」，而是<b>加蓋魚塭</b>；寒流才是加熱！</td>
+    </tr>
+    <tr>
+      <td><b>少子化</b><br>＝出生人口少</td>
+      <td class="vs">≠</td>
+      <td><b>高齡化</b>＝老年人口比例高。兩者<b>可以同時發生</b>，臺灣就是這樣</td>
+    </tr>
+    <tr>
+      <td><b>移入人口增加</b><br>→ 人口成長</td>
+      <td class="vs">≠</td>
+      <td><b>移出人口增加</b>→ 人口減少；青壯年移出會造成<b>勞動力不足</b></td>
+    </tr>
+    <tr>
+      <td><b>地形平坦</b><br>（平原、盆地、台地）<br>→ 人口<span class="red">多</span></td>
+      <td class="vs">≠</td>
+      <td><b>地形起伏</b>（丘陵、山地）→ 人口<span class="red">少</span>（開發困難）<br>但若有豐富礦產，山地也可能聚集人口（如九份）</td>
+    </tr>
+    <tr>
+      <td><b>九份（採礦時）</b><br>→ 人口多（礦業興盛）</td>
+      <td class="vs">→</td>
+      <td><b>九份（現在）</b>→ 人口少、轉型觀光；礦業停止後人口<b>外移</b></td>
+    </tr>
+    <tr>
+      <td><b>服務業</b>的特色</td>
+      <td class="vs">≠</td>
+      <td>服務業提供「服務」不是有形「產品」；依需求可選不同服務方式（如美髮院vs快速剪髮）</td>
+    </tr>
+    <tr>
+      <td><b>新興職業</b>出現的原因</td>
+      <td class="vs">→</td>
+      <td><b>社會變遷 + 生活需求改變</b>（例如寵物保母因寵物視為家人而出現）</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ══ PANEL 5: 速覽表 ══ -->
+<div class="panel" id="panel-cheatsheet">
+  <p class="section-title">⚡ 考前 5 分鐘速覽</p>
+  <div class="cs-grid">
+    <div class="cs-box cs-b1">
+      <h3>🌾 農漁畜牧（第一級）</h3>
+      <ul>
+        <li>農業 = 種作物；漁業 = 捕/養；畜牧 = 飼養禽畜</li>
+        <li>「靠山吃山、靠海吃海」</li>
+        <li>溫室 → 降低病蟲害</li>
+        <li>產銷履歷 → 讓消費者了解來源</li>
+        <li>寒流 → 加熱設施提高水溫</li>
+        <li>林業：民國80年禁砍天然林</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b2">
+      <h3>🏭 工業（第二級）</h3>
+      <ul>
+        <li>原料 → 加工 → 食品/衣物/電子產品</li>
+        <li>現在：機器取代人力、遠端監控</li>
+        <li>工人要持續學習新技術</li>
+        <li>電子工廠 → 無塵室</li>
+        <li>鳳梨酥：手工→自動化</li>
+        <li>紡織業：寶特瓶→環保布料</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b3">
+      <h3>🛒 服務業（第三級）</h3>
+      <ul>
+        <li>提供服務，滿足食衣住行育樂需求</li>
+        <li>科技讓服務多樣化（外送、自助結帳）</li>
+        <li>新興職業：YouTuber、線上教師、寵物保母</li>
+        <li>原因：社會變遷、生活需求改變</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b4">
+      <h3>👥 人口分布</h3>
+      <ul>
+        <li>平原→人多；山地→人少</li>
+        <li>自然資源豐富→人口聚集</li>
+        <li>九份（採礦→觀光）</li>
+        <li>工商業發達+交通便利→人口多</li>
+        <li>臺南永康：高速公路+科學園區</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b5">
+      <h3>📈 人口變化原因</h3>
+      <ul>
+        <li>增加：出生、移入</li>
+        <li>減少：死亡、移出</li>
+        <li>三階段：幼年、青壯年（主生產）、老年</li>
+        <li>移入移出受：結婚、工作、教育、交通影響</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b6">
+      <h3>⚠️ 人口問題與對策</h3>
+      <ul>
+        <li>少子化→生育補助、廣設幼兒園</li>
+        <li>高齡化→長期照顧、社區照顧</li>
+        <li>人口過多→交通擁擠、環境污染</li>
+        <li>青壯年移出→勞動力不足</li>
+      </ul>
+    </div>
+  </div>
+  <p class="print-hint">💡 提示：按 Ctrl+P 可列印這頁，帶到考試前複習！</p>
+</div>
+
+</div><!-- end panels -->
+
+<script>
+// ── TAB SWITCH ──
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── ACCORDION ──
+function toggleAcc(btn) {
+  const content = btn.nextElementSibling;
+  const isOpen = content.classList.contains('open');
+  // close siblings
+  btn.closest('.unit-card-body').querySelectorAll('.acc-content').forEach(c => c.classList.remove('open'));
+  btn.closest('.unit-card-body').querySelectorAll('.acc-trigger').forEach(b => b.classList.remove('open'));
+  if (!isOpen) {
+    content.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+
+// ── FLASHCARDS ──
+const flashcards = [
+  { q: '「靠山吃山、靠海吃海」\n說明了什麼道理？', a: '居民會依據自然環境與資源，從事不同的生產活動（農業、漁業等）' },
+  { q: '申請「產銷履歷」對消費者有什麼好處？', a: '讓消費者了解農產品的來源，購物更放心；農民也可以藉此建立品牌，提高產品價值' },
+  { q: '寒流來時，養殖漁業的漁民會怎麼做？', a: '使用加熱設施提高魚塭的水溫，預防魚群凍死，減少財產損失' },
+  { q: '農業可以用哪些方式提升農作物品質？（說出3種）', a: '①建造溫室（降低病蟲害）②品種改良③申請產銷履歷④遠端監控溫濕度' },
+  { q: '工業的「轉型」主要是什麼改變？', a: '從依賴人力，轉為使用機器、電腦自動化生產，並由少數人員遠端監控。工人需要持續學習新技術。' },
+  { q: '「無塵室」主要在哪種工廠出現？有什麼作用？', a: '電子工廠。用來生產高科技產品，確保產品品質（避免灰塵汙染）' },
+  { q: '服務業為什麼需要有不同的服務方式？', a: '因為人們的需求不同，可以依據自己的需求選擇適合的服務（如美髮院vs快速剪髮店）' },
+  { q: '新興職業出現的主要原因是什麼？', a: '社會變遷、生活需求改變（例如：寵物視為家人→寵物保母、寵物美容師等職業出現）' },
+  { q: '人口較多的地形通常是什麼？為什麼？', a: '平原、盆地、台地（地勢平坦）。因為開發容易、土壤肥沃、適合種植作物或從事工商業活動' },
+  { q: '九份的人口變化情形是怎樣的？原因是什麼？', a: '採礦時（盛產金礦、煤礦）→人口多；停止採礦→人口減少；現轉型為觀光景點' },
+  { q: '影響人口移入或移出的原因有哪些？', a: '結婚、工作機會、教育環境、交通及公共建設' },
+  { q: '「少子化」是什麼意思？政府會推動哪些政策？', a: '出生人口比較少的情形。政府推動：生育補助、育兒補助、廣設幼兒園、延長托育時間' },
+  { q: '「高齡化」是什麼意思？政府會推動哪些政策？', a: '老年人口增加比較快的情形。政府推動：長期照顧政策、社區照顧服務、辦理休閒活動' },
+  { q: '人口大量移入一個地方，會帶來哪些問題？', a: '交通擁擠、環境污染、居住空間狹窄' },
+  { q: '青壯年大量移出家鄉，會造成什麼問題？', a: '勞動力不足、影響產業發展，也會產生老年人獨居、缺乏照顧等問題' },
+  { q: '農業、工業、服務業分別是第幾級產業？各舉一個例子。', a: '農業＝第一級（種稻米）\n工業＝第二級（鳳梨酥工廠）\n服務業＝第三級（便利商店店員）' },
+];
+
+let fcIndex = 0, fcFlipped = false;
+function renderFC() {
+  const card = flashcards[fcIndex];
+  document.getElementById('fc-front').innerHTML = card.q.replace(/\n/g,'<br>') + '<div class="fc-hint">點擊翻面看答案</div>';
+  document.getElementById('fc-back').innerHTML = card.a.replace(/\n/g,'<br>') + '<div class="fc-hint">點擊翻回題目</div>';
+  document.getElementById('fc-counter').textContent = `第 ${fcIndex+1} 張 / 共 ${flashcards.length} 張`;
+  document.getElementById('fc-prev-btn').disabled = fcIndex === 0;
+  document.getElementById('fc-next-btn').disabled = fcIndex === flashcards.length - 1;
+  fcFlipped = false;
+  document.getElementById('fc-card').classList.remove('flipped');
+}
+function flipCard() {
+  fcFlipped = !fcFlipped;
+  document.getElementById('fc-card').classList.toggle('flipped', fcFlipped);
+}
+function fcFlip() { flipCard(); }
+function fcNext() { if(fcIndex < flashcards.length-1){ fcIndex++; renderFC(); } }
+function fcPrev() { if(fcIndex > 0){ fcIndex--; renderFC(); } }
+renderFC();
+
+// ── QUIZ ──
+const quizData = [
+  { q: '居民種植稻米、蔬果、茶葉等農作物，屬於哪一種產業？', opts: ['工業', '農業', '漁業', '服務業'], ans: 1 },
+  { q: '申請「產銷履歷」最主要的目的是什麼？', opts: ['讓農產品售價更低', '讓消費者了解農產品來源並安心購買', '增加農民的工作量', '讓農產品變得更好吃'], ans: 1 },
+  { q: '寒流來時，養殖漁業的漁民應該怎麼做？', opts: ['加蓋魚塭', '用科技降低水溫', '使用加熱設施提高水溫', '立刻捕撈賣掉'], ans: 2 },
+  { q: '現代工廠為了降低成本、提高產量，主要採用什麼方式？', opts: ['增加更多工人', '機器取代人力，遠端監控', '減少生產時間', '停止生產'], ans: 1 },
+  { q: '下列哪一種職業屬於「服務業」？', opts: ['在稻田耕作的農民', '在工廠製作襪子的工人', '在銀行提供金融服務的行員', '在山上採集木材的林業工人'], ans: 2 },
+  { q: '「新興職業」出現的主要原因是什麼？', opts: ['農業沒落', '社會變遷與生活需求改變', '政府政策規定', '科技水準降低'], ans: 1 },
+  { q: '下列哪個地區人口通常比較多？', opts: ['山地地區', '丘陵地區', '平原、盆地地區', '以上都一樣'], ans: 2 },
+  { q: '九份地區在採礦全盛時期人口很多，後來停止採礦後，九份的人口會怎樣變化？', opts: ['繼續增加', '人口減少', '維持不變', '全部移出'], ans: 1 },
+  { q: '影響家鄉人口數變化的原因有哪些？（選出正確的）', opts: ['只有出生和死亡', '只有移入和移出', '出生、死亡、移入、移出', '只有天氣變化'], ans: 2 },
+  { q: '出生人口越來越少，稱為什麼現象？政府會推動哪種政策？', opts: ['高齡化，推動長期照顧政策', '少子化，推動生育補助與廣設幼兒園', '少子化，推動長期照顧政策', '高齡化，推動生育補助'], ans: 1 },
+  { q: '臺南市永康區人口較多，主要原因是？', opts: ['山地地形，資源豐富', '靠近海邊，漁業發達', '交通便利且鄰近科學園區，工作機會多', '氣候溫暖，適合農業'], ans: 2 },
+  { q: '電子工廠的特色是什麼？', opts: ['需要很多人力手工生產', '在無塵室中使用自動化設備生產高科技產品', '用溫室種植高科技農作物', '需要遠洋捕撈技術'], ans: 1 },
+];
+
+let quizAnswered = 0, quizCorrect = 0;
+const quizDone = new Array(quizData.length).fill(false);
+
+function buildQuiz() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  quizData.forEach((q, qi) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-card';
+    div.id = `qcard-${qi}`;
+    div.innerHTML = `
+      <div class="quiz-q"><span class="qnum">${qi+1}</span>${q.q}</div>
+      <div class="quiz-options">
+        ${q.opts.map((o,oi) => `<button class="quiz-opt" onclick="answerQuiz(${qi},${oi})">${['①','②','③','④'][oi]} ${o}</button>`).join('')}
+      </div>
+      <div class="quiz-result" id="qres-${qi}"></div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function answerQuiz(qi, oi) {
+  if (quizDone[qi]) return;
+  quizDone[qi] = true;
+  quizAnswered++;
+  const q = quizData[qi];
+  const card = document.getElementById(`qcard-${qi}`);
+  const opts = card.querySelectorAll('.quiz-opt');
+  const res = document.getElementById(`qres-${qi}`);
+  opts.forEach((btn, idx) => {
+    btn.disabled = true;
+    if (idx === q.ans) btn.classList.add('correct');
+    else if (idx === oi && oi !== q.ans) btn.classList.add('wrong');
+  });
+  if (oi === q.ans) {
+    quizCorrect++;
+    res.className = 'quiz-result show ok';
+    res.textContent = '✅ 答對了！';
+  } else {
+    res.className = 'quiz-result show no';
+    res.textContent = `❌ 答錯了！正確答案是：${q.opts[q.ans]}`;
+  }
+  if (quizAnswered === quizData.length) {
+    const scoreEl = document.getElementById('quiz-score');
+    scoreEl.style.display = 'block';
+    const pct = Math.round(quizCorrect/quizData.length*100);
+    let emoji = pct >= 90 ? '🎉' : pct >= 70 ? '👍' : '💪';
+    scoreEl.textContent = `${emoji} 你得了 ${quizCorrect} / ${quizData.length} 分（${pct}%）`;
+    document.getElementById('quiz-reset-btn').style.display = 'block';
+  }
+}
+
+function resetQuiz() {
+  quizAnswered = 0; quizCorrect = 0;
+  quizDone.fill(false);
+  document.getElementById('quiz-score').style.display = 'none';
+  document.getElementById('quiz-reset-btn').style.display = 'none';
+  buildQuiz();
+}
+
+buildQuiz();
+</script>
+</body>
+</html>

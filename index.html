@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四年級考前複習</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans TC', '微軟正黑體', sans-serif;
+    background: #FAFAF7;
+    color: #5A5650;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+  }
+
+  .top {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .top .emoji { font-size: 2.8rem; margin-bottom: 10px; }
+  .top h1 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #484440;
+    letter-spacing: 0.04em;
+  }
+  .top p {
+    font-size: 0.92rem;
+    color: #888480;
+    margin-top: 8px;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .card {
+    display: block;
+    text-decoration: none;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #E4E0D8;
+    background: #fff;
+    transition: transform .18s, box-shadow .18s;
+    cursor: pointer;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(80,76,70,0.12);
+  }
+
+  .card-top {
+    padding: 28px 24px 22px;
+    text-align: center;
+  }
+  .card-top .icon { font-size: 2.6rem; margin-bottom: 12px; }
+  .card-top h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 6px; }
+  .card-top p  { font-size: 0.84rem; line-height: 1.65; }
+
+  .card-footer {
+    padding: 11px 24px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.03em;
+  }
+
+  .c-social .card-top { background: #F2F4EE; }
+  .c-social .card-top h2 { color: #3A4A38; }
+  .c-social .card-top p  { color: #6A7A68; }
+  .c-social .card-footer { background: #4A5848; color: #EEF2EE; }
+
+  .c-science .card-top { background: #EEF0F4; }
+  .c-science .card-top h2 { color: #38404A; }
+  .c-science .card-top p  { color: #686878; }
+  .c-science .card-footer { background: #484870; color: #EEEEF4; }
+
+  .footer-note {
+    margin-top: 36px;
+    font-size: 0.78rem;
+    color: #B0ACA4;
+    text-align: center;
+    line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+
+  <div class="top">
+    <div class="emoji">📚</div>
+    <h1>四年級考前複習</h1>
+    <p>選擇科目，開始複習！</p>
+  </div>
+
+  <div class="cards">
+    <a class="card c-social" href="social.html">
+      <div class="card-top">
+        <div class="icon">🌏</div>
+        <h2>社會科</h2>
+        <p>第一單元 家鄉的產業<br>第二單元 家鄉的人口</p>
+      </div>
+      <div class="card-footer">進入複習 →</div>
+    </a>
+
+    <a class="card c-science" href="science.html">
+      <div class="card-top">
+        <div class="icon">🔬</div>
+        <h2>自然科</h2>
+        <p>第一單元 生活中有趣的力<br>第二單元 昆蟲家族</p>
+      </div>
+      <div class="card-footer">進入複習 →</div>
+    </a>
+  </div>
+
+  <div class="footer-note">
+    包含重點整理、翻翻卡、練習題、速覽表<br>
+    考試加油！你可以的 🌿
+  </div>
+
+</body>
+</html>

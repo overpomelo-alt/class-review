@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四年級自然 考前複習</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+  :root {
+    --bg:    #FAFAF7;
+    --card:  #F6F4F0;
+    --border:#E4E0D8;
+    --text:  #5A5650;
+    --bold:  #484440;
+    --kw:    #484440;
+    --hd1:   #4A5848;
+    --hd2:   #4A4870;
+    --light: #F2F4F6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', '微軟正黑體', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.85;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--hd1);
+    padding: 26px 24px 42px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 28px;
+    background: var(--bg);
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+  .header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #EEF0E8;
+    letter-spacing: 0.05em;
+  }
+  .header .subtitle {
+    color: rgba(238,240,232,0.78);
+    font-size: 0.92rem;
+    margin-top: 6px;
+    font-weight: 400;
+  }
+
+  /* ── 提醒卡片區 ── */
+  .reminders {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin: 18px 16px 0;
+  }
+  .rm-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-size: 0.84rem;
+    line-height: 1.78;
+  }
+  .rm-card .rm-title {
+    font-weight: 700;
+    color: var(--bold);
+    margin-bottom: 4px;
+    font-size: 0.88rem;
+  }
+  .rm-card .kw { font-weight: 700; color: var(--bold); text-decoration: underline; text-decoration-color: #C0B898; text-underline-offset: 2px; }
+  .rm-green  { border-top: 2px solid #8AA08A; }
+  .rm-blue   { border-top: 2px solid #8A9AAA; }
+  .rm-orange { border-top: 2px solid #BCA88A; }
+  .rm-purple { border-top: 2px solid #AEA8BC; }
+  .rm-teal   { border-top: 2px solid #A0B4AE; }
+  .rm-red    { border-top: 2px solid #BCA8A8; }
+
+  /* ── NAV TABS ── */
+  .nav {
+    display: flex;
+    gap: 0;
+    padding: 18px 16px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .tab-btn {
+    background: #E8E6E0;
+    border: none;
+    border-radius: 10px 10px 0 0;
+    padding: 9px 16px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    transition: all .15s;
+    margin: 0 2px;
+  }
+  .tab-btn.active { background: #fff; color: var(--hd1); box-shadow: 0 -2px 0 var(--hd1) inset; }
+  .tab-btn:hover:not(.active) { background: #DDDBD5; }
+
+  /* ── PANELS ── */
+  .panels {
+    background: #fff;
+    border-radius: 0 0 14px 14px;
+    margin: 0 16px 24px;
+    padding: 22px 18px;
+    box-shadow: 0 2px 12px rgba(80,76,70,0.07);
+    min-height: 380px;
+  }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fi .22s ease; }
+  @keyframes fi { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+  /* ── UNIT CARDS ── */
+  .unit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+  .unit-card { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .unit-card-header { padding: 12px 14px 9px; font-weight: 700; font-size: 0.98rem; }
+  .uh-green  { background: #4A5848; color: #EEF2EE; }
+  .uh-blue   { background: #484870; color: #EEEEF4; }
+  .uh-teal   { background: #3D5A58; color: #EEF2F0; }
+  .uh-orange { background: #5A4838; color: #F2EEE8; }
+  .unit-card-body { padding: 12px 14px; background: var(--card); font-size: 0.88rem; line-height: 1.82; color: var(--text); }
+
+  /* ── ACCORDION ── */
+  .acc-item { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+  .acc-trigger {
+    width: 100%; background: var(--light); border: none;
+    text-align: left; padding: 10px 14px;
+    font-family: inherit; font-size: 0.88rem; font-weight: 700; color: var(--bold);
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    transition: background .13s;
+  }
+  .acc-trigger:hover { background: #E8E6E0; }
+  .acc-trigger .arrow { transition: transform .18s; }
+  .acc-trigger.open .arrow { transform: rotate(90deg); }
+  .acc-content { display: none; padding: 12px 14px 14px; font-size: 0.87rem; line-height: 1.85; background: #fff; border-top: 1px solid var(--border); }
+  .acc-content.open { display: block; animation: fi .18s; }
+
+  /* ── FLASHCARDS ── */
+  .fc-wrap { perspective: 900px; margin-bottom: 14px; }
+  .fc { width: 100%; min-height: 150px; position: relative; transform-style: preserve-3d; transition: transform .42s; cursor: pointer; border-radius: 10px; }
+  .fc.flipped { transform: rotateY(180deg); }
+  .fc-front, .fc-back { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px; text-align: center; }
+  .fc-front { background: var(--hd1); color: #EEF2EE; font-weight: 700; font-size: 1rem; line-height: 1.65; }
+  .fc-back  { background: #fff; color: var(--bold); transform: rotateY(180deg); border: 1px solid var(--border); font-size: 0.9rem; line-height: 1.75; }
+  .fc-hint  { font-size: 0.72rem; opacity: 0.6; margin-top: 8px; }
+  .fc-nav   { display: flex; gap: 10px; justify-content: center; margin: 8px 0 16px; }
+  .fc-nav button { background: var(--hd1); color: #EEF2EE; border: none; border-radius: 7px; padding: 7px 18px; font-family: inherit; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: opacity .13s; }
+  .fc-nav button:hover { opacity: .82; }
+  .fc-nav button:disabled { background: #C8C4BC; cursor: default; }
+  .fc-counter { text-align: center; color: var(--text); font-size: 0.83rem; margin-bottom: 7px; }
+
+  /* ── QUIZ ── */
+  .quiz-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  .quiz-q { font-size: 0.93rem; font-weight: 700; margin-bottom: 12px; line-height: 1.6; color: var(--bold); }
+  .quiz-q .qnum { display: inline-block; background: var(--hd1); color: #EEF2EE; border-radius: 50%; width: 24px; height: 24px; text-align: center; line-height: 24px; font-size: 0.8rem; margin-right: 7px; }
+  .quiz-options { display: flex; flex-direction: column; gap: 7px; }
+  .quiz-opt { background: #fff; border: 1px solid var(--border); border-radius: 7px; padding: 9px 13px; font-family: inherit; font-size: 0.88rem; cursor: pointer; text-align: left; transition: all .13s; color: var(--text); }
+  .quiz-opt:hover { border-color: var(--hd1); background: var(--light); }
+  .quiz-opt.correct { background: #EEF4EE; border-color: #8AA08A; color: #3A5038; font-weight: 700; }
+  .quiz-opt.wrong   { background: #F4EEEE; border-color: #BCA8A8; color: #583838; }
+  .quiz-result { margin-top: 10px; font-size: 0.86rem; padding: 7px 11px; border-radius: 7px; display: none; }
+  .quiz-result.show { display: block; }
+  .quiz-result.ok { background: #EEF4EE; color: #3A5038; }
+  .quiz-result.no { background: #F4EEEE; color: #583838; }
+
+  /* ── CONFUSE TABLE ── */
+  .cf-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin-top: 4px; }
+  .cf-table th { background: var(--hd1); color: #EEF2EE; padding: 8px 11px; text-align: center; font-weight: 700; }
+  .cf-table td { padding: 8px 11px; border-bottom: 1px solid var(--border); line-height: 1.65; vertical-align: top; color: var(--text); }
+  .cf-table tr:nth-child(even) td { background: var(--card); }
+  .cf-table .vs { text-align: center; font-weight: 900; color: var(--bold); font-size: 0.95rem; }
+
+  /* ── CHEATSHEET ── */
+  .cs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+  .cs-box { border-radius: 8px; padding: 12px 14px; font-size: 0.86rem; line-height: 1.8; background: var(--card); border: 1px solid var(--border); }
+  .cs-box h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 7px; color: var(--bold); }
+  .cs-box ul { padding-left: 16px; }
+  .cs-box li { margin-bottom: 3px; }
+  .cs-b1 { border-top: 2px solid #8AA08A; }
+  .cs-b2 { border-top: 2px solid #8A9AAA; }
+  .cs-b3 { border-top: 2px solid #BCA88A; }
+  .cs-b4 { border-top: 2px solid #AEA8BC; }
+
+  /* ── MISC ── */
+  .section-title { font-size: 1rem; font-weight: 700; color: var(--hd1); margin-bottom: 12px; padding-bottom: 5px; border-bottom: 1.5px solid var(--border); }
+  .highlight { background: #F0EEE0; border-radius: 3px; padding: 0 3px; }
+  .kw { font-weight: 700; color: var(--bold); text-decoration: underline; text-decoration-color: #C0B898; text-underline-offset: 2px; }
+  .red { color: #7A3A30; font-weight: 700; }
+  .score-display { text-align: center; font-size: 1.3rem; font-weight: 700; color: var(--hd1); margin: 14px 0; }
+  .reset-btn { display: block; margin: 0 auto; background: var(--light); border: 1px solid var(--hd1); color: var(--hd1); border-radius: 7px; padding: 7px 22px; font-family: inherit; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all .13s; }
+  .reset-btn:hover { background: var(--hd1); color: #EEF2EE; }
+  .print-hint { text-align: center; color: #A0A098; font-size: 0.76rem; margin-top: 16px; }
+
+  @media(max-width:500px) {
+    .header h1 { font-size: 1.4rem; }
+    .panels { padding: 16px 12px; }
+    .tab-btn { padding: 7px 10px; font-size: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔬 四年級自然 考前複習</h1>
+  <div class="subtitle">第一單元 生活中有趣的力 ＋ 第二單元 昆蟲家族</div>
+</div>
+
+<!-- 提醒卡片 -->
+<div class="reminders">
+  <div class="rm-card rm-red">
+    <div class="rm-title">⚠️ 最容易考錯！</div>
+    沉體也有受到浮力！<br>
+    <span class="kw">不論浮體或沉體，都有浮力</span><br>
+    只是浮體浮力 ≥ 重力
+  </div>
+  <div class="rm-card rm-green">
+    <div class="rm-title">⚠️ 昆蟲辨別關鍵</div>
+    <span class="kw">腳和翅膀都長在「胸部」</span><br>
+    六隻腳、身體三節（頭胸腹）<br>
+    蜘蛛八隻腳 → 不是昆蟲！
+  </div>
+  <div class="rm-card rm-blue">
+    <div class="rm-title">⚠️ 完全 vs 不完全變態</div>
+    完全：卵→幼蟲→<span class="kw">蛹</span>→成蟲<br>
+    不完全：卵→若蟲/稚蟲→成蟲<br>
+    （沒有蛹的階段！）
+  </div>
+  <div class="rm-card rm-orange">
+    <div class="rm-title">💡 力的三要素</div>
+    <span class="kw">大小、方向、作用點</span><br>
+    圓點＝作用點<br>
+    箭頭方向＝力的方向<br>
+    線段長短＝力的大小
+  </div>
+  <div class="rm-card rm-purple">
+    <div class="rm-title">💡 聲音傳播</div>
+    振動 → 產生聲音<br>
+    振動停止 → 聲音停止<br>
+    可透過<span class="kw">氣體、液體、固體</span>傳播
+  </div>
+  <div class="rm-card rm-teal">
+    <div class="rm-title">💪 考試小提醒</div>
+    遇到不確定的題目<br>
+    把選項一個一個排除<br>
+    相信自己！你讀過了 🌿
+  </div>
+</div>
+
+<div class="nav">
+  <button class="tab-btn active" onclick="switchTab('overview',this)">📋 重點整理</button>
+  <button class="tab-btn" onclick="switchTab('flashcard',this)">🃏 翻翻卡</button>
+  <button class="tab-btn" onclick="switchTab('quiz',this)">✏️ 練習題</button>
+  <button class="tab-btn" onclick="switchTab('confuse',this)">❓ 容易搞混</button>
+  <button class="tab-btn" onclick="switchTab('cheatsheet',this)">⚡ 速覽表</button>
+</div>
+
+<div class="panels">
+
+<!-- ══ PANEL 1: 重點整理 ══ -->
+<div class="panel active" id="panel-overview">
+  <p class="section-title">📌 本次考試單元重點</p>
+  <div class="unit-grid">
+
+    <!-- 第一單元：力 -->
+    <div class="unit-card">
+      <div class="unit-card-header uh-green">⚡ 第一單元：生活中有趣的力</div>
+      <div class="unit-card-body">
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">活動1：力的種類與影響 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>力的種類：</b>推力、拉力、磁力、風力、水力、獸力、彈力等<br><br>
+            <b>物體受力後的變化：</b><br>
+            ① <span class="kw">形狀改變</span>──皮球、橡皮筋受力→可恢復原狀；黏土、鋁罐→不可恢復<br>
+            ② <span class="kw">位置改變</span>──打球使球移動<br>
+            ③ <span class="kw">運動狀態改變</span>──靜止→動態，或動態→靜止<br><br>
+            ⚠️ 手推牆壁，牆壁不動，但牆壁<b>有受力</b>！
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">活動2：力的三要素與表示法 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <span class="kw">力的三要素：大小、方向、作用點</span><br><br>
+            用圖像表示力：<br>
+            ・<b>圓點</b>＝力的作用點<br>
+            ・<b>箭頭方向</b>＝力的方向<br>
+            ・<b>線段長短</b>＝力的大小（線愈長，力愈大）<br><br>
+            力的各種形式：推力、拉力、彈力、磁力、浮力、摩擦力…
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">活動3：浮力 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>浮體：</b>放入水中會浮在水面（乒乓球、空寶特瓶、塑膠碗）<br>
+            <b>沉體：</b>放入水中會沉到底部（彈珠、硬幣、橡皮擦）<br><br>
+            <span class="kw">浮力：物體在水中，水給予物體向上的力</span><br><br>
+            ⚠️ <b>不論浮體或沉體，都有受到浮力！</b><br><br>
+            油土形狀與浮沉：<br>
+            ・實心→沉體<br>
+            ・捏成<span class="kw">碗狀（容器形）→變成浮體</span><br><br>
+            <b>浮力的生活應用：</b>救生衣、游泳圈、浮板、輪船、馬桶水箱浮球
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第二單元：昆蟲 -->
+    <div class="unit-card">
+      <div class="unit-card-header uh-blue">🐛 第二單元：昆蟲家族</div>
+      <div class="unit-card-body">
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">活動1：認識昆蟲 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>生物 vs 非生物：</b><br>
+            生物＝有生命（昆蟲、植物）；非生物＝無生命（石頭、水）<br><br>
+            <b>昆蟲的特徵（全部符合才是昆蟲）：</b><br>
+            ① 身體分<span class="kw">頭、胸、腹</span>三部分<br>
+            ② <span class="kw">六隻腳</span>，都長在<span class="kw">胸部</span><br>
+            ③ 身體有一節一節的構造<br>
+            ④ 大多數有<span class="kw">兩對翅膀</span>，長在胸部<br>
+            ⑤ 大多數頭部有一對觸角<br><br>
+            ⚠️ 蜘蛛8隻腳、身體2節→<b>不是昆蟲</b><br>
+            ⚠️ 螃蟹10隻腳→<b>不是昆蟲</b>
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">昆蟲的構造與行為 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>翅膀：</b><br>
+            ・獨角仙：外翅堅硬（保護）、內翅薄膜（飛行）<br>
+            ・蜜蜂：兩對翅膀同時拍動飛行<br><br>
+            <b>腳：</b><br>
+            ・蝗蟲、蟋蟀：強壯後腳→<span class="kw">跳躍</span><br>
+            ・紅娘華：鐮刀狀前腳→捕捉獵物<br><br>
+            <b>口器：</b><br>
+            ・蝴蝶：<span class="kw">吸管狀</span>→吸食花蜜<br>
+            ・蜻蜓、蟋蟀：<span class="kw">咀嚼式</span>→嚼碎食物<br><br>
+            <b>聲音：</b>物體振動→產生聲音；振動停止→聲音停止<br>
+            聲音可透過<span class="kw">氣體、液體、固體</span>傳播
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">活動2：昆蟲的一生（變態）<span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>完全變態：</b>卵→幼蟲→<span class="kw">蛹</span>→成蟲（4個階段）<br>
+            例：無尾鳳蝶、紋白蝶、獨角仙、瓢蟲<br>
+            幼蟲外形與成蟲差異大<br><br>
+            <b>不完全變態：</b>卵→<span class="kw">若蟲</span>→成蟲（3個階段，無蛹）<br>
+            例：竹節蟲、蟋蟀、紅姬緣椿象<br>
+            若蟲外形像成蟲，只是沒有翅膀<br><br>
+            <b>蜻蜓的不完全變態：</b>卵→<span class="kw">稚蟲</span>→成蟲<br>
+            稚蟲住在水中，外觀和成蟲不同
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">活動3：昆蟲與生活 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>昆蟲對其他生物的影響：</b><br>
+            ・蜜蜂→傳播花粉（幫助植物繁殖）<br>
+            ・蚊蟲→叮咬傳播疾病<br>
+            ・黑水虻幼蟲→吃廚餘<br>
+            ・有些昆蟲會被鳥類、蜘蛛捕食<br><br>
+            <b>為什麼要保育昆蟲？</b><br>
+            昆蟲數量減少→影響所有生物（食物鏈斷裂）<br><br>
+            <b>保育方法：</b>不隨意捕捉、不大量噴灑農藥、維護昆蟲生存環境
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ PANEL 2: 翻翻卡 ══ -->
+<div class="panel" id="panel-flashcard">
+  <p class="section-title">🃏 翻翻卡練習</p>
+  <p style="font-size:0.84rem;color:#888480;margin-bottom:14px;">點擊卡片翻面看答案</p>
+  <div class="fc-counter" id="fc-counter">第 1 張 / 共 16 張</div>
+  <div class="fc-wrap">
+    <div class="fc" id="fc-card" onclick="flipCard()">
+      <div class="fc-front" id="fc-front">載入中…</div>
+      <div class="fc-back"  id="fc-back" >載入中…</div>
+    </div>
+  </div>
+  <div class="fc-nav">
+    <button onclick="fcPrev()" id="fc-prev-btn" disabled>◀ 上一張</button>
+    <button onclick="fcFlip()">翻面</button>
+    <button onclick="fcNext()" id="fc-next-btn">下一張 ▶</button>
+  </div>
+</div>
+
+<!-- ══ PANEL 3: 練習題 ══ -->
+<div class="panel" id="panel-quiz">
+  <p class="section-title">✏️ 練習題</p>
+  <div id="quiz-container"></div>
+  <div class="score-display" id="quiz-score" style="display:none"></div>
+  <button class="reset-btn" id="quiz-reset-btn" onclick="resetQuiz()" style="display:none">重新作答</button>
+</div>
+
+<!-- ══ PANEL 4: 容易搞混 ══ -->
+<div class="panel" id="panel-confuse">
+  <p class="section-title">❓ 容易搞混的地方</p>
+  <table class="cf-table">
+    <tr>
+      <th style="width:35%">這樣是對的 ✅</th>
+      <th style="width:8%" class="vs">≠</th>
+      <th style="width:57%">這樣是錯的 ❌ / 注意！</th>
+    </tr>
+    <tr>
+      <td><b>沉體也有受到浮力</b><br>（只是重力＞浮力，所以沉）</td>
+      <td class="vs">≠</td>
+      <td>「沉下去就沒有浮力」→ 錯！<b>所有物體在水中都有浮力</b></td>
+    </tr>
+    <tr>
+      <td>油土捏成<b>碗狀（容器形）</b>→浮</td>
+      <td class="vs">≠</td>
+      <td>實心球狀、圓柱、三角錐→沉。<b>形狀決定浮沉，不是大小或重量</b></td>
+    </tr>
+    <tr>
+      <td><b>完全變態</b>：卵→幼蟲→<b>蛹</b>→成蟲<br>例：蝴蝶、獨角仙、瓢蟲</td>
+      <td class="vs">≠</td>
+      <td><b>不完全變態</b>：卵→若蟲→成蟲（<b>沒有蛹</b>）<br>例：蟋蟀、蜻蜓、竹節蟲</td>
+    </tr>
+    <tr>
+      <td>蜻蜓是<b>不完全變態</b><br>稚蟲與成蟲<b>外形不同</b>、住水中</td>
+      <td class="vs">≠</td>
+      <td>竹節蟲的若蟲與成蟲<b>外形相似</b>，只是沒有翅膀（同為不完全變態）</td>
+    </tr>
+    <tr>
+      <td>昆蟲：<b>六隻腳</b>、腳長在<b>胸部</b><br>身體<b>三節</b>（頭胸腹）</td>
+      <td class="vs">≠</td>
+      <td>蜘蛛8腳、螃蟹10腳→不是昆蟲<br>蚯蚓沒有腳→不是昆蟲</td>
+    </tr>
+    <tr>
+      <td>蝴蝶口器：<b>吸管狀</b>→吸花蜜</td>
+      <td class="vs">≠</td>
+      <td>蟋蟀、蜻蜓口器：<b>咀嚼式</b>→嚼碎食物（兩種口器功能不同！）</td>
+    </tr>
+    <tr>
+      <td>物體<b>受力→形狀改變</b><br>力消失後<b>可恢復</b>：皮球、橡皮筋、彈簧</td>
+      <td class="vs">≠</td>
+      <td>力消失後<b>不可恢復</b>：黏土（油土）、鋁罐<br>→永久變形</td>
+    </tr>
+    <tr>
+      <td>聲音傳播需要介質<br>可透過<b>氣體、液體、固體</b>傳播</td>
+      <td class="vs">≠</td>
+      <td>振動停止→聲音也停止<br>聲音不是靠「空氣」才能傳播（固體、液體也可以）</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ══ PANEL 5: 速覽表 ══ -->
+<div class="panel" id="panel-cheatsheet">
+  <p class="section-title">⚡ 考前 5 分鐘速覽</p>
+  <div class="cs-grid">
+    <div class="cs-box cs-b1">
+      <h3>⚡ 力的種類與影響</h3>
+      <ul>
+        <li>受力→形狀、位置、運動狀態改變</li>
+        <li>可恢復：皮球、橡皮筋、彈簧</li>
+        <li>不可恢復：黏土、鋁罐</li>
+        <li>手推牆壁不動，牆壁仍有受力</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b2">
+      <h3>📐 力的三要素</h3>
+      <ul>
+        <li>大小（線段長短）</li>
+        <li>方向（箭頭方向）</li>
+        <li>作用點（圓點）</li>
+        <li>力的形式：推、拉、磁、彈、浮力…</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b3">
+      <h3>🌊 浮力</h3>
+      <ul>
+        <li>浮體：浮在水面；沉體：沉到底部</li>
+        <li>浮力 = 水給物體向上的力</li>
+        <li>浮體和沉體都有浮力！</li>
+        <li>油土碗狀→浮；實心→沉</li>
+        <li>應用：救生衣、游泳圈、輪船</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b1">
+      <h3>🐛 昆蟲特徵</h3>
+      <ul>
+        <li>頭胸腹三節、六隻腳</li>
+        <li>腳和翅膀都長在胸部</li>
+        <li>大多兩對翅膀、一對觸角</li>
+        <li>蜘蛛8腳、螃蟹10腳→不是昆蟲</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b2">
+      <h3>🦋 完全 vs 不完全變態</h3>
+      <ul>
+        <li>完全：卵→幼蟲→蛹→成蟲（蝴蝶、獨角仙）</li>
+        <li>不完全（若蟲）：卵→若蟲→成蟲（蟋蟀）</li>
+        <li>不完全（稚蟲）：卵→稚蟲→成蟲（蜻蜓）</li>
+        <li>不完全變態沒有蛹的階段！</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b4">
+      <h3>🔊 聲音 ＋ 昆蟲與生活</h3>
+      <ul>
+        <li>振動→聲音；振動停止→聲音停止</li>
+        <li>可透過氣體、液體、固體傳播</li>
+        <li>蜜蜂傳花粉；蚊蟲傳疾病</li>
+        <li>昆蟲減少→影響所有生物</li>
+        <li>保育：不捕捉、不噴農藥</li>
+      </ul>
+    </div>
+  </div>
+  <p class="print-hint">💡 Ctrl+P 可列印這頁帶回家複習</p>
+</div>
+
+</div><!-- end panels -->
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function toggleAcc(btn) {
+  const content = btn.nextElementSibling;
+  const isOpen = content.classList.contains('open');
+  btn.closest('.unit-card-body').querySelectorAll('.acc-content').forEach(c => c.classList.remove('open'));
+  btn.closest('.unit-card-body').querySelectorAll('.acc-trigger').forEach(b => b.classList.remove('open'));
+  if (!isOpen) { content.classList.add('open'); btn.classList.add('open'); }
+}
+
+const flashcards = [
+  { q: '力的三要素是什麼？', a: '大小、方向、作用點\n圓點＝作用點；箭頭＝方向；線段長短＝大小' },
+  { q: '物體受力後可能產生哪三種變化？', a: '① 形狀改變\n② 位置改變\n③ 運動狀態改變（靜止↔動態）' },
+  { q: '哪些物體受力後可以恢復原狀？哪些不行？', a: '可恢復：皮球、橡皮筋、彈簧\n不可恢復：黏土（油土）、鋁罐' },
+  { q: '什麼是浮力？浮體和沉體都有浮力嗎？', a: '浮力＝水給物體向上的力\n不論浮體或沉體，都有受到浮力！' },
+  { q: '油土怎麼捏才會浮在水面？', a: '捏成碗狀（容器形）就會浮\n實心形狀（球、柱、三角錐）會沉' },
+  { q: '昆蟲的身體有哪些特徵？（說出5點）', a: '① 頭、胸、腹三節\n② 六隻腳\n③ 腳和翅膀都長在胸部\n④ 大多兩對翅膀\n⑤ 大多頭部有一對觸角' },
+  { q: '蜘蛛和螃蟹是昆蟲嗎？為什麼？', a: '都不是昆蟲\n蜘蛛有8隻腳、身體只有2節\n螃蟹有10隻腳' },
+  { q: '完全變態的昆蟲有哪4個階段？舉例。', a: '卵→幼蟲→蛹→成蟲\n例：蝴蝶（無尾鳳蝶、紋白蝶）、獨角仙、瓢蟲' },
+  { q: '不完全變態的昆蟲有哪3個階段？舉例。', a: '卵→若蟲→成蟲（無蛹！）\n例：蟋蟀、竹節蟲、紅姬緣椿象\n蜻蜓：卵→稚蟲→成蟲（也是不完全變態）' },
+  { q: '蜻蜓的稚蟲和蟋蟀的若蟲有什麼不同？', a: '蜻蜓稚蟲：住在水中，外形和成蟲很不同\n蟋蟀若蟲：住在陸地，外形和成蟲相似，只是沒有翅膀' },
+  { q: '蝴蝶和蟋蟀的口器有什麼不同？', a: '蝴蝶：吸管狀口器→吸食花蜜\n蟋蟀、蜻蜓：咀嚼式口器→嚼碎食物' },
+  { q: '蝗蟲和紅娘華的腳有什麼特別的地方？', a: '蝗蟲：強壯後腳→擅長跳躍\n紅娘華：鐮刀狀前腳→捕捉獵物' },
+  { q: '聲音是怎麼產生的？振動停止了聲音還在嗎？', a: '物體振動→產生聲音\n振動停止→聲音也停止' },
+  { q: '聲音可以透過哪些方式傳播？', a: '氣體（空氣）、液體（水）、固體（桌子、牆壁）都可以傳播聲音' },
+  { q: '昆蟲對其他生物有哪些影響？', a: '蜜蜂→傳播花粉（幫助植物繁殖）\n蚊蟲→叮咬傳播疾病\n黑水虻幼蟲→吃廚餘\n昆蟲減少→影響所有生物' },
+  { q: '浮力在生活中有哪些應用？說出3個。', a: '救生衣、游泳圈、浮板\n輪船、馬桶水箱浮球\n泳池浮標分隔水道' },
+];
+
+let fcIndex = 0, fcFlipped = false;
+function renderFC() {
+  const c = flashcards[fcIndex];
+  document.getElementById('fc-front').innerHTML = c.q.replace(/\n/g,'<br>') + '<div class="fc-hint">點擊翻面看答案</div>';
+  document.getElementById('fc-back').innerHTML  = c.a.replace(/\n/g,'<br>') + '<div class="fc-hint">點擊翻回題目</div>';
+  document.getElementById('fc-counter').textContent = `第 ${fcIndex+1} 張 / 共 ${flashcards.length} 張`;
+  document.getElementById('fc-prev-btn').disabled = fcIndex === 0;
+  document.getElementById('fc-next-btn').disabled = fcIndex === flashcards.length - 1;
+  fcFlipped = false;
+  document.getElementById('fc-card').classList.remove('flipped');
+}
+function flipCard() { fcFlipped = !fcFlipped; document.getElementById('fc-card').classList.toggle('flipped', fcFlipped); }
+function fcFlip()  { flipCard(); }
+function fcNext()  { if(fcIndex < flashcards.length-1){ fcIndex++; renderFC(); } }
+function fcPrev()  { if(fcIndex > 0){ fcIndex--; renderFC(); } }
+renderFC();
+
+const quizData = [
+  { q: '下列哪一個物體受力後，力消失時不會恢復原狀？', opts: ['皮球','橡皮筋','油土（黏土）','彈簧'], ans: 2 },
+  { q: '用圓點、箭頭和線段來表示力，請問「線段的長短」代表什麼？', opts: ['力的作用點','力的方向','力的大小','力的種類'], ans: 2 },
+  { q: '把一塊實心油土放入水中會沉下去，要讓它浮起來，應該把油土捏成什麼形狀？', opts: ['實心圓柱','實心三角錐','碗狀（容器形）','實心球形'], ans: 2 },
+  { q: '下列哪一個敘述是正確的？', opts: ['浮在水面的物體有浮力，沉入水中的沒有浮力','不論浮體或沉體，在水中都有受到浮力','只有輕的物體才有浮力','大的物體才有浮力'], ans: 1 },
+  { q: '下列哪一個動物不是昆蟲？', opts: ['蜜蜂','蝴蝶','蜘蛛','蟋蟀'], ans: 2 },
+  { q: '昆蟲的腳和翅膀都長在身體的哪個部位？', opts: ['頭部','胸部','腹部','頭部和胸部'], ans: 1 },
+  { q: '蝴蝶的一生經過「卵→幼蟲→蛹→成蟲」四個階段，蝴蝶屬於哪種變態？', opts: ['不完全變態','完全變態','半完全變態','直接變態'], ans: 1 },
+  { q: '蟋蟀的一生經過「卵→若蟲→成蟲」，蟋蟀屬於哪種變態？和完全變態最大的差別是什麼？', opts: ['完全變態，有蛹的階段','不完全變態，沒有蛹的階段','完全變態，沒有幼蟲階段','不完全變態，有蛹的階段'], ans: 1 },
+  { q: '蝴蝶的口器是什麼形狀？適合做什麼？', opts: ['咀嚼式，嚼碎食物','吸管狀，吸食花蜜','鐮刀狀，捕捉獵物','刺吸式，刺穿獵物'], ans: 1 },
+  { q: '關於聲音的敘述，下列哪個正確？', opts: ['聲音只能透過空氣傳播','振動停止後聲音還會繼續','聲音可以透過氣體、液體和固體傳播','只有昆蟲才能聽到聲音'], ans: 2 },
+];
+
+let quizAnswered = 0, quizCorrect = 0;
+const quizDone = new Array(quizData.length).fill(false);
+
+function buildQuiz() {
+  const c = document.getElementById('quiz-container');
+  c.innerHTML = '';
+  quizData.forEach((q, qi) => {
+    const d = document.createElement('div');
+    d.className = 'quiz-card'; d.id = `qcard-${qi}`;
+    d.innerHTML = `<div class="quiz-q"><span class="qnum">${qi+1}</span>${q.q}</div>
+      <div class="quiz-options">${q.opts.map((o,oi)=>`<button class="quiz-opt" onclick="answerQuiz(${qi},${oi})">${['①','②','③','④'][oi]} ${o}</button>`).join('')}</div>
+      <div class="quiz-result" id="qres-${qi}"></div>`;
+    c.appendChild(d);
+  });
+}
+
+function answerQuiz(qi, oi) {
+  if (quizDone[qi]) return;
+  quizDone[qi] = true; quizAnswered++;
+  const q = quizData[qi];
+  const card = document.getElementById(`qcard-${qi}`);
+  const opts = card.querySelectorAll('.quiz-opt');
+  const res  = document.getElementById(`qres-${qi}`);
+  opts.forEach((btn, idx) => {
+    btn.disabled = true;
+    if (idx === q.ans) btn.classList.add('correct');
+    else if (idx === oi && oi !== q.ans) btn.classList.add('wrong');
+  });
+  if (oi === q.ans) { quizCorrect++; res.className='quiz-result show ok'; res.textContent='✅ 答對了！'; }
+  else { res.className='quiz-result show no'; res.textContent=`❌ 答錯了！正確答案是：${q.opts[q.ans]}`; }
+  if (quizAnswered === quizData.length) {
+    const s = document.getElementById('quiz-score');
+    s.style.display = 'block';
+    const pct = Math.round(quizCorrect/quizData.length*100);
+    s.textContent = `${pct>=90?'🎉':pct>=70?'👍':'💪'} 你得了 ${quizCorrect} / ${quizData.length} 分（${pct}%）`;
+    document.getElementById('quiz-reset-btn').style.display = 'block';
+  }
+}
+
+function resetQuiz() {
+  quizAnswered = 0; quizCorrect = 0; quizDone.fill(false);
+  document.getElementById('quiz-score').style.display = 'none';
+  document.getElementById('quiz-reset-btn').style.display = 'none';
+  buildQuiz();
+}
+buildQuiz();
+</script>
+</body>
+</html>
