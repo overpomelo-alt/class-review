@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四年級自然 考前複習</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+  :root {
+    --sky: #5A7A9A;
+    --sun: #C8A84B;
+    --grass: #4A7055;
+    --soil: #7A5840;
+    --water: #4A7A72;
+    --cloud: #F5F5F0;
+    --dark: #2A3440;
+    --mid: #4A5C6A;
+    --light: #F2F4F6;
+    --accent: #8A4848;
+    --purple: #4A4870;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', '微軟正黑體', sans-serif;
+    background: #FAFAF7;
+    color: #5A5650;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--sky) 0%, #2B7DBF 100%);
+    padding: 32px 24px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 28px;
+    background: var(--light);
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.06em;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header .subtitle {
+    color: rgba(255,255,255,0.95);
+    font-size: 1rem;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .badges {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255,255,255,0.22);
+    border: 1.5px solid rgba(255,255,255,0.5);
+    color: #fff;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  /* ── NAV TABS ── */
+  .nav {
+    display: flex;
+    gap: 0;
+    padding: 18px 16px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .tab-btn {
+    background: #C9DFF0;
+    border: none;
+    border-radius: 12px 12px 0 0;
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--mid);
+    cursor: pointer;
+    transition: all .18s;
+    margin: 0 2px;
+  }
+  .tab-btn.active {
+    background: #fff;
+    color: var(--sky);
+    box-shadow: 0 -2px 0 var(--sky) inset;
+  }
+  .tab-btn:hover:not(.active) { background: #d8ecf8; }
+
+  /* ── PANELS ── */
+  .panels {
+    background: #fff;
+    border-radius: 0 0 16px 16px;
+    margin: 0 16px 24px;
+    padding: 24px 20px;
+    box-shadow: 0 4px 18px rgba(30,42,56,0.1);
+    min-height: 400px;
+  }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn .25s ease; }
+
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+
+  /* ── UNIT CARDS ── */
+  .unit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .unit-card {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(30,42,56,0.1);
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .unit-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(30,42,56,0.14); }
+  .unit-card-header {
+    padding: 14px 16px 10px;
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.05rem;
+  }
+  .unit-card-body { padding: 14px 16px; background: #fff; font-size: 0.9rem; line-height: 1.7; }
+  .unit-card-body .tag {
+    display: inline-block;
+    border-radius: 6px;
+    padding: 2px 9px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin: 3px 3px 3px 0;
+  }
+
+  .c-green .unit-card-header { background: linear-gradient(135deg, #5BB860, #3A8E40); }
+  .c-blue .unit-card-header { background: linear-gradient(135deg, #4BA3D9, #2B7DBF); }
+  .c-orange .unit-card-header { background: linear-gradient(135deg, #F7A048, #D96B3A); }
+  .c-purple .unit-card-header { background: linear-gradient(135deg, #A07BDE, #6B3DBF); }
+  .c-teal .unit-card-header { background: linear-gradient(135deg, #3ABFB0, #1E8E80); }
+
+  .tag-green { background: #D6F0D8; color: #2A7030; }
+  .tag-blue  { background: #D0E8F8; color: #1B5E8A; }
+  .tag-orange { background: #FDEBD8; color: #B0440A; }
+  .tag-purple { background: #EDE4FA; color: #5230A0; }
+  .tag-red { background: #FFE0D8; color: #B02010; }
+
+  /* ── ACCORDION ── */
+  .acc-item {
+    border: 1.5px solid #DDE8F0;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .acc-trigger {
+    width: 100%;
+    background: #F0F7FC;
+    border: none;
+    text-align: left;
+    padding: 13px 16px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--dark);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background .15s;
+  }
+  .acc-trigger:hover { background: #DFF0FA; }
+  .acc-trigger .arrow { transition: transform .2s; font-size: 1.1rem; }
+  .acc-trigger.open .arrow { transform: rotate(90deg); }
+  .acc-content {
+    display: none;
+    padding: 14px 16px 16px;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    background: #fff;
+    border-top: 1px solid #DDE8F0;
+  }
+  .acc-content.open { display: block; animation: fadeIn .2s; }
+
+  /* ── QUIZ ── */
+  .quiz-card {
+    background: #FAFCFF;
+    border: 2px solid #C5DFF0;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .quiz-q {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .quiz-q .qnum {
+    display: inline-block;
+    background: var(--sky);
+    color: #fff;
+    border-radius: 50%;
+    width: 26px; height: 26px;
+    text-align: center;
+    line-height: 26px;
+    font-size: 0.85rem;
+    margin-right: 8px;
+  }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-opt {
+    background: #EBF5FC;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all .15s;
+  }
+  .quiz-opt:hover { border-color: var(--sky); background: #D8EDF8; }
+  .quiz-opt.correct { background: #D8F2DC; border-color: var(--grass); color: #1C5E22; font-weight: 700; }
+  .quiz-opt.wrong { background: #FFE0D8; border-color: var(--soil); color: #8B2200; }
+  .quiz-opt.show-correct { background: #D8F2DC; border-color: var(--grass); }
+  .quiz-result { margin-top: 12px; font-size: 0.88rem; padding: 8px 12px; border-radius: 8px; display: none; }
+  .quiz-result.show { display: block; }
+  .quiz-result.ok { background: #D8F2DC; color: #1C5E22; }
+  .quiz-result.no { background: #FFE0D8; color: #8B2200; }
+
+  /* ── FLASHCARDS ── */
+  .fc-wrap { perspective: 900px; margin-bottom: 16px; }
+  .fc {
+    width: 100%; min-height: 160px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform .45s;
+    cursor: pointer;
+    border-radius: 14px;
+  }
+  .fc.flipped { transform: rotateY(180deg); }
+  .fc-front, .fc-back {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+    text-align: center;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  .fc-front { background: linear-gradient(135deg, var(--sky), #2B7DBF); color: #fff; font-weight: 700; font-size: 1.1rem; }
+  .fc-back { background: #fff; color: var(--dark); transform: rotateY(180deg); border: 2px solid #C5DFF0; font-size: 0.92rem; }
+  .fc-hint { font-size: 0.75rem; opacity: 0.7; margin-top: 8px; }
+
+  .fc-nav { display: flex; gap: 10px; justify-content: center; margin: 10px 0 18px; }
+  .fc-nav button {
+    background: var(--sky); color: #fff; border: none; border-radius: 8px;
+    padding: 8px 20px; font-family: inherit; font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; transition: background .15s;
+  }
+  .fc-nav button:hover { background: #3A8FCA; }
+  .fc-nav button:disabled { background: #B0CEDF; cursor: default; }
+  .fc-counter { text-align: center; color: var(--mid); font-size: 0.85rem; margin-bottom: 8px; }
+
+  /* ── CHEATSHEET ── */
+  .cs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .cs-box {
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 0.88rem;
+    line-height: 1.75;
+  }
+  .cs-box h3 { font-size: 0.95rem; font-weight: 900; margin-bottom: 8px; }
+  .cs-box ul { padding-left: 18px; }
+  .cs-box li { margin-bottom: 4px; }
+  .cs-b1 { background: #D6F0D8; }
+  .cs-b2 { background: #D0E8F8; }
+  .cs-b3 { background: #FDEBD8; }
+  .cs-b4 { background: #EDE4FA; }
+  .cs-b5 { background: #FFF8D8; }
+  .cs-b6 { background: #FFE0E8; }
+
+  /* ── CONFUSE TABLE ── */
+  .cf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin-top: 6px;
+  }
+  .cf-table th {
+    background: var(--sky);
+    color: #fff;
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 700;
+  }
+  .cf-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #DDE8F0;
+    vertical-align: top;
+    line-height: 1.65;
+  }
+  .cf-table tr:nth-child(even) td { background: #F3F9FD; }
+  .cf-table .vs { text-align: center; color: var(--accent); font-weight: 900; font-size: 1rem; }
+
+  /* ── MISC ── */
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--sky);
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 2.5px solid #C5DFF0;
+  }
+  .chip {
+    display: inline-block;
+    background: var(--sun);
+    color: var(--dark);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .highlight { background: #FFF3C0; border-radius: 4px; padding: 0 3px; }
+  .red { color: var(--accent); font-weight: 700; }
+  .score-display {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--sky);
+    margin: 16px 0;
+  }
+  .reset-btn {
+    display: block; margin: 0 auto;
+    background: #E8F4FD; border: 2px solid var(--sky);
+    color: var(--sky); border-radius: 8px;
+    padding: 8px 24px; font-family: inherit;
+    font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; transition: all .15s;
+  }
+  .reset-btn:hover { background: var(--sky); color: #fff; }
+
+  @media(max-width:500px) {
+    .header h1 { font-size: 1.55rem; }
+    .panels { padding: 18px 14px; }
+    .tab-btn { padding: 8px 12px; font-size: 0.82rem; }
+    .cf-table { font-size: 0.80rem; }
+  }
+  .print-hint { text-align:center; color:#7A90A4; font-size:0.78rem; margin-top:18px; }
+</style>
+</head>
+<body>
+
+<div class="header" style="background:linear-gradient(135deg,#5E8A6A 0%,#2E7D5B 100%);">
+  <a href="index.html" style="position:absolute;top:14px;left:16px;color:rgba(255,255,255,0.8);font-size:0.82rem;text-decoration:none;font-weight:500;">← 回首頁</a>
+  <h1>🔬 四年級自然 考前複習</h1>
+  <div class="subtitle">第三單元 水的移動 ＋ 第四單元 了解臺灣的環境</div>
+  <div class="badges"><span class="badge">第二次定期評量</span></div>
+</div>
+
+<!-- 貼心提醒區 -->
+<div style="margin: 18px 16px 0; display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:12px;">
+
+  <div style="background:#FFF8E0; border-left:4px solid #F7C948; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#B07800; margin-bottom:5px;">⚠️ 最容易考錯！</div>
+    毛細現象：<br>
+    縫隙愈<b>小</b> → 水爬得愈<b>高、愈遠</b><br>
+    （不是縫隙愈大喔！）
+  </div>
+
+  <div style="background:#E6F4F1; border-left:4px solid #1E8E80; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#0F6B5E; margin-bottom:5px;">💧 三種「水的移動」</div>
+    <b>毛細</b>：沿縫隙往四面八方<br>
+    <b>連通管</b>：靜止時兩邊一樣高<br>
+    <b>虹吸</b>：自動從高流到低
+  </div>
+
+  <div style="background:#D0E8F8; border-left:4px solid #2B7DBF; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#1B5E8A; margin-bottom:5px;">⚖️ 連通管原理</div>
+    水靜止時，兩端水面<b>一樣高</b><br>
+    （和容器形狀、粗細<b>無關</b>）<br>
+    可用來測量「水平」
+  </div>
+
+  <div style="background:#EDE4FA; border-left:4px solid #6B3DBF; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#4A1E9E; margin-bottom:5px;">🪣 虹吸成功兩條件</div>
+    ① 水管<b>裝滿水</b>（沒有空氣）<br>
+    ② 出水口<b>比水面低</b><br>
+    缺一不可！
+  </div>
+
+  <div style="background:#FDEBD8; border-left:4px solid #D96B3A; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#8B3300; margin-bottom:5px;">🏔️ 地表物質顆粒</div>
+    <b>礫石 ＞ 砂 ＞ 土壤</b><br>
+    （由大到小）<br>
+    顆粒愈小 → 愈容易被水搬走
+  </div>
+
+  <div style="background:#FFE8EC; border-left:4px solid #C0392B; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#8B0000; margin-bottom:5px;">🚨 地震就地避難</div>
+    <b>趴下、掩護、穩住</b><br>
+    先保護<b>頭、頸部</b><br>
+    遠離玻璃窗與瓦斯管線
+  </div>
+
+</div>
+
+<div class="nav" style="margin-top:18px;">
+  <button class="tab-btn active" onclick="switchTab('overview',this)">📋 重點整理</button>
+  <button class="tab-btn" onclick="switchTab('flashcard',this)">🃏 翻翻卡</button>
+  <button class="tab-btn" onclick="switchTab('quiz',this)">✏️ 練習題</button>
+  <button class="tab-btn" onclick="switchTab('confuse',this)">❓ 容易搞混</button>
+  <button class="tab-btn" onclick="switchTab('cheatsheet',this)">⚡ 速覽表</button>
+</div>
+
+<div class="panels">
+
+<!-- ══ PANEL 1: 重點整理 ══ -->
+<div class="panel active" id="panel-overview">
+  <p class="section-title">📌 本次考試範圍單元</p>
+  <div class="unit-grid">
+
+    <!-- 毛細現象 -->
+    <div class="unit-card c-teal">
+      <div class="unit-card-header">💧 水怎麼移動（毛細現象）</div>
+      <div class="unit-card-body">
+        <span class="tag" style="background:#D3EFEA;color:#0F6B5E;">第三單元・水的移動</span>
+        <p>水沿著物體中的縫隙往四面八方移動，稱為「毛細現象」。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🧪 哪些物體會吸水？ <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>會吸水</b>（有縫隙）：餐巾紙、報紙<br>
+            <b>不吸水</b>（沒縫隙）：塑膠袋、鋁箔紙<br><br>
+            📍 關鍵：能讓水移動的物體，都<span class="highlight">有縫隙</span>
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">📏 縫隙大小的影響 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・縫隙愈<span class="red">小</span> → 水移動的距離愈<span class="red">長</span>（爬得愈高、愈遠）<br>
+            ・縫隙愈<b>大</b> → 水移動的距離愈<b>短</b><br><br>
+            ⚠️ 最容易記反！「小縫隙 = 爬得高」
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🏠 生活中的毛細現象 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・紙巾、抹布吸水<br>
+            ・毛筆吸墨水<br>
+            ・棉質衣服吸汗<br>
+            ・蠟燭的棉芯把蠟油往上吸
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 連通管原理 -->
+    <div class="unit-card c-blue">
+      <div class="unit-card-header">⚖️ 連通管原理</div>
+      <div class="unit-card-body">
+        <span class="tag tag-blue">第三單元・水的移動</span>
+        <p>底部相連通的容器裝水後，當水靜止時，各容器的水面高度都相同。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">💡 原理重點 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・上下移動水管管口，<b>兩端水面最後會一樣高</b><br>
+            ・水面高度<span class="red">和容器的形狀、粗細無關</span><br>
+            ・可以用來<b>測量水平</b>（例如：用水管確認畫有沒有掛水平）
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🫖 生活中的應用 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・<b>茶壺</b>：壺口的高度決定壺裡能裝的最高水位<br>
+            ・<b>儲酒桶</b>外側的透明管：看出裡面的儲酒量<br>
+            ・<b>洗手臺底部的彎管</b>：讓一些水積在底部
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🚰 洗手臺積水的用途 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            底部彎管的積水可以：<br>
+            ・<b>隔絕</b>底部的臭氣，不讓臭味飄進室內<br>
+            ・<b>阻止</b>室外的昆蟲沿著水管爬進室內
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 虹吸現象 -->
+    <div class="unit-card c-purple">
+      <div class="unit-card-header">🪣 虹吸現象</div>
+      <div class="unit-card-body">
+        <span class="tag tag-purple">第三單元・水的移動</span>
+        <p>用一條裝滿水的水管，讓水自動從高處流向低處，稱為「虹吸現象」。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">✅ 虹吸成功的條件 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ① 水管要<span class="red">裝滿水</span>（裡面沒有空氣）<br>
+            ② 出水口要<span class="red">比水面低</span><br><br>
+            📍 例子：用水管幫水族箱換水
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🔼 出水口高低的影響 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・出水口在水面與底部<b>之間</b> → 水流出，但不會流光<br>
+            ・出水口<b>低於</b>容器底部 → 水會流出，<b>完全流光</b><br>
+            ・出水口和水面<b>同高</b> → 水管內的水靜止不動<br>
+            ・出水口<b>高於</b>水面 → 水<b>反向流回</b>容器
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🐉 九龍公道杯（貪心杯） <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・酒倒<b>適量</b>→不會漏；酒倒<b>太多</b>→從杯底全部漏光<br>
+            ・利用<span class="highlight">連通管原理 ＋ 虹吸現象</span>製成<br>
+            ・西方也有類似的「畢達哥拉斯杯」<br>
+            📝 寓意：凡事不可太貪心
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 認識地表環境 -->
+    <div class="unit-card c-green">
+      <div class="unit-card-header">🦌 認識地表環境</div>
+      <div class="unit-card-body">
+        <span class="tag tag-green">第四單元・臺灣的環境</span>
+        <p>臺灣有多樣的地表環境，提供人類與動植物生活，也蘊含有限的自然資源。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🐾 生物與棲地 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            不同生物適合住在不同環境：<br>
+            ・<b>梅花鹿</b> → 平原<br>
+            ・<b>石虎</b> → 丘陵<br>
+            ・<b>臺灣水鹿</b> → 山地<br>
+            ・<b>臺灣長鬃山羊</b> → 山地
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🌳 珍惜自然資源 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            地表環境蘊含的自然資源<b>有限</b>，要珍惜使用。<br><br>
+            <b>破壞</b>環境的行為：<br>
+            ・過度砍伐森林樹木<br>
+            ・超抽地下水資源<br>
+            ・開挖山坡地<br>
+            ・工廠排放廢水<br>
+            📍 清理山中垃圾則是<span class="highlight">保護</span>環境的行為
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 變動的地表環境 -->
+    <div class="unit-card c-orange">
+      <div class="unit-card-header">🏔️ 變動的地表環境</div>
+      <div class="unit-card-body">
+        <span class="tag tag-orange">第四單元・臺灣的環境</span>
+        <p>地表的礫石、砂、土壤會被水搬移；風力、水流、地震都會改變地貌。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🪨 礫石、砂、土壤 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            用<b>顆粒大小</b>和<b>粗細</b>來區分：<br>
+            ・<b>礫石</b>：顆粒<span class="red">最大</span>，摸起來粗粗的<br>
+            ・<b>砂</b>：顆粒中等<br>
+            ・<b>土壤</b>：顆粒<span class="red">最小</span>，摸起來細細的<br><br>
+            📍 大小排序：礫石 ＞ 砂 ＞ 土壤
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🌧️ 水的作用 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            水會<b>搬移</b>地表物質：<br>
+            ・顆粒愈<b>小</b> → 愈容易被搬走、搬得愈<b>遠</b>（<span class="red">土壤最容易被沖走</span>）<br>
+            ・水的作用愈大 → 沖走、流失的數量愈多<br>
+            ・土堆<b>上方凹陷</b>（被沖蝕）、<b>下方堆積</b>
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🌪️ 改變地貌的因素 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>風力、水流作用、地震</b> 等因素，<br>
+            都可能改變地貌、造成災害。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 地震與防災 -->
+    <div class="unit-card c-blue">
+      <div class="unit-card-header" style="background:linear-gradient(135deg,#E0606A,#C0392B);">🚨 地震與防災</div>
+      <div class="unit-card-body">
+        <span class="tag tag-red">第四單元・臺灣的環境</span>
+        <p>臺灣位於地震頻繁地區，認識地震、學會正確的防災應變很重要。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">📅 九二一大地震 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・時間：<b>民國88年9月21日</b><br>
+            ・原因：<b>車籠埔斷層</b>活動引發<br>
+            ・災情：河床隆起、校舍倒塌、操場跑道隆起<br><br>
+            📍 興建<b>九二一地震教育園區</b>保留地景<br>
+            📍 訂每年<span class="red">9月21日為「國家防災日」</span>，舉行地震演習
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🛡️ 地震時怎麼保護自己？ <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・優先保護<span class="red">頭、頸部</span><br>
+            ・採「就地避難」：<b>趴下、掩護、穩住</b><br><br>
+            在室內時：<br>
+            ・躲在堅固的桌子下<br>
+            ・拿物品保護頭部<br>
+            ・遠離玻璃窗（避免被碎玻璃割傷）<br>
+            ・遠離瓦斯管線（避免失火）
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🐟 補充：櫻花鉤吻鮭 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・攔砂壩攔住砂石→河床升高、阻斷溪流→破壞生態，鮭魚數量銳減<br>
+            ・<b>雪霸國家公園</b>拆除攔砂壩→改善棲地，數量回升破萬尾<br>
+            📝 啟示：解決問題要多方評估，避免製造新問題
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ PANEL 2: 翻翻卡 ══ -->
+<div class="panel" id="panel-flashcard">
+  <p class="section-title">🃏 翻翻卡練習</p>
+  <p style="color:var(--mid);font-size:0.88rem;margin-bottom:6px;">點擊卡片翻面，看看你記住了嗎？</p>
+  <div class="fc-counter" id="fc-counter">第 1 張 / 共 18 張</div>
+  <div class="fc-wrap">
+    <div class="fc" id="fc-card" onclick="fcFlip()">
+      <div class="fc-front" id="fc-front" style="background:linear-gradient(135deg,#5E8A6A,#2E7D5B);">載入中…</div>
+      <div class="fc-back" id="fc-back">載入中…</div>
+    </div>
+  </div>
+  <div class="fc-nav">
+    <button id="fc-prev-btn" onclick="fcPrev()" style="background:#5E8A6A;">◀ 上一張</button>
+    <button onclick="fcFlip()" style="background:#5E8A6A;">翻面</button>
+    <button id="fc-next-btn" onclick="fcNext()" style="background:#5E8A6A;">下一張 ▶</button>
+  </div>
+</div>
+
+<!-- ══ PANEL 3: 練習題 ══ -->
+<div class="panel" id="panel-quiz">
+  <p class="section-title">✏️ 練習題</p>
+  <div id="quiz-container"></div>
+  <div class="score-display" id="quiz-score" style="display:none;"></div>
+  <button class="reset-btn" id="quiz-reset-btn" style="display:none;" onclick="resetQuiz()">重新作答</button>
+</div>
+
+<!-- ══ PANEL 4: 容易搞混 ══ -->
+<div class="panel" id="panel-confuse">
+  <p class="section-title">❓ 容易搞混的地方</p>
+  <table class="cf-table">
+    <tr><th>A</th><th>VS</th><th>B（重要差別）</th></tr>
+    <tr>
+      <td><b>毛細現象</b><br>縫隙愈<u>小</u> → 水爬得愈高、愈遠</td>
+      <td class="vs">≠</td>
+      <td>不是縫隙愈大爬愈高！<b>小縫隙</b>才會讓水移動得遠</td>
+    </tr>
+    <tr>
+      <td><b>連通管原理</b><br>水<u>靜止</u>時兩邊一樣高</td>
+      <td class="vs">≠</td>
+      <td><b>虹吸現象</b>是讓水<b>流動</b>（從高流到低）；連通管是測水平</td>
+    </tr>
+    <tr>
+      <td><b>虹吸成功</b><br>水管裝滿水＋出水口比水面低</td>
+      <td class="vs">≠</td>
+      <td>水管<b>有空氣</b>，或出水口<b>比水面高</b> → 失敗（水會倒流回去）</td>
+    </tr>
+    <tr>
+      <td><b>礫石</b>顆粒最大（粗）</td>
+      <td class="vs">＞</td>
+      <td><b>砂 ＞ 土壤</b>（最小、最細）。顆粒愈小，愈容易被水搬走</td>
+    </tr>
+    <tr>
+      <td><b>下大雨時</b><br>哪種地表物質最容易流失？</td>
+      <td class="vs">→</td>
+      <td><b>土壤</b>（顆粒最小、被搬得最遠）；礫石最重最不易被沖走</td>
+    </tr>
+    <tr>
+      <td><b>梅花鹿→平原</b></td>
+      <td class="vs">≠</td>
+      <td><b>石虎→丘陵</b>；<b>水鹿、長鬃山羊→山地</b>。不同生物住不同環境</td>
+    </tr>
+    <tr>
+      <td><b>國家防災日 = 9月21日</b></td>
+      <td class="vs">→</td>
+      <td>為紀念<b>九二一大地震</b>（民國88年，車籠埔斷層活動引發）而訂</td>
+    </tr>
+    <tr>
+      <td><b>地震就地避難</b></td>
+      <td class="vs">→</td>
+      <td><b>趴下、掩護、穩住</b>，先保護頭頸部；遠離玻璃窗與瓦斯管線</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ══ PANEL 5: 速覽表 ══ -->
+<div class="panel" id="panel-cheatsheet">
+  <p class="section-title">⚡ 考前 5 分鐘速覽</p>
+  <div class="cs-grid">
+    <div class="cs-box" style="background:#D9F0EC;">
+      <h3>💧 毛細現象</h3>
+      <ul>
+        <li>水沿物體縫隙往四面八方移動</li>
+        <li>有縫隙才吸水（紙巾、報紙）</li>
+        <li>縫隙愈小 → 水爬得愈高、愈遠</li>
+        <li>例：毛筆吸墨、棉布吸汗</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b2">
+      <h3>⚖️ 連通管原理</h3>
+      <ul>
+        <li>水靜止時，兩端水面一樣高</li>
+        <li>和容器形狀、粗細無關</li>
+        <li>可測量水平（測掛畫）</li>
+        <li>應用：茶壺、儲酒桶、洗手臺彎管</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b4">
+      <h3>🪣 虹吸現象</h3>
+      <ul>
+        <li>裝滿水的水管，水自動由高流到低</li>
+        <li>條件：①裝滿水(無空氣) ②出水口比水面低</li>
+        <li>出水口太高 → 水倒流回去</li>
+        <li>例：水族箱換水、九龍公道杯</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b1">
+      <h3>🦌 認識地表環境</h3>
+      <ul>
+        <li>梅花鹿→平原；石虎→丘陵</li>
+        <li>水鹿、長鬃山羊→山地</li>
+        <li>自然資源有限，要珍惜</li>
+        <li>破壞：砍森林、抽地下水、排廢水</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b3">
+      <h3>🏔️ 變動的地表環境</h3>
+      <ul>
+        <li>顆粒：礫石 ＞ 砂 ＞ 土壤</li>
+        <li>水會搬移物質，土壤最容易被沖走</li>
+        <li>上方凹陷、下方堆積</li>
+        <li>風力、水流、地震都會改變地貌</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b6">
+      <h3>🚨 地震與防災</h3>
+      <ul>
+        <li>九二一：民國88年9/21，車籠埔斷層</li>
+        <li>國家防災日 = 9月21日</li>
+        <li>避難：趴下、掩護、穩住，護頭頸</li>
+        <li>遠離玻璃窗與瓦斯管線</li>
+      </ul>
+    </div>
+  </div>
+  <p class="print-hint">💡 提示：按 Ctrl+P 可列印這頁，帶到考試前複習！</p>
+</div>
+
+</div><!-- end panels -->
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+function toggleAcc(btn) {
+  const content = btn.nextElementSibling;
+  const isOpen = content.classList.contains('open');
+  btn.closest('.unit-card-body').querySelectorAll('.acc-content').forEach(c => c.classList.remove('open'));
+  btn.closest('.unit-card-body').querySelectorAll('.acc-trigger').forEach(b => b.classList.remove('open'));
+  if (!isOpen) { content.classList.add('open'); btn.classList.add('open'); }
+}
+
+const flashcards = [
+  { q: '什麼是「毛細現象」？', a: '水沿著物體中的細小縫隙，往上、往四面八方移動的現象' },
+  { q: '縫隙的大小如何影響水移動的距離？', a: '縫隙愈小，水移動的距離愈長（爬得愈高、愈遠）；縫隙愈大，距離愈短' },
+  { q: '哪些物體會吸水、哪些不會？關鍵是什麼？', a: '有縫隙的會吸水（餐巾紙、報紙）；沒縫隙的不會（塑膠袋、鋁箔紙）。關鍵是「有沒有縫隙」' },
+  { q: '什麼是「連通管原理」？', a: '底部相連通的容器裝水後，當水靜止時，各容器的水面高度都相同（和容器形狀、粗細無關）' },
+  { q: '連通管原理可以用來做什麼？', a: '測量水平。例如用一條裝水的水管，確認牆上的畫有沒有掛水平' },
+  { q: '連通管原理在生活中有哪些應用？', a: '茶壺（壺口高度決定最高水位）、儲酒桶外的透明管（看酒量）、洗手臺底部的彎管' },
+  { q: '洗手臺底部彎管裡的積水有什麼用途？', a: '隔絕底部的臭氣不飄進室內，並阻止室外昆蟲沿著水管爬進來' },
+  { q: '什麼是「虹吸現象」？', a: '用一條裝滿水的水管，讓水自動從高處流向低處的現象（例如幫水族箱換水）' },
+  { q: '虹吸要成功，需要哪兩個條件？', a: '①水管要裝滿水（裡面沒有空氣）②出水口要比水面低' },
+  { q: '虹吸換水時，如果出水口比水面「高」，會怎樣？', a: '水會反向流回容器，無法把水引流出來' },
+  { q: '九龍公道杯（貪心杯）是利用什麼原理製成的？', a: '連通管原理和虹吸現象。酒倒太多時會從杯底全部漏光' },
+  { q: '梅花鹿、石虎、水鹿、長鬃山羊各適合住在什麼環境？', a: '梅花鹿→平原；石虎→丘陵；臺灣水鹿、臺灣長鬃山羊→山地' },
+  { q: '哪些人類行為會破壞自然環境？', a: '過度砍伐森林、超抽地下水、開挖山坡地、工廠排放廢水' },
+  { q: '礫石、砂、土壤的顆粒大小如何排列？', a: '礫石最大（摸起來粗）＞ 砂 ＞ 土壤最小（摸起來細）' },
+  { q: '下大雨時，哪一種地表物質最容易被水搬走？', a: '顆粒最小的「土壤」最容易被沖走、被搬得最遠' },
+  { q: '哪些因素會改變地貌、甚至造成災害？', a: '風力、水流作用、地震等因素' },
+  { q: '九二一大地震是哪一天？由什麼引發？國家防災日是哪一天？', a: '民國88年9月21日，由車籠埔斷層活動引發；國家防災日訂為每年9月21日' },
+  { q: '地震發生時要怎麼保護自己？', a: '優先保護頭、頸部，採就地避難「趴下、掩護、穩住」；室內躲堅固桌下、遠離玻璃窗與瓦斯管線' },
+];
+
+let fcIndex = 0, fcFlipped = false;
+function renderFC() {
+  const card = flashcards[fcIndex];
+  document.getElementById('fc-front').innerHTML = card.q.replace(/\n/g,'<br>') + '<div class="fc-hint">點擊翻面看答案</div>';
+  document.getElementById('fc-back').innerHTML = card.a.replace(/\n/g,'<br>') + '<div class="fc-hint">點擊翻回題目</div>';
+  document.getElementById('fc-counter').textContent = `第 ${fcIndex+1} 張 / 共 ${flashcards.length} 張`;
+  document.getElementById('fc-prev-btn').disabled = fcIndex === 0;
+  document.getElementById('fc-next-btn').disabled = fcIndex === flashcards.length - 1;
+  fcFlipped = false;
+  document.getElementById('fc-card').classList.remove('flipped');
+}
+function flipCard() { fcFlipped = !fcFlipped; document.getElementById('fc-card').classList.toggle('flipped', fcFlipped); }
+function fcFlip() { flipCard(); }
+function fcNext() { if(fcIndex < flashcards.length-1){ fcIndex++; renderFC(); } }
+function fcPrev() { if(fcIndex > 0){ fcIndex--; renderFC(); } }
+renderFC();
+
+const quizData = [
+  { q: '水沿著物體中的細小縫隙往四面八方移動，這種現象稱為？', opts: ['連通管原理', '毛細現象', '虹吸現象', '蒸發現象'], ans: 1 },
+  { q: '關於毛細現象，下列敘述何者正確？', opts: ['縫隙愈大，水爬得愈高', '縫隙愈小，水移動的距離愈長', '沒有縫隙也能吸水', '和縫隙大小無關'], ans: 1 },
+  { q: '下列哪一種物品「不會」吸水？', opts: ['餐巾紙', '報紙', '鋁箔紙', '棉布'], ans: 2 },
+  { q: '底部相連通的容器裝水，水靜止後兩邊的水面高度會？', opts: ['左邊比較高', '右邊比較高', '高度相同', '無法判斷'], ans: 2 },
+  { q: '想確認牆上的畫有沒有掛水平，可以利用什麼原理？', opts: ['毛細現象', '虹吸現象', '連通管原理', '蒸發作用'], ans: 2 },
+  { q: '洗手臺底部彎管裡的積水，主要的功能是？', opts: ['加速排水', '隔絕臭氣、阻止昆蟲爬進室內', '節省用水', '讓水變乾淨'], ans: 1 },
+  { q: '用水管幫水族箱換水（虹吸），要成功必須符合什麼條件？', opts: ['水管裝一半水就好', '水管裝滿水且出水口比水面低', '出水口比水面高', '水管裡要有空氣'], ans: 1 },
+  { q: '虹吸換水時，若把出水口提得「比水面還高」，會發生什麼？', opts: ['水流得更快', '水反向流回水族箱', '水完全流光', '水靜止不動'], ans: 1 },
+  { q: '九龍公道杯倒太多酒會從杯底漏光，是利用什麼原理？', opts: ['只有毛細現象', '只有蒸發作用', '連通管原理和虹吸現象', '熱脹冷縮'], ans: 2 },
+  { q: '石虎最適合生活在什麼樣的環境？', opts: ['平原', '丘陵', '山地', '海洋'], ans: 1 },
+  { q: '下列哪一個是「破壞」自然環境的行為？', opts: ['清理山中垃圾', '工廠排放廢水', '種樹造林', '資源回收'], ans: 1 },
+  { q: '礫石、砂、土壤三者中，顆粒「最小」的是？', opts: ['礫石', '砂', '土壤', '三者一樣大'], ans: 2 },
+  { q: '下大雨時，地表的哪一種物質最容易被水沖走、搬得最遠？', opts: ['礫石', '砂', '土壤', '都不會被沖走'], ans: 2 },
+  { q: '地震發生時，下列哪一個應變動作最正確？', opts: ['趕快搭電梯下樓', '站在玻璃窗旁邊', '趴下、掩護、穩住，保護頭頸部', '躲到瓦斯爐旁'], ans: 2 },
+];
+
+let quizAnswered = 0, quizCorrect = 0;
+const quizDone = new Array(quizData.length).fill(false);
+function buildQuiz() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  quizData.forEach((q, qi) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-card'; div.id = `qcard-${qi}`;
+    div.innerHTML = `
+      <div class="quiz-q"><span class="qnum">${qi+1}</span>${q.q}</div>
+      <div class="quiz-options">
+        ${q.opts.map((o,oi) => `<button class="quiz-opt" onclick="answerQuiz(${qi},${oi})">${['①','②','③','④'][oi]} ${o}</button>`).join('')}
+      </div>
+      <div class="quiz-result" id="qres-${qi}"></div>`;
+    container.appendChild(div);
+  });
+}
+function answerQuiz(qi, oi) {
+  if (quizDone[qi]) return;
+  quizDone[qi] = true; quizAnswered++;
+  const q = quizData[qi];
+  const card = document.getElementById(`qcard-${qi}`);
+  const opts = card.querySelectorAll('.quiz-opt');
+  const res = document.getElementById(`qres-${qi}`);
+  opts.forEach((btn, idx) => {
+    btn.disabled = true;
+    if (idx === q.ans) btn.classList.add('correct');
+    else if (idx === oi && oi !== q.ans) btn.classList.add('wrong');
+  });
+  if (oi === q.ans) {
+    quizCorrect++; res.className = 'quiz-result show ok'; res.textContent = '✅ 答對了！';
+  } else {
+    res.className = 'quiz-result show no'; res.textContent = `❌ 答錯了！正確答案是：${q.opts[q.ans]}`;
+  }
+  if (quizAnswered === quizData.length) {
+    const scoreEl = document.getElementById('quiz-score');
+    scoreEl.style.display = 'block';
+    const pct = Math.round(quizCorrect/quizData.length*100);
+    let emoji = pct >= 90 ? '🎉' : pct >= 70 ? '👍' : '💪';
+    scoreEl.textContent = `${emoji} 你得了 ${quizCorrect} / ${quizData.length} 分（${pct}%）`;
+    document.getElementById('quiz-reset-btn').style.display = 'block';
+  }
+}
+function resetQuiz() {
+  quizAnswered = 0; quizCorrect = 0; quizDone.fill(false);
+  document.getElementById('quiz-score').style.display = 'none';
+  document.getElementById('quiz-reset-btn').style.display = 'none';
+  buildQuiz();
+}
+buildQuiz();
+</script>
+</body>
+</html>

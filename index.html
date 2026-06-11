@@ -15,13 +15,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 32px 20px;
+    padding: 40px 20px;
   }
 
   .top {
     text-align: center;
-    margin-bottom: 36px;
+    margin-bottom: 30px;
   }
   .top .emoji { font-size: 2.8rem; margin-bottom: 10px; }
   .top h1 {
@@ -36,12 +35,35 @@
     margin-top: 8px;
   }
 
+  .exam-section { width: 100%; max-width: 560px; margin-bottom: 30px; }
+  .exam-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.02rem;
+    font-weight: 900;
+    color: #6A6660;
+    margin: 0 4px 14px;
+  }
+  .exam-label::before,
+  .exam-label::after {
+    content: '';
+    flex: 1;
+    height: 1.5px;
+    background: #E4E0D8;
+  }
+  .exam-label span {
+    background: #EFEDE6;
+    border-radius: 20px;
+    padding: 4px 16px;
+    white-space: nowrap;
+  }
+
   .cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 18px;
     width: 100%;
-    max-width: 560px;
   }
 
   .card {
@@ -60,7 +82,7 @@
   }
 
   .card-top {
-    padding: 28px 24px 22px;
+    padding: 26px 24px 20px;
     text-align: center;
   }
   .card-top .icon { font-size: 2.6rem; margin-bottom: 12px; }
@@ -86,7 +108,7 @@
   .c-science .card-footer { background: #484870; color: #EEEEF4; }
 
   .footer-note {
-    margin-top: 36px;
+    margin-top: 16px;
     font-size: 0.78rem;
     color: #B0ACA4;
     text-align: center;
@@ -99,27 +121,55 @@
   <div class="top">
     <div class="emoji">📚</div>
     <h1>四年級考前複習</h1>
-    <p>選擇科目，開始複習！</p>
+    <p>選擇評量範圍與科目，開始複習！</p>
   </div>
 
-  <div class="cards">
-    <a class="card c-social" href="social.html">
-      <div class="card-top">
-        <div class="icon">🌏</div>
-        <h2>社會科</h2>
-        <p>第一單元 家鄉的產業<br>第二單元 家鄉的人口</p>
-      </div>
-      <div class="card-footer">進入複習 →</div>
-    </a>
+  <!-- 第二次定期評量（最新，放最上面） -->
+  <div class="exam-section">
+    <div class="exam-label"><span>📝 第二次定期評量</span></div>
+    <div class="cards">
+      <a class="card c-social" href="social2.html">
+        <div class="card-top">
+          <div class="icon">🌏</div>
+          <h2>社會科</h2>
+          <p>第三單元 家鄉的交通<br>第四單元 家鄉風情畫</p>
+        </div>
+        <div class="card-footer">進入複習 →</div>
+      </a>
 
-    <a class="card c-science" href="science.html">
-      <div class="card-top">
-        <div class="icon">🔬</div>
-        <h2>自然科</h2>
-        <p>第一單元 生活中有趣的力<br>第二單元 昆蟲家族</p>
-      </div>
-      <div class="card-footer">進入複習 →</div>
-    </a>
+      <a class="card c-science" href="science2.html">
+        <div class="card-top">
+          <div class="icon">🔬</div>
+          <h2>自然科</h2>
+          <p>第三單元 水的移動<br>第四單元 了解臺灣的環境</p>
+        </div>
+        <div class="card-footer">進入複習 →</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 第一次定期評量 -->
+  <div class="exam-section">
+    <div class="exam-label"><span>📒 第一次定期評量</span></div>
+    <div class="cards">
+      <a class="card c-social" href="social.html">
+        <div class="card-top">
+          <div class="icon">🌏</div>
+          <h2>社會科</h2>
+          <p>第一單元 家鄉的產業<br>第二單元 家鄉的人口</p>
+        </div>
+        <div class="card-footer">進入複習 →</div>
+      </a>
+
+      <a class="card c-science" href="science.html">
+        <div class="card-top">
+          <div class="icon">🔬</div>
+          <h2>自然科</h2>
+          <p>第一單元 生活中有趣的力<br>第二單元 昆蟲家族</p>
+        </div>
+        <div class="card-footer">進入複習 →</div>
+      </a>
+    </div>
   </div>
 
   <div class="footer-note">

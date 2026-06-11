@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四年級社會 考前複習</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+  :root {
+    --sky: #5A7A9A;
+    --sun: #C8A84B;
+    --grass: #4A7055;
+    --soil: #7A5840;
+    --water: #4A7A72;
+    --cloud: #F5F5F0;
+    --dark: #2A3440;
+    --mid: #4A5C6A;
+    --light: #F2F4F6;
+    --accent: #8A4848;
+    --purple: #4A4870;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', '微軟正黑體', sans-serif;
+    background: #FAFAF7;
+    color: #5A5650;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--sky) 0%, #2B7DBF 100%);
+    padding: 32px 24px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 28px;
+    background: var(--light);
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.06em;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header .subtitle {
+    color: rgba(255,255,255,0.95);
+    font-size: 1rem;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .badges {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255,255,255,0.22);
+    border: 1.5px solid rgba(255,255,255,0.5);
+    color: #fff;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  /* ── NAV TABS ── */
+  .nav {
+    display: flex;
+    gap: 0;
+    padding: 18px 16px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .tab-btn {
+    background: #C9DFF0;
+    border: none;
+    border-radius: 12px 12px 0 0;
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--mid);
+    cursor: pointer;
+    transition: all .18s;
+    margin: 0 2px;
+  }
+  .tab-btn.active {
+    background: #fff;
+    color: var(--sky);
+    box-shadow: 0 -2px 0 var(--sky) inset;
+  }
+  .tab-btn:hover:not(.active) { background: #d8ecf8; }
+
+  /* ── PANELS ── */
+  .panels {
+    background: #fff;
+    border-radius: 0 0 16px 16px;
+    margin: 0 16px 24px;
+    padding: 24px 20px;
+    box-shadow: 0 4px 18px rgba(30,42,56,0.1);
+    min-height: 400px;
+  }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn .25s ease; }
+
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+
+  /* ── UNIT CARDS ── */
+  .unit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .unit-card {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(30,42,56,0.1);
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .unit-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(30,42,56,0.14); }
+  .unit-card-header {
+    padding: 14px 16px 10px;
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.05rem;
+  }
+  .unit-card-body { padding: 14px 16px; background: #fff; font-size: 0.9rem; line-height: 1.7; }
+  .unit-card-body .tag {
+    display: inline-block;
+    border-radius: 6px;
+    padding: 2px 9px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin: 3px 3px 3px 0;
+  }
+
+  .c-green .unit-card-header { background: linear-gradient(135deg, #5BB860, #3A8E40); }
+  .c-blue .unit-card-header { background: linear-gradient(135deg, #4BA3D9, #2B7DBF); }
+  .c-orange .unit-card-header { background: linear-gradient(135deg, #F7A048, #D96B3A); }
+  .c-purple .unit-card-header { background: linear-gradient(135deg, #A07BDE, #6B3DBF); }
+  .c-teal .unit-card-header { background: linear-gradient(135deg, #3ABFB0, #1E8E80); }
+
+  .tag-green { background: #D6F0D8; color: #2A7030; }
+  .tag-blue  { background: #D0E8F8; color: #1B5E8A; }
+  .tag-orange { background: #FDEBD8; color: #B0440A; }
+  .tag-purple { background: #EDE4FA; color: #5230A0; }
+  .tag-red { background: #FFE0D8; color: #B02010; }
+
+  /* ── ACCORDION ── */
+  .acc-item {
+    border: 1.5px solid #DDE8F0;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .acc-trigger {
+    width: 100%;
+    background: #F0F7FC;
+    border: none;
+    text-align: left;
+    padding: 13px 16px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--dark);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background .15s;
+  }
+  .acc-trigger:hover { background: #DFF0FA; }
+  .acc-trigger .arrow { transition: transform .2s; font-size: 1.1rem; }
+  .acc-trigger.open .arrow { transform: rotate(90deg); }
+  .acc-content {
+    display: none;
+    padding: 14px 16px 16px;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    background: #fff;
+    border-top: 1px solid #DDE8F0;
+  }
+  .acc-content.open { display: block; animation: fadeIn .2s; }
+
+  /* ── QUIZ ── */
+  .quiz-card {
+    background: #FAFCFF;
+    border: 2px solid #C5DFF0;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .quiz-q {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .quiz-q .qnum {
+    display: inline-block;
+    background: var(--sky);
+    color: #fff;
+    border-radius: 50%;
+    width: 26px; height: 26px;
+    text-align: center;
+    line-height: 26px;
+    font-size: 0.85rem;
+    margin-right: 8px;
+  }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-opt {
+    background: #EBF5FC;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all .15s;
+  }
+  .quiz-opt:hover { border-color: var(--sky); background: #D8EDF8; }
+  .quiz-opt.correct { background: #D8F2DC; border-color: var(--grass); color: #1C5E22; font-weight: 700; }
+  .quiz-opt.wrong { background: #FFE0D8; border-color: var(--soil); color: #8B2200; }
+  .quiz-opt.show-correct { background: #D8F2DC; border-color: var(--grass); }
+  .quiz-result { margin-top: 12px; font-size: 0.88rem; padding: 8px 12px; border-radius: 8px; display: none; }
+  .quiz-result.show { display: block; }
+  .quiz-result.ok { background: #D8F2DC; color: #1C5E22; }
+  .quiz-result.no { background: #FFE0D8; color: #8B2200; }
+
+  /* ── FLASHCARDS ── */
+  .fc-wrap { perspective: 900px; margin-bottom: 16px; }
+  .fc {
+    width: 100%; min-height: 160px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform .45s;
+    cursor: pointer;
+    border-radius: 14px;
+  }
+  .fc.flipped { transform: rotateY(180deg); }
+  .fc-front, .fc-back {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+    text-align: center;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  .fc-front { background: linear-gradient(135deg, var(--sky), #2B7DBF); color: #fff; font-weight: 700; font-size: 1.1rem; }
+  .fc-back { background: #fff; color: var(--dark); transform: rotateY(180deg); border: 2px solid #C5DFF0; font-size: 0.92rem; }
+  .fc-hint { font-size: 0.75rem; opacity: 0.7; margin-top: 8px; }
+
+  .fc-nav { display: flex; gap: 10px; justify-content: center; margin: 10px 0 18px; }
+  .fc-nav button {
+    background: var(--sky); color: #fff; border: none; border-radius: 8px;
+    padding: 8px 20px; font-family: inherit; font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; transition: background .15s;
+  }
+  .fc-nav button:hover { background: #3A8FCA; }
+  .fc-nav button:disabled { background: #B0CEDF; cursor: default; }
+  .fc-counter { text-align: center; color: var(--mid); font-size: 0.85rem; margin-bottom: 8px; }
+
+  /* ── CHEATSHEET ── */
+  .cs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .cs-box {
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 0.88rem;
+    line-height: 1.75;
+  }
+  .cs-box h3 { font-size: 0.95rem; font-weight: 900; margin-bottom: 8px; }
+  .cs-box ul { padding-left: 18px; }
+  .cs-box li { margin-bottom: 4px; }
+  .cs-b1 { background: #D6F0D8; }
+  .cs-b2 { background: #D0E8F8; }
+  .cs-b3 { background: #FDEBD8; }
+  .cs-b4 { background: #EDE4FA; }
+  .cs-b5 { background: #FFF8D8; }
+  .cs-b6 { background: #FFE0E8; }
+
+  /* ── CONFUSE TABLE ── */
+  .cf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin-top: 6px;
+  }
+  .cf-table th {
+    background: var(--sky);
+    color: #fff;
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 700;
+  }
+  .cf-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #DDE8F0;
+    vertical-align: top;
+    line-height: 1.65;
+  }
+  .cf-table tr:nth-child(even) td { background: #F3F9FD; }
+  .cf-table .vs { text-align: center; color: var(--accent); font-weight: 900; font-size: 1rem; }
+
+  /* ── MISC ── */
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--sky);
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 2.5px solid #C5DFF0;
+  }
+  .chip {
+    display: inline-block;
+    background: var(--sun);
+    color: var(--dark);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .highlight { background: #FFF3C0; border-radius: 4px; padding: 0 3px; }
+  .red { color: var(--accent); font-weight: 700; }
+  .score-display {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--sky);
+    margin: 16px 0;
+  }
+  .reset-btn {
+    display: block; margin: 0 auto;
+    background: #E8F4FD; border: 2px solid var(--sky);
+    color: var(--sky); border-radius: 8px;
+    padding: 8px 24px; font-family: inherit;
+    font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; transition: all .15s;
+  }
+  .reset-btn:hover { background: var(--sky); color: #fff; }
+
+  @media(max-width:500px) {
+    .header h1 { font-size: 1.55rem; }
+    .panels { padding: 18px 14px; }
+    .tab-btn { padding: 8px 12px; font-size: 0.82rem; }
+    .cf-table { font-size: 0.80rem; }
+  }
+  .print-hint { text-align:center; color:#7A90A4; font-size:0.78rem; margin-top:18px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html" style="position:absolute;top:14px;left:16px;color:rgba(238,240,232,0.75);font-size:0.82rem;text-decoration:none;font-weight:500;">← 回首頁</a>
+  <h1>🌏 四年級社會 考前複習</h1>
+  <div class="subtitle">第三單元 家鄉的交通 ＋ 第四單元 家鄉風情畫</div>
+  <div class="badges"><span class="badge">第二次定期評量</span></div>
+</div>
+
+<!-- 貼心提醒區 -->
+<div style="margin: 18px 16px 0; display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:12px;">
+
+  <div style="background:#FFF8E0; border-left:4px solid #F7C948; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#B07800; margin-bottom:5px;">⚠️ 最容易考錯！</div>
+    三種船分清楚：<br>
+    渡輪 → <b>人＋車</b>一起載<br>
+    貨輪 → 只載<b>貨</b>；遊艇 → <b>觀光</b>
+  </div>
+
+  <div style="background:#D0E8F8; border-left:4px solid #2B7DBF; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#1B5E8A; margin-bottom:5px;">🚦 運輸分三類</div>
+    <b>陸上</b>（公路、鐵路、捷運）<br>
+    <b>水上</b>（碼頭、港口、船舶）<br>
+    <b>空中</b>（飛機，速度快、限制多）
+  </div>
+
+  <div style="background:#D8F2DC; border-left:4px solid #3A8E40; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#1C5E22; margin-bottom:5px;">🏞️ 自然 vs 人文風貌</div>
+    <b>自然</b>：地形、氣候、生態<br>
+    <b>人文</b>：產業、建築、節慶<br>
+    （奇岩→自然；石滬→人文）
+  </div>
+
+  <div style="background:#E6F4F1; border-left:4px solid #1E8E80; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#0F6B5E; margin-bottom:5px;">📱 收到網路訊息</div>
+    先<b>查證</b>真假，再決定轉傳<br>
+    上傳合照 → 要先<b>經過同意</b><br>
+    用眼30分鐘，休息10分鐘
+  </div>
+
+  <div style="background:#FDEBD8; border-left:4px solid #D96B3A; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#8B3300; margin-bottom:5px;">🍍 特產三類型</div>
+    ① 特色農作物／水產品<br>
+    ② 加工食品（芒果乾、柴魚片）<br>
+    ③ 生活用品／工藝品（陶瓷、油紙傘）
+  </div>
+
+  <div style="background:#FFE8EC; border-left:4px solid #C0392B; border-radius:10px; padding:13px 16px; font-size:0.88rem; line-height:1.75;">
+    <div style="font-weight:900; color:#8B0000; margin-bottom:5px;">💪 考試小叮嚀</div>
+    遇到不確定的題目<br>
+    先把<b>選項一個一個排除</b><br>
+    相信自己，你讀過了！🌟
+  </div>
+
+</div>
+
+<div class="nav" style="margin-top:18px;">
+  <button class="tab-btn active" onclick="switchTab('overview',this)">📋 重點整理</button>
+  <button class="tab-btn" onclick="switchTab('flashcard',this)">🃏 翻翻卡</button>
+  <button class="tab-btn" onclick="switchTab('quiz',this)">✏️ 練習題</button>
+  <button class="tab-btn" onclick="switchTab('confuse',this)">❓ 容易搞混</button>
+  <button class="tab-btn" onclick="switchTab('cheatsheet',this)">⚡ 速覽表</button>
+</div>
+
+<div class="panels">
+
+<!-- ══ PANEL 1: 重點整理 ══ -->
+<div class="panel active" id="panel-overview">
+  <p class="section-title">📌 本次考試範圍單元</p>
+  <div class="unit-grid">
+
+    <!-- 三-1 家鄉的運輸 -->
+    <div class="unit-card c-blue">
+      <div class="unit-card-header">🚆 第1課：家鄉的運輸</div>
+      <div class="unit-card-body">
+        <span class="tag tag-blue">第三單元・交通</span>
+        <p>居民因應自然環境與人口，發展陸上、水上、空中三種運輸方式，並依需求選擇合適的工具。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🚗 陸上運輸 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            設施：公路、鐵路、橋梁、隧道、車站、捷運、高速公路、高速鐵路<br><br>
+            <b>公路</b>→較能因應自然環境，各式車輛行駛（<span class="highlight">丘陵、山地多用公路</span>）<br>
+            <b>鐵路、捷運、高鐵</b>→<span class="red">載運量大、速度快</span><br>
+            📍 橋梁跨越河流（關渡大橋）、隧道貫穿山地<br>
+            📍 人口眾多的都市 → 興建大眾捷運系統
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">⛴️ 水上運輸 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            鄰近海洋、湖泊、河流可發展。設施：碼頭、大型港口<br><br>
+            <b>渡輪</b>→同時載<span class="red">人與車輛</span>（旗津↔鼓山）<br>
+            <b>貨輪</b>→專門運送貨物，往來世界各地<br>
+            <b>觀光遊艇</b>→輕便快速、休閒觀光（日月潭）
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">✈️ 空中運輸 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            主要工具是<b>飛機</b>，需<b>寬廣平地</b>起降，容易受<b>天氣</b>影響<br>
+            功能：長途與跨國往來<br><br>
+            ⚠️ 為什麼限制比較多？→ <span class="red">確保飛航安全</span><br>
+            ・天候不佳→取消或延誤班機<br>
+            ・起飛降落不可使用電子產品<br>
+            ・出入境要嚴格檢查
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🌱 運輸發展的影響 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>好處：</b><br>
+            ・生活更便利<br>
+            ・山區農產品可運到市區→<b>產業發展</b>（拉拉山水蜜桃）<br>
+            ・車站增建→吸引<b>人口移入</b><br><br>
+            <b>壞處：</b><br>
+            ・市區車輛增加→影響行人安全（政府訂<b>停讓行人</b>規定）<br>
+            ・興建山區道路→改變自然環境<br><br>
+            📍 永續做法：適度興建、設<b>生態廊道</b>（墾丁護蟹）<br>
+            📍 政府為交通不便地區設<b>幸福巴士、幸福小黃</b>（可預約）
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 三-2 訊息的傳遞 -->
+    <div class="unit-card c-teal">
+      <div class="unit-card-header">📡 第2課：訊息的傳遞</div>
+      <div class="unit-card-body">
+        <span class="tag" style="background:#D3EFEA;color:#0F6B5E;">第三單元・交通</span>
+        <p>人們為了溝通、聯繫情感，發展各種傳遞訊息的方式；網路通訊便利，但也要注意使用方式。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">📨 傳遞訊息的方式 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            口耳相傳、書信郵寄、電話聯絡、網路通訊、智慧型手機視訊<br><br>
+            📱 <b>行動載具</b>＝智慧型手機、平板電腦（方便攜帶、可上網）<br>
+            📍 豐富的傳遞方式 → <span class="highlight">打破時間與空間的限制</span>，改變人們生活
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🌐 網路通訊的功能 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・<b>即時聯絡</b>（通訊軟體連絡遠方家人）<br>
+            ・<b>查詢資料</b>（電子地圖找地點）<br>
+            ・<b>學習知識</b>（視訊上課、借電子書）<br>
+            ・<b>休閒娛樂</b>（線上連線競賽）<br>
+            ・<b>購物消費</b>（網路購物宅配到家）
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">⚠️ 網路通訊的影響 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・網路謠言→造成不安困擾<br>
+            　→ 收到訊息要<span class="red">先查證真假，再決定是否轉傳</span><br>
+            ・上網要遵守禮儀和規範（如同現實生活）<br>
+            ・照片／個資：上傳合照要<b>經當事人同意</b>；不可隨意下載別人照片使用<br>
+            ・使用時間過長影響健康→<b>用眼30分鐘休息10分鐘</b>、妥善分配時間
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 四-1 家鄉的風貌 -->
+    <div class="unit-card c-green">
+      <div class="unit-card-header">🏞️ 第3課：家鄉的風貌</div>
+      <div class="unit-card-body">
+        <span class="tag tag-green">第四單元・風情畫</span>
+        <p>家鄉有豐富的自然與人文風貌；用心觀察就能找出特色，產生對家鄉的關愛。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🌄 自然風貌（地形＋氣候） <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            受<b>地形、氣候</b>影響而形成：<br><br>
+            <b>地形：</b>高山湖泊（宜蘭翠峰湖）、海邊奇岩（野柳<span class="highlight">女王頭</span>、仙女鞋、燭狀岩、蕈狀岩）<br>
+            <b>氣候生態：</b><br>
+            ・<b>油桐花</b>→四、五月山區盛開，花落如雪稱「<span class="red">五月雪</span>」（苗栗銅鑼）<br>
+            ・<b>黑面琵鷺</b>→<span class="red">冬天</span>到海邊溼地度冬（臺南七股）
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🏯 人文風貌（人的活動） <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            居民的生活面貌，具歷史文化意義：<br><br>
+            <b>產業活動：</b>石滬（澎湖七美，早期漁民捕魚陷阱）<br>
+            <b>建築設施：</b>大溪橋（桃園大溪，吊橋改建成西式造型）<br>
+            <b>節慶活動：</b>魯凱族小米收穫祭（盪秋千儀式，臺東卑南）
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🎨 發現家鄉之美 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            介紹家鄉特色的方式：<br>
+            ・<b>畫圖</b>（表達對家鄉的喜愛）<br>
+            ・<b>攝影</b>（保留真實面貌）<br>
+            ・<b>文字創作</b>（記錄心情與感受）<br><br>
+            📍 每個人對家鄉感受不同，只要<b>用心觀察</b>就能找出特色
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 四-2 家鄉的特產 -->
+    <div class="unit-card c-orange">
+      <div class="unit-card-header">🍍 第4課：家鄉的特產</div>
+      <div class="unit-card-body">
+        <span class="tag tag-orange">第四單元・風情畫</span>
+        <p>特產是居民從事產業活動所生產的特色物品，配合當地自然環境與文化而形成。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🌾 利用自然資源發展特產 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            <b>① 特色農作物／水產品</b>（配合自然環境直接生產）<br>
+            ・三星青蔥（宜蘭，雨量多、水質好）<br>
+            ・林邊蓮霧（屏東，氣候溫暖、甜度高）<br>
+            ・布袋虱目魚（嘉義，鄰近海邊魚塭養殖）<br><br>
+            <b>② 加工食品</b><br>
+            ・玉井芒果乾（臺南，烘烤）・成功柴魚片（臺東，鰹魚加工）<br><br>
+            <b>③ 生活用品／工藝品</b><br>
+            ・鶯歌陶瓷（新北，黏土做茶壺碗盤）
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🎎 特產成為家鄉特色 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            有些特產反映當地<b>傳統文化</b>：<br>
+            ・埔里手工紙（南投，保存製紙工藝）<br>
+            ・三地門皮雕（屏東，原住民族圖紋）<br>
+            ・美濃油紙傘（高雄，客家文化）<br>
+            　→「紙」音近「子」、傘為圓形、「傘」字有四人<br>
+            　→ 象徵<span class="highlight">團圓、多子多孫、幸福吉祥</span><br><br>
+            📍 特產可透過交通運輸對外販售、成為伴手禮 → <b>居民收入來源</b>
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🎪 推廣家鄉特產的活動 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            結合<b>觀光、節慶</b>推廣特產：<br>
+            ・南投世界茶業博覽會、千人揉茶<br>
+            ・新竹米粉製作體驗、苗栗三義木雕藝術節<br>
+            ・農會／漁會包裝銷售、政府十大伴手禮活動<br><br>
+            📍 好處：<span class="red">展現家鄉特色、促進地方經濟發展</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 四-3 愛我家鄉 -->
+    <div class="unit-card c-purple">
+      <div class="unit-card-header">💚 第5課：愛我家鄉</div>
+      <div class="unit-card-body">
+        <span class="tag tag-purple">第四單元・風情畫</span>
+        <p>家鄉的環境汙染、文化保存等問題，需要居民主動關心、用實際行動解決。</p>
+        <br>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🌿 友善環境、重視生態 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・<b>淨灘</b>活動清除沙灘垃圾；用廢棄物創作藝術品（廢棄雨衣做水母玩偶→海洋保育）<br><br>
+            ・<b>友善土地耕作</b> ── <span class="highlight">老鷹紅豆</span>：<br>
+            　過去農民用摻農藥的稻穀毒小鳥→老鷹吃了中毒<br>
+            　改用<b>農機把紅豆種子深埋</b>→小鳥不吃豆苗、老鷹不再中毒
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">📚 保存文化、永續發展 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・臺南<b>將軍國小</b>：拍紀錄片、製作繪本（《神明的造型師》記錄神明帽老店三代傳承）、建影像資料庫<br><br>
+            ・新北<b>野柳國小</b>：寫信給市長→成立保育區，用<b>竹叢礁</b>復育軟絲，生態成功恢復
+          </div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-trigger" onclick="toggleAcc(this)">🤝 為家鄉盡心力 <span class="arrow">▶</span></button>
+          <div class="acc-content">
+            ・主動關心、解決家鄉的環境汙染與文化保存問題<br>
+            ・四處走訪認識家鄉、關注家鄉公共事務<br>
+            📍 每個人的小行動，都能讓家鄉更美好
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ PANEL 2: 翻翻卡 ══ -->
+<div class="panel" id="panel-flashcard">
+  <p class="section-title">🃏 翻翻卡練習</p>
+  <p style="color:var(--mid);font-size:0.88rem;margin-bottom:6px;">點擊卡片翻面，看看你記住了嗎？</p>
+  <div class="fc-counter" id="fc-counter">第 1 張 / 共 18 張</div>
+  <div class="fc-wrap">
+    <div class="fc" id="fc-card" onclick="fcFlip()">
+      <div class="fc-front" id="fc-front">載入中…</div>
+      <div class="fc-back" id="fc-back">載入中…</div>
+    </div>
+  </div>
+  <div class="fc-nav">
+    <button id="fc-prev-btn" onclick="fcPrev()">◀ 上一張</button>
+    <button onclick="fcFlip()">翻面</button>
+    <button id="fc-next-btn" onclick="fcNext()">下一張 ▶</button>
+  </div>
+</div>
+
+<!-- ══ PANEL 3: 練習題 ══ -->
+<div class="panel" id="panel-quiz">
+  <p class="section-title">✏️ 練習題</p>
+  <div id="quiz-container"></div>
+  <div class="score-display" id="quiz-score" style="display:none;"></div>
+  <button class="reset-btn" id="quiz-reset-btn" style="display:none;" onclick="resetQuiz()">重新作答</button>
+</div>
+
+<!-- ══ PANEL 4: 容易搞混 ══ -->
+<div class="panel" id="panel-confuse">
+  <p class="section-title">❓ 容易搞混的地方</p>
+  <table class="cf-table">
+    <tr><th>A</th><th>VS</th><th>B（重要差別）</th></tr>
+    <tr>
+      <td><b>渡輪</b><br>同時載<u>人與車輛</u></td>
+      <td class="vs">≠</td>
+      <td><b>貨輪</b>＝只運貨物；<b>觀光遊艇</b>＝休閒觀光。三種船功能不同！</td>
+    </tr>
+    <tr>
+      <td><b>公路</b><br>較能因應地形、各式車輛</td>
+      <td class="vs">≠</td>
+      <td><b>鐵路／捷運／高鐵</b>→<b>載運量大、速度快</b>（山地丘陵多用公路）</td>
+    </tr>
+    <tr>
+      <td><b>自然風貌</b><br>地形、氣候、生態</td>
+      <td class="vs">≠</td>
+      <td><b>人文風貌</b>＝人的活動（產業、建築、節慶）。奇岩→自然；石滬→人文</td>
+    </tr>
+    <tr>
+      <td><b>油桐花</b><br>四、五月｜山區｜五月雪</td>
+      <td class="vs">≠</td>
+      <td><b>黑面琵鷺</b>＝<b>冬天</b>｜海邊溼地｜臺南七股<b>度冬</b>。季節、地點都不同</td>
+    </tr>
+    <tr>
+      <td><b>收到網路訊息</b><br>先<u>查證</u>再轉傳</td>
+      <td class="vs">≠</td>
+      <td>不是趕快轉傳分享；遇到謠言要先判斷真假，避免造成不安</td>
+    </tr>
+    <tr>
+      <td><b>上傳合照</b><br>要先<u>經過同意</u></td>
+      <td class="vs">≠</td>
+      <td>不能隨意上傳別人的照片，也不能隨意下載別人照片來自己用</td>
+    </tr>
+    <tr>
+      <td><b>特色農作物／水產品</b><br>（直接生產）三星蔥、蓮霧、虱目魚</td>
+      <td class="vs">≠</td>
+      <td><b>加工食品</b>（芒果乾、柴魚片）<b>≠ 工藝品</b>（陶瓷、油紙傘）。特產有三種類型</td>
+    </tr>
+    <tr>
+      <td><b>老鷹紅豆</b><br>不毒鳥、用農機深埋種子</td>
+      <td class="vs">→</td>
+      <td>屬於<b>友善土地的耕作方式</b>，能保護生態、讓老鷹不再中毒</td>
+    </tr>
+    <tr>
+      <td><b>幸福巴士／幸福小黃</b></td>
+      <td class="vs">→</td>
+      <td>政府為<b>交通不便地區</b>設置，可<b>事前預約</b>，方便居民上學、就醫</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ══ PANEL 5: 速覽表 ══ -->
+<div class="panel" id="panel-cheatsheet">
+  <p class="section-title">⚡ 考前 5 分鐘速覽</p>
+  <div class="cs-grid">
+    <div class="cs-box cs-b2">
+      <h3>🚆 多樣化的運輸</h3>
+      <ul>
+        <li>陸上：公路（因應地形）、鐵路/高鐵（量大速度快）</li>
+        <li>水上：渡輪(人+車)、貨輪(貨)、遊艇(觀光)</li>
+        <li>空中：飛機，速度快、限制多（飛航安全）</li>
+        <li>依需求選擇合適的運輸工具</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b1">
+      <h3>🌱 運輸發展的影響</h3>
+      <ul>
+        <li>好：生活便利、產業發展、人口移入</li>
+        <li>壞：影響行人安全、改變自然環境</li>
+        <li>生態廊道保護動物（墾丁護蟹）</li>
+        <li>幸福巴士/小黃→交通不便地區，可預約</li>
+      </ul>
+    </div>
+    <div class="cs-box" style="background:#D9F0EC;">
+      <h3>📡 訊息的傳遞</h3>
+      <ul>
+        <li>方式：口耳、書信、電話、網路、視訊</li>
+        <li>行動載具＝手機、平板</li>
+        <li>功能：聯絡、查資料、學習、娛樂、購物</li>
+        <li>訊息先查證再轉傳；合照要經同意</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b1">
+      <h3>🏞️ 家鄉的風貌</h3>
+      <ul>
+        <li>自然：地形+氣候（女王頭、油桐花、黑面琵鷺）</li>
+        <li>人文：產業(石滬)、建築(大溪橋)、節慶(小米收穫祭)</li>
+        <li>油桐花→五月、山區；黑面琵鷺→冬天、溼地</li>
+        <li>介紹方式：畫圖、攝影、文字</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b3">
+      <h3>🍍 家鄉的特產</h3>
+      <ul>
+        <li>① 農作物/水產品（三星蔥、蓮霧、虱目魚）</li>
+        <li>② 加工食品（芒果乾、柴魚片）</li>
+        <li>③ 工藝品（鶯歌陶瓷、美濃油紙傘）</li>
+        <li>推廣活動→展現特色、促進經濟</li>
+      </ul>
+    </div>
+    <div class="cs-box cs-b4">
+      <h3>💚 愛我家鄉</h3>
+      <ul>
+        <li>友善環境：淨灘、老鷹紅豆(友善耕作)</li>
+        <li>保存文化：將軍國小繪本、野柳國小竹叢礁復育軟絲</li>
+        <li>為家鄉盡心力：主動關心公共事務</li>
+        <li>小行動讓家鄉更美好</li>
+      </ul>
+    </div>
+  </div>
+  <p class="print-hint">💡 提示：按 Ctrl+P 可列印這頁，帶到考試前複習！</p>
+</div>
+
+</div><!-- end panels -->
+
+<script>
+// ── TAB SWITCH ──
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── ACCORDION ──
+function toggleAcc(btn) {
+  const content = btn.nextElementSibling;
+  const isOpen = content.classList.contains('open');
+  btn.closest('.unit-card-body').querySelectorAll('.acc-content').forEach(c => c.classList.remove('open'));
+  btn.closest('.unit-card-body').querySelectorAll('.acc-trigger').forEach(b => b.classList.remove('open'));
+  if (!isOpen) { content.classList.add('open'); btn.classList.add('open'); }
+}
+
+// ── FLASHCARDS ──
+const flashcards = [
+  { q: '運輸方式可以分為哪三大類？', a: '陸上運輸、水上運輸、空中運輸' },
+  { q: '公路 和 鐵路/高鐵 的特性有什麼不同？', a: '公路較能因應自然環境（地形），各式車輛都能行駛；鐵路、捷運、高鐵則是載運量大、速度快' },
+  { q: '渡輪、貨輪、觀光遊艇的功能各是什麼？', a: '渡輪：同時載人與車輛（旗津↔鼓山）\n貨輪：專門運送貨物\n觀光遊艇：輕便快速、休閒觀光（日月潭）' },
+  { q: '為什麼空中運輸的規定和限制比較多？', a: '為了確保飛航安全。飛機航行容易受天氣影響，所以天候不佳會取消/延誤、起降不可用電子產品、出入境要嚴格檢查' },
+  { q: '運輸發展會帶來哪些「好處」？', a: '生活更便利、促進產業發展（山區農產品運到市區）、吸引人口移入（車站增建）' },
+  { q: '興建運輸設施可能傷害環境，可以怎麼減少傷害？', a: '謹慎評估、適度興建；設立告示牌、生態廊道（例如墾丁香蕉灣保護過馬路的陸蟹）' },
+  { q: '政府為交通不便的地區設置了什麼？有什麼特色？', a: '幸福巴士、幸福小黃，規畫不同路線，居民可以事前預約搭乘，方便上學、就醫、購物' },
+  { q: '傳遞訊息有哪些方式？', a: '口耳相傳、書信郵寄、電話聯絡、網路通訊、智慧型手機視訊等' },
+  { q: '「行動載具」是指什麼？', a: '智慧型手機、平板電腦等——方便攜帶、又具有上網功能的工具' },
+  { q: '網路通訊有哪些功能？（說出3種）', a: '即時聯絡、查詢資料、學習知識、休閒娛樂、購物消費' },
+  { q: '收到一則網路訊息，最適當的做法是什麼？', a: '先查證訊息是不是真的，再決定要不要轉傳，避免散播謠言造成大家不安' },
+  { q: '想把和姐姐的合照上傳到網路，要注意什麼？', a: '要先經過姐姐（當事人）的同意才可以上傳；也不可以隨意下載別人的照片來使用' },
+  { q: '家鄉的「自然風貌」受什麼影響？舉例說明。', a: '受地形、氣候影響。例如：高山湖泊、海邊奇岩（女王頭）、四五月的油桐花、冬天度冬的黑面琵鷺' },
+  { q: '家鄉的「人文風貌」包含哪些？各舉一例。', a: '產業活動（澎湖石滬）、建築設施（大溪橋）、節慶活動（魯凱族小米收穫祭）' },
+  { q: '油桐花 和 黑面琵鷺 各在什麼季節、什麼地方出現？', a: '油桐花：四、五月在山區盛開，花落如雪稱「五月雪」\n黑面琵鷺：冬天到海邊溼地度冬（臺南七股）' },
+  { q: '家鄉的特產可以分成哪三種類型？', a: '①配合自然環境的特色農作物/水產品 ②加工食品 ③生活用品/工藝品' },
+  { q: '「老鷹紅豆」是哪一種做法？做了什麼改變？', a: '友善土地的耕作方式。農民不再用摻農藥的稻穀毒小鳥，改用農機把紅豆種子深埋，小鳥不吃豆苗、老鷹也不再中毒' },
+  { q: '野柳國小的學生如何守護家鄉的海洋生態？', a: '寫信給市長表達問題→成立保育區，用「竹叢礁」復育軟絲，讓海洋生態逐漸恢復' },
+];
+
+let fcIndex = 0, fcFlipped = false;
+function renderFC() {
+  const card = flashcards[fcIndex];
+  document.getElementById('fc-front').innerHTML = card.q.replace(/\n/g,'<br>') + '<div class="fc-hint">點擊翻面看答案</div>';
+  document.getElementById('fc-back').innerHTML = card.a.replace(/\n/g,'<br>') + '<div class="fc-hint">點擊翻回題目</div>';
+  document.getElementById('fc-counter').textContent = `第 ${fcIndex+1} 張 / 共 ${flashcards.length} 張`;
+  document.getElementById('fc-prev-btn').disabled = fcIndex === 0;
+  document.getElementById('fc-next-btn').disabled = fcIndex === flashcards.length - 1;
+  fcFlipped = false;
+  document.getElementById('fc-card').classList.remove('flipped');
+}
+function flipCard() { fcFlipped = !fcFlipped; document.getElementById('fc-card').classList.toggle('flipped', fcFlipped); }
+function fcFlip() { flipCard(); }
+function fcNext() { if(fcIndex < flashcards.length-1){ fcIndex++; renderFC(); } }
+function fcPrev() { if(fcIndex > 0){ fcIndex--; renderFC(); } }
+renderFC();
+
+// ── QUIZ ──
+const quizData = [
+  { q: '運輸方式可以分為哪三大類？', opts: ['陸上、海底、空中', '陸上、水上、空中', '公路、鐵路、捷運', '渡輪、貨輪、遊艇'], ans: 1 },
+  { q: '住在丘陵、山地等地形起伏的地方，最常使用哪一種運輸方式？', opts: ['高速鐵路', '公路', '貨運輪船', '捷運'], ans: 1 },
+  { q: '想同時把「人」和「機車」一起載到對岸，應該搭乘哪一種船？', opts: ['貨輪', '觀光遊艇', '渡輪', '漁船'], ans: 2 },
+  { q: '搭飛機時起降不能用電子產品、還要安檢，主要原因是什麼？', opts: ['為了節省時間', '為了確保飛航安全', '為了賺更多錢', '為了減少乘客'], ans: 1 },
+  { q: '山上的水蜜桃可以透過公路運到市區販售，這說明運輸發展可以？', opts: ['破壞自然環境', '促進山區產業發展', '減少人口', '讓水果變貴'], ans: 1 },
+  { q: '墾丁設立生態廊道、告示牌來保護陸蟹，主要目的是什麼？', opts: ['吸引更多遊客', '減少道路建設對動物的傷害', '增加車輛通行', '方便居民捕蟹'], ans: 1 },
+  { q: '智慧型手機、平板電腦這類方便攜帶又能上網的工具，稱為什麼？', opts: ['行動載具', '通訊衛星', '電子地圖', '雲端書庫'], ans: 0 },
+  { q: '收到「吃香菇和茄子會中毒」的網路訊息時，最適當的做法是？', opts: ['趕快轉傳給大家', '先查證訊息是不是真的', '立刻刪除手機', '相信並照做'], ans: 1 },
+  { q: '下列何者屬於家鄉的「自然風貌」？', opts: ['桃園大溪橋', '野柳女王頭奇岩', '澎湖石滬', '魯凱族小米收穫祭'], ans: 1 },
+  { q: '黑面琵鷺通常會在什麼時候、什麼地方出現？', opts: ['夏天、高山湖泊', '冬天、海邊溼地度冬', '春天、平原農田', '秋天、都市公園'], ans: 1 },
+  { q: '宜蘭三星蔥、屏東林邊蓮霧屬於哪一類特產？', opts: ['加工食品', '工藝品', '配合自然環境生產的特色農作物', '生活用品'], ans: 2 },
+  { q: '「老鷹紅豆」的故事主要告訴我們什麼？', opts: ['多用農藥才能豐收', '採用友善土地的耕作方式能保護生態', '老鷹會吃壞紅豆', '紅豆不適合種在屏東'], ans: 1 },
+  { q: '家鄉舉辦特產活動（如世界茶業博覽會）有什麼好處？', opts: ['讓特產變便宜', '展現家鄉特色、促進地方經濟發展', '減少遊客', '取代農業生產'], ans: 1 },
+  { q: '新北鶯歌用當地黏土製作茶壺、碗盤，這屬於哪一類特產？', opts: ['特色農作物', '水產品', '加工食品', '生活用品/工藝品'], ans: 3 },
+];
+
+let quizAnswered = 0, quizCorrect = 0;
+const quizDone = new Array(quizData.length).fill(false);
+function buildQuiz() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  quizData.forEach((q, qi) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-card'; div.id = `qcard-${qi}`;
+    div.innerHTML = `
+      <div class="quiz-q"><span class="qnum">${qi+1}</span>${q.q}</div>
+      <div class="quiz-options">
+        ${q.opts.map((o,oi) => `<button class="quiz-opt" onclick="answerQuiz(${qi},${oi})">${['①','②','③','④'][oi]} ${o}</button>`).join('')}
+      </div>
+      <div class="quiz-result" id="qres-${qi}"></div>`;
+    container.appendChild(div);
+  });
+}
+function answerQuiz(qi, oi) {
+  if (quizDone[qi]) return;
+  quizDone[qi] = true; quizAnswered++;
+  const q = quizData[qi];
+  const card = document.getElementById(`qcard-${qi}`);
+  const opts = card.querySelectorAll('.quiz-opt');
+  const res = document.getElementById(`qres-${qi}`);
+  opts.forEach((btn, idx) => {
+    btn.disabled = true;
+    if (idx === q.ans) btn.classList.add('correct');
+    else if (idx === oi && oi !== q.ans) btn.classList.add('wrong');
+  });
+  if (oi === q.ans) {
+    quizCorrect++; res.className = 'quiz-result show ok'; res.textContent = '✅ 答對了！';
+  } else {
+    res.className = 'quiz-result show no'; res.textContent = `❌ 答錯了！正確答案是：${q.opts[q.ans]}`;
+  }
+  if (quizAnswered === quizData.length) {
+    const scoreEl = document.getElementById('quiz-score');
+    scoreEl.style.display = 'block';
+    const pct = Math.round(quizCorrect/quizData.length*100);
+    let emoji = pct >= 90 ? '🎉' : pct >= 70 ? '👍' : '💪';
+    scoreEl.textContent = `${emoji} 你得了 ${quizCorrect} / ${quizData.length} 分（${pct}%）`;
+    document.getElementById('quiz-reset-btn').style.display = 'block';
+  }
+}
+function resetQuiz() {
+  quizAnswered = 0; quizCorrect = 0; quizDone.fill(false);
+  document.getElementById('quiz-score').style.display = 'none';
+  document.getElementById('quiz-reset-btn').style.display = 'none';
+  buildQuiz();
+}
+buildQuiz();
+</script>
+</body>
+</html>
