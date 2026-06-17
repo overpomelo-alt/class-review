@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>錯題統計｜老師看板</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{ --bg:#FAFAF7; --card:#fff; --border:#E4E0D8; --text:#5A5650; --dark:#37343A; --navy:#1C3557; --mid:#7A7670; }
+  body { font-family:'Noto Sans TC','微軟正黑體',sans-serif; background:#FAFAF7; color:#5A5650; padding:20px 14px 60px; }
+  .wrap { max-width:760px; margin:0 auto; }
+
+  /* 密碼門 */
+  #gate { position:fixed; inset:0; background:#FAFAF7; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; z-index:50; padding:24px; }
+  #gate .lock { font-size:3rem; }
+  #gate h1 { font-size:1.3rem; color:#1C3557; font-weight:900; }
+  #gate p { color:#7A7670; font-size:0.88rem; text-align:center; }
+  #gate input { padding:11px 14px; border:2px solid #E4E0D8; border-radius:10px; font-size:1rem; width:240px; text-align:center; }
+  #gate button { padding:11px 28px; border:none; border-radius:10px; background:#1C3557; color:#fff; font-weight:700; font-size:1rem; cursor:pointer; }
+  #gate .err { color:#C0392B; font-size:0.85rem; min-height:1em; }
+
+  header { text-align:center; margin-bottom:18px; }
+  header h1 { font-size:1.5rem; color:#1C3557; font-weight:900; }
+  header p { color:#7A7670; font-size:0.85rem; margin-top:4px; }
+
+  .toolbar { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; margin-bottom:16px; }
+  .subj-btn { background:#fff; border:2px solid #DDE8F0; border-radius:20px; padding:6px 16px; font-weight:700; font-size:0.86rem; color:#37343A; cursor:pointer; }
+  .subj-btn.active { background:#1C3557; color:#fff; border-color:#1C3557; }
+  .refresh { background:#3A8E40; color:#fff; border:none; border-radius:20px; padding:7px 16px; font-weight:700; font-size:0.86rem; cursor:pointer; }
+  #status { text-align:center; color:#7A7670; font-size:0.85rem; margin-bottom:12px; min-height:1.1em; }
+
+  .summary { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:16px; }
+  .stat-box { background:#fff; border:1px solid #E4E0D8; border-radius:12px; padding:10px 18px; text-align:center; min-width:96px; }
+  .stat-box .num { font-size:1.5rem; font-weight:900; color:#1C3557; }
+  .stat-box .lbl { font-size:0.76rem; color:#7A7670; margin-top:2px; }
+
+  .row { background:#fff; border:1px solid #E4E0D8; border-radius:12px; padding:12px 14px; margin-bottom:10px; }
+  .row-top { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .rank { font-size:1.1rem; font-weight:900; color:#B0ACA4; min-width:30px; }
+  .rank.top { color:#C0392B; }
+  .qtext { flex:1; font-weight:700; color:#37343A; font-size:0.95rem; line-height:1.4; }
+  .qmeta { font-size:0.74rem; color:#9A958C; margin-left:40px; margin-bottom:7px; }
+  .barwrap { height:22px; background:#F0EEE9; border-radius:6px; overflow:hidden; position:relative; margin-left:40px; }
+  .bar { height:100%; border-radius:6px; transition:width .5s; }
+  .bar.hi { background:linear-gradient(90deg,#E0606A,#C0392B); }
+  .bar.mid { background:linear-gradient(90deg,#F0B84A,#E08A20); }
+  .bar.lo { background:linear-gradient(90deg,#7BC47F,#3A8E40); }
+  .pct { position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:0.78rem; font-weight:900; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.25); }
+  .empty { text-align:center; color:#9A958C; padding:40px 0; }
+  .note { text-align:center; color:#B0ACA4; font-size:0.76rem; margin-top:20px; line-height:1.7; }
+</style>
+</head>
+<body>
+
+<!-- 密碼門 -->
+<div id="gate">
+  <div class="lock">🔒</div>
+  <h1>老師看板</h1>
+  <p>這是給老師看的錯題統計，請輸入密碼。</p>
+  <input id="pass" type="password" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')checkPass()">
+  <button onclick="checkPass()">進入</button>
+  <div class="err" id="gate-err"></div>
+</div>
+
+<div class="wrap" id="app" style="display:none;">
+  <header>
+    <h1>📊 錯題統計看板</h1>
+    <p>依「答錯率」由高到低排序，最常錯的題目排最前面</p>
+  </header>
+
+  <div class="toolbar">
+    <button class="subj-btn active" data-s="all" onclick="setSubj('all',this)">全部</button>
+    <button class="subj-btn" data-s="社會" onclick="setSubj('社會',this)">社會</button>
+    <button class="subj-btn" data-s="自然" onclick="setSubj('自然',this)">自然</button>
+    <button class="refresh" onclick="loadStats()">🔄 重新整理</button>
+  </div>
+
+  <div id="status"></div>
+  <div class="summary" id="summary"></div>
+  <div id="list"></div>
+
+  <p class="note">資料為匿名累計，只記每題作答／答錯次數，不含學生個人資料。<br>僅統計第一輪作答（錯題重練不計入）。</p>
+</div>
+
+<script>
+  // ====== 設定 ======
+  var STATS_URL = "https://script.google.com/macros/s/AKfycbxlmAnIjOjFrkfavs5kS549njEUwDnIYOtWqbklCk1uZ8nDo7W9lbrCMHTjhS7pD36f3A/exec";
+  var TEACHER_PASS = "1234";   // ← 改成你自己的密碼
+  // ==================
+
+  function checkPass(){
+    var v = document.getElementById('pass').value;
+    if (v === TEACHER_PASS) {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadStats();
+    } else {
+      document.getElementById('gate-err').textContent = '密碼不對，再試一次';
+    }
+  }
+
+  var allRows = [], curSubj = 'all';
+
+  function setSubj(s, btn){
+    curSubj = s;
+    document.querySelectorAll('.subj-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    render();
+  }
+
+  function loadStats(){
+    document.getElementById('status').textContent = '讀取中…';
+    var old = document.getElementById('jsonp');
+    if (old) old.remove();
+    var s = document.createElement('script');
+    s.id = 'jsonp';
+    s.src = STATS_URL + '?callback=onStats&t=' + Date.now();
+    s.onerror = function(){ document.getElementById('status').textContent = '讀取失敗，請確認後端已用 v2 程式重新部署'; };
+    document.body.appendChild(s);
+  }
+
+  window.onStats = function(data){
+    allRows = (data && data.rows) ? data.rows : [];
+    document.getElementById('status').textContent = '';
+    render();
+  };
+
+  function render(){
+    var rows = allRows.filter(function(r){ return curSubj === 'all' || r.s === curSubj; });
+    rows.forEach(function(r){ r.rateNum = Number(r.rate) || 0; r.nNum = Number(r.n) || 0; r.wNum = Number(r.w) || 0; });
+    rows.sort(function(a,b){ return b.rateNum - a.rateNum || b.wNum - a.wNum; });
+
+    // 摘要
+    var totalAns = rows.reduce(function(s,r){ return s + r.nNum; }, 0);
+    var totalWrong = rows.reduce(function(s,r){ return s + r.wNum; }, 0);
+    var avg = totalAns ? Math.round(totalWrong / totalAns * 100) : 0;
+    document.getElementById('summary').innerHTML =
+      box(rows.length, '題目數') + box(totalAns, '總作答數') + box(avg + '%', '平均答錯率');
+
+    var list = document.getElementById('list');
+    if (rows.length === 0){
+      list.innerHTML = '<div class="empty">尚無資料，等學生作答後按「重新整理」😊</div>';
+      return;
+    }
+    list.innerHTML = rows.map(function(r, i){
+      var pct = Math.round(r.rateNum * 100);
+      var cls = pct >= 60 ? 'hi' : (pct >= 30 ? 'mid' : 'lo');
+      var rankCls = i < 3 ? 'rank top' : 'rank';
+      return '<div class="row">' +
+        '<div class="row-top"><div class="' + rankCls + '">' + (i+1) + '</div>' +
+        '<div class="qtext">' + esc(r.q) + '</div></div>' +
+        '<div class="qmeta">' + r.s + '・' + r.id + '　作答 ' + r.nNum + ' 次・答錯 ' + r.wNum + ' 次</div>' +
+        '<div class="barwrap"><div class="bar ' + cls + '" style="width:' + Math.max(pct,4) + '%"></div>' +
+        '<span class="pct">' + pct + '%</span></div></div>';
+    }).join('');
+  }
+
+  function box(num, lbl){ return '<div class="stat-box"><div class="num">' + num + '</div><div class="lbl">' + lbl + '</div></div>'; }
+  function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
