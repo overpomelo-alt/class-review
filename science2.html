@@ -387,6 +387,9 @@
   .mem-win .mw-title { font-size:1.4rem; font-weight:900; color:var(--dark); margin:6px 0; }
   .mem-win .mw-sub { font-size:0.95rem; color:var(--mid); }
 
+
+  .retry-banner { background:#FDEBD8; border:2px solid #E89B6C; color:#8B3300; font-weight:800; border-radius:10px; padding:11px 14px; margin-bottom:14px; text-align:center; font-size:0.92rem; }
+
 </style>
 </head>
 <body>
@@ -711,9 +714,11 @@
 <!-- ══ PANEL 3: 練習題 ══ -->
 <div class="panel" id="panel-quiz">
   <p class="section-title">✏️ 練習題</p>
+  <p style="color:var(--mid);font-size:0.85rem;margin-bottom:12px;">🎲 每次都會隨機抽題、選項也會打散，多練幾次才會真的記住喔！</p>
   <div id="quiz-container"></div>
   <div class="score-display" id="quiz-score" style="display:none;"></div>
-  <button class="reset-btn" id="quiz-reset-btn" style="display:none;" onclick="resetQuiz()">重新作答</button>
+  <button class="reset-btn" id="quiz-retry-btn" style="display:none;background:#D96B3A;" onclick="retryWrong()">🔁 錯題重練</button>
+  <button class="reset-btn" id="quiz-reset-btn" style="display:none;" onclick="resetQuiz()">換一組新題目 🔄</button>
 </div>
 
 <!-- ══ PANEL 4: 容易搞混 ══ -->
@@ -871,6 +876,7 @@ const flashcards = [
   { q: '地震發生時要怎麼保護自己？', a: '就地避難「趴下、掩護、穩住」，優先保護頭頸部；不搭電梯、遠離玻璃窗，戶外用物品護頭頸' },
 ];
 
+(function(){for(let i=flashcards.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[flashcards[i],flashcards[j]]=[flashcards[j],flashcards[i]];}})();
 let fcIndex = 0, fcFlipped = false;
 function renderFC() {
   const card = flashcards[fcIndex];
@@ -888,74 +894,46 @@ function fcNext() { if(fcIndex < flashcards.length-1){ fcIndex++; renderFC(); } 
 function fcPrev() { if(fcIndex > 0){ fcIndex--; renderFC(); } }
 renderFC();
 
-const quizData = [
-  { q: '水沿著物體中的細小縫隙往四面八方移動，這種現象稱為？', opts: ['連通管原理', '毛細現象', '虹吸現象', '蒸發現象'], ans: 1 },
-  { q: '關於毛細現象，下列敘述何者正確？', opts: ['縫隙愈大，水移動愈明顯', '縫隙愈小，水移動愈明顯', '沒縫隙也能吸水', '和縫隙大小無關'], ans: 1 },
-  { q: '下列哪一種物品「不會」吸水？', opts: ['餐巾紙', '毛巾', '鋁箔紙', '棉布'], ans: 2 },
-  { q: '底部相連通的容器裝水，水靜止後兩邊的水面高度會？', opts: ['左邊高', '右邊高', '高度相同', '無法判斷'], ans: 2 },
-  { q: '下列哪一項是課本中「連通管原理」的應用？', opts: ['毛筆吸墨', '熱水瓶的透明窗', '虹吸式馬桶', '蠟燭燃燒'], ans: 1 },
-  { q: '用水管幫水族箱換水（虹吸），要成功必須符合什麼條件？', opts: ['水管裝一半水', '水管裝滿水且出水口比水面低', '出水口比水面高', '水管裡要有空氣'], ans: 1 },
-  { q: '虹吸換水時，若把出水口提得「比水面還高」，會發生什麼？', opts: ['流得更快', '水反向流回水族箱', '水完全流光', '水靜止不動'], ans: 1 },
-  { q: '下列哪一項是課本中「虹吸現象」的應用？', opts: ['茶壺', '熱水瓶', '虹吸式馬桶', '插花海綿'], ans: 2 },
-  { q: '石虎最適合生活在什麼樣的環境？', opts: ['平原', '丘陵', '山地', '海洋'], ans: 1 },
-  { q: '臺灣第一高峰是哪一座山？', opts: ['火炎山', '玉山', '阿里山', '陽明山'], ans: 1 },
-  { q: '下列何者是「破壞」地表環境的行為？', opts: ['整治貴子坑', '河堤大量開採砂石', '種樹造林', '清理山中垃圾'], ans: 1 },
-  { q: '礫石、砂、土壤三者中，顆粒「最小」的是？', opts: ['礫石', '砂', '土壤', '一樣大'], ans: 2 },
-  { q: '下大雨時，地表的哪一種物質最容易被水沖走、搬得最遠？', opts: ['礫石', '砂', '土壤', '都不會被沖走'], ans: 2 },
-  { q: '「震源在地表的投影、地表最靠近震源的地點」是指？', opts: ['震源', '震央', '斷層', '震度'], ans: 1 },
-  { q: '代表「地震釋放能量大小」、用芮氏規模表示的是？', opts: ['震度', '地震規模', '震央', '地震深度'], ans: 1 },
-  { q: '地震發生時，下列哪一個應變動作最正確？', opts: ['趕快搭電梯下樓', '站在玻璃窗旁邊', '趴下、掩護、穩住，保護頭頸', '躲到瓦斯爐旁'], ans: 2 },
-];
-
-let quizAnswered = 0, quizCorrect = 0;
-const quizDone = new Array(quizData.length).fill(false);
-function buildQuiz() {
-  const container = document.getElementById('quiz-container');
-  container.innerHTML = '';
-  quizData.forEach((q, qi) => {
-    const div = document.createElement('div');
-    div.className = 'quiz-card'; div.id = `qcard-${qi}`;
-    div.innerHTML = `
-      <div class="quiz-q"><span class="qnum">${qi+1}</span>${q.q}</div>
-      <div class="quiz-options">
-        ${q.opts.map((o,oi) => `<button class="quiz-opt" onclick="answerQuiz(${qi},${oi})">${['①','②','③','④'][oi]} ${o}</button>`).join('')}
-      </div>
-      <div class="quiz-result" id="qres-${qi}"></div>`;
-    container.appendChild(div);
-  });
+const quizBank = [{"id": "N01", "q": "水沿著物體中的縫隙往四面八方移動，稱為？", "opts": ["連通管原理", "毛細現象", "虹吸現象", "蒸發現象"], "ans": 1}, {"id": "N02", "q": "關於毛細現象，下列何者正確？", "opts": ["縫隙愈大移動愈明顯", "縫隙愈小移動愈明顯", "沒縫隙也能吸水", "和縫隙無關"], "ans": 1}, {"id": "N03", "q": "下列哪一種物品『不會』吸水？", "opts": ["餐巾紙", "毛巾", "鋁箔紙", "棉布"], "ans": 2}, {"id": "N04", "q": "會吸水的物體有什麼共同特性？", "opts": ["很重", "有縫隙", "顏色深", "防水"], "ans": 1}, {"id": "N05", "q": "下列何者是毛細現象的例子？", "opts": ["石頭沉到水底", "毛筆吸墨", "水結成冰", "水蒸發"], "ans": 1}, {"id": "N06", "q": "底部相連通的容器裝水靜止後，兩邊水面？", "opts": ["左邊高", "右邊高", "高度相同", "不一定"], "ans": 2}, {"id": "N07", "q": "連通管中水面高低和容器的形狀、粗細？", "opts": ["有關", "無關", "成正比", "成反比"], "ans": 1}, {"id": "N08", "q": "下列哪一項是課本中『連通管原理』的應用？", "opts": ["毛筆吸墨", "熱水瓶的透明窗", "虹吸式馬桶", "蠟燭燃燒"], "ans": 1}, {"id": "N09", "q": "要確認牆上的畫有沒有掛水平，可利用？", "opts": ["毛細現象", "虹吸現象", "連通管原理", "蒸發作用"], "ans": 2}, {"id": "N10", "q": "水壺傾斜時，壺內的水面會？", "opts": ["變一邊高", "維持一樣高（水平）", "流光", "結冰"], "ans": 1}, {"id": "N11", "q": "虹吸現象是讓水自動從哪裡流向哪裡？", "opts": ["低處流向高處", "高處流向低處", "左流向右", "原地不動"], "ans": 1}, {"id": "N12", "q": "虹吸要成功，必須符合什麼條件？", "opts": ["水管裝一半", "裝滿水且出水口比水面低", "出水口比水面高", "水管有空氣"], "ans": 1}, {"id": "N13", "q": "虹吸換水時，出水口比水面『高』會怎樣？", "opts": ["流得更快", "水反向流回", "水流光", "靜止不動"], "ans": 1}, {"id": "N14", "q": "虹吸換水時，出水口低於水族箱底部會？", "opts": ["水全部流光", "水流回去", "只流一半", "靜止"], "ans": 0}, {"id": "N15", "q": "下列哪一項是課本中『虹吸現象』的應用？", "opts": ["茶壺", "熱水瓶", "虹吸式馬桶", "插花海綿"], "ans": 2}, {"id": "N16", "q": "石虎最適合生活在什麼環境？", "opts": ["平原", "丘陵", "山地", "海洋"], "ans": 1}, {"id": "N17", "q": "梅花鹿、珠頸斑鳩最適合住在？", "opts": ["平原", "丘陵", "山地", "河川"], "ans": 0}, {"id": "N18", "q": "臺灣水鹿、長鬃山羊主要住在？", "opts": ["平原", "丘陵", "山地", "海邊"], "ans": 2}, {"id": "N19", "q": "馬口魚、拉氏清溪蟹生活在哪種環境？", "opts": ["平原", "丘陵", "山地", "河川"], "ans": 3}, {"id": "N20", "q": "臺灣第一高峰是哪一座山？", "opts": ["火炎山", "玉山", "阿里山", "陽明山"], "ans": 1}, {"id": "N21", "q": "下列何者是『破壞』地表環境的行為？", "opts": ["整治貴子坑", "河堤大量開採砂石", "種樹造林", "清理垃圾"], "ans": 1}, {"id": "N22", "q": "礫石、砂、土壤中，顆粒『最小』的是？", "opts": ["礫石", "砂", "土壤", "一樣大"], "ans": 2}, {"id": "N23", "q": "顆粒大小由大到小，正確排序是？", "opts": ["礫石＞砂＞土壤", "土壤＞砂＞礫石", "砂＞礫石＞土壤", "三者一樣"], "ans": 0}, {"id": "N24", "q": "下大雨時，最容易被水沖走、搬最遠的是？", "opts": ["礫石", "砂", "土壤", "石塊"], "ans": 2}, {"id": "N25", "q": "下列哪些因素會改變地貌、造成災害？", "opts": ["風力、水流、地震", "只有陽光", "月亮", "星星"], "ans": 0}, {"id": "N26", "q": "『引發地震的位置』是指？", "opts": ["震央", "震源", "斷層", "震度"], "ans": 1}, {"id": "N27", "q": "『震源在地表的投影、地表最靠近震源的地點』是？", "opts": ["震源", "震央", "斷層", "海溝"], "ans": 1}, {"id": "N28", "q": "代表『地震釋放能量大小』、用芮氏規模表示的是？", "opts": ["震度", "地震規模", "震央", "地震深度"], "ans": 1}, {"id": "N29", "q": "人體感受搖晃、建築受破壞的程度，分0~7級的是？", "opts": ["地震規模", "震度", "震源", "震央"], "ans": 1}, {"id": "N30", "q": "中央氣象署地震報告『不會』提供下列何者？", "opts": ["震央位置", "地震規模", "各地最大震度", "明天天氣"], "ans": 3}, {"id": "N31", "q": "地震發生時，下列哪個動作最正確？", "opts": ["搭電梯逃", "站窗邊", "趴下、掩護、穩住，護頭頸", "躲瓦斯爐旁"], "ans": 2}, {"id": "N32", "q": "地震時人在室內，下列何者較適當？", "opts": ["靠近玻璃窗", "躲堅固桌下", "去開瓦斯", "搭電梯"], "ans": 1}];
+const QUIZ_N = 15;
+var STATS_URL = "https://script.google.com/macros/s/AKfycbxlmAnIjOjFrkfavs5kS549njEUwDnIYOtWqbklCk1uZ8nDo7W9lbrCMHTjhS7pD36f3A/exec";  // ← 部署 Google Apps Script 後，把網址（/exec 結尾）貼進這個引號內
+var STATS_SUBJECT = "自然";
+function reportStat(q,correct){try{if(!STATS_URL||STATS_URL.indexOf("http")!==0)return;fetch(STATS_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({s:STATS_SUBJECT,id:(q.src?q.src.id:q.id),q:q.q,w:correct?0:1})});}catch(e){}}
+function _shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function _mk(src){return src.map(function(q){const o=_shuf(q.opts.map(function(_,i){return i;}));return {q:q.q,opts:o.map(function(i){return q.opts[i];}),ans:o.indexOf(q.ans),src:q};});}
+let quizQuestions=[],quizAnswered=0,quizCorrect=0,quizDone=[],wrongSrc=[],retryRound=false;
+function buildQuiz(srcArr){
+  retryRound=!!srcArr;
+  const src=srcArr||_shuf(quizBank).slice(0,Math.min(QUIZ_N,quizBank.length));
+  quizQuestions=_mk(src);quizAnswered=0;quizCorrect=0;wrongSrc=[];quizDone=new Array(quizQuestions.length).fill(false);
+  const c=document.getElementById('quiz-container');c.innerHTML='';
+  document.getElementById('quiz-score').style.display='none';
+  document.getElementById('quiz-reset-btn').style.display='none';
+  var rb=document.getElementById('quiz-retry-btn');if(rb)rb.style.display='none';
+  if(retryRound){var b=document.createElement('div');b.className='retry-banner';b.textContent='🔁 錯題重練：把剛剛答錯的 '+quizQuestions.length+' 題再考一次！';c.appendChild(b);}
+  quizQuestions.forEach(function(q,qi){var d=document.createElement('div');d.className='quiz-card';d.id='qcard-'+qi;
+    d.innerHTML='<div class="quiz-q"><span class="qnum">'+(qi+1)+'</span>'+q.q+'</div><div class="quiz-options">'+q.opts.map(function(o,oi){return '<button class="quiz-opt" onclick="answerQuiz('+qi+','+oi+')">'+['①','②','③','④'][oi]+' '+o+'</button>';}).join('')+'</div><div class="quiz-result" id="qres-'+qi+'"></div>';
+    c.appendChild(d);});
 }
-function answerQuiz(qi, oi) {
-  if (quizDone[qi]) return;
-  quizDone[qi] = true; quizAnswered++;
-  const q = quizData[qi];
-  const card = document.getElementById(`qcard-${qi}`);
-  const opts = card.querySelectorAll('.quiz-opt');
-  const res = document.getElementById(`qres-${qi}`);
-  opts.forEach((btn, idx) => {
-    btn.disabled = true;
-    if (idx === q.ans) btn.classList.add('correct');
-    else if (idx === oi && oi !== q.ans) btn.classList.add('wrong');
-  });
-  if (oi === q.ans) {
-    quizCorrect++; res.className = 'quiz-result show ok'; res.textContent = '✅ 答對了！';
-  } else {
-    res.className = 'quiz-result show no'; res.textContent = `❌ 答錯了！正確答案是：${q.opts[q.ans]}`;
-  }
-  if (quizAnswered === quizData.length) {
-    const scoreEl = document.getElementById('quiz-score');
-    scoreEl.style.display = 'block';
-    const pct = Math.round(quizCorrect/quizData.length*100);
-    let emoji = pct >= 90 ? '🎉' : pct >= 70 ? '👍' : '💪';
-    scoreEl.textContent = `${emoji} 你得了 ${quizCorrect} / ${quizData.length} 分（${pct}%）`;
-    document.getElementById('quiz-reset-btn').style.display = 'block';
-  }
+function answerQuiz(qi,oi){
+  if(quizDone[qi])return;quizDone[qi]=true;quizAnswered++;
+  var q=quizQuestions[qi],card=document.getElementById('qcard-'+qi),opts=card.querySelectorAll('.quiz-opt'),res=document.getElementById('qres-'+qi);
+  opts.forEach(function(b,idx){b.disabled=true;if(idx===q.ans)b.classList.add('correct');else if(idx===oi&&oi!==q.ans)b.classList.add('wrong');});
+  if(oi===q.ans){quizCorrect++;res.className='quiz-result show ok';res.textContent='✅ 答對了！';}
+  else{wrongSrc.push(q.src);res.className='quiz-result show no';res.textContent='❌ 答錯了！正確答案是：'+q.opts[q.ans];}
+  if(!retryRound)reportStat(q,oi===q.ans);if(quizAnswered===quizQuestions.length)finishQuiz();
 }
-function resetQuiz() {
-  quizAnswered = 0; quizCorrect = 0; quizDone.fill(false);
-  document.getElementById('quiz-score').style.display = 'none';
-  document.getElementById('quiz-reset-btn').style.display = 'none';
-  buildQuiz();
+function finishQuiz(){
+  var s=document.getElementById('quiz-score');s.style.display='block';
+  var pct=Math.round(quizCorrect/quizQuestions.length*100);var e=pct>=90?'🎉':pct>=70?'👍':'💪';
+  var allRight=wrongSrc.length===0;
+  s.textContent=(retryRound&&allRight?'🌟 太棒了！錯題全部訂正完成！':e+' 你得了 '+quizCorrect+' / '+quizQuestions.length+' 分（'+pct+'%）');
+  document.getElementById('quiz-reset-btn').style.display='inline-block';
+  var rb=document.getElementById('quiz-retry-btn');
+  if(rb){if(wrongSrc.length>0){rb.style.display='inline-block';rb.textContent='🔁 錯題重練（'+wrongSrc.length+' 題）';}else{rb.style.display='none';}}
 }
+function resetQuiz(){buildQuiz();}
+function retryWrong(){if(wrongSrc.length>0)buildQuiz(wrongSrc.slice());}
 buildQuiz();
 
 // ── MEMORY 記憶考驗 ──
