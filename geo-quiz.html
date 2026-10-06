@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>幾何探險家</title>
+<title>五年級探險護照</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -25,260 +25,226 @@
   firebase.initializeApp(firebaseConfig);
 </script>
 <style>
-  /* Layout: one centered column (max 760px); student view is a single card per question, teacher view is a stacked dashboard. */
+  /* Layout: centered column (max 600px) like the class-review hub; passport = subject-grouped island cards; quiz = one card per question. */
   :root {
-    --bg: #f2f5f3;
-    --grid: rgba(24, 61, 58, 0.07);
+    --bg: #FAFAF7;
     --surface: #ffffff;
-    --surface-2: #e8eeec;
-    --fg: #16302e;
-    --muted: #5d7472;
-    --line: #cfdad7;
-    --accent: #0e7c7b;
-    --accent-ink: #ffffff;
-    --accent-soft: #d8efec;
-    --unknown: #d9712b;
-    --good: #2f8f5b;
-    --good-soft: #dcf1e4;
-    --bad: #c84b31;
-    --bad-soft: #f8e0da;
-    --font-zh: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    --surface-2: #F3F1EC;
+    --fg: #5A5650;
+    --heading: #484440;
+    --muted: #8C8880;
+    --line: #E4E0D8;
+    --accent: #4A5848;       /* sage */
+    --accent-soft: #F2F4EE;
+    --accent-ink: #EEF2EE;
+    --indigo: #484870;
+    --indigo-soft: #EEF0F4;
+    --rose: #583838;
+    --rose-soft: #F4EEEE;
+    --gold: #B89A58;
+    --unknown: #B87846;
+    --good: #6F8A66;
+    --good-soft: #EEF4EE;
+    --bad: #A86860;
+    --bad-soft: #F6ECEA;
+    --font: 'Noto Sans TC', '微軟正黑體', 'PingFang TC', sans-serif;
     --font-num: 'Nunito', 'Noto Sans TC', sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #142120; --grid: rgba(190, 230, 222, 0.07); --surface: #1d2c2b; --surface-2: #263836;
-      --fg: #e7efec; --muted: #9fb5b1; --line: #35494697; --accent: #4fc3b4; --accent-ink: #0f1f1e;
-      --accent-soft: #1f4442; --unknown: #f0a05a; --good: #5ccb8a; --good-soft: #1f3d2d;
-      --bad: #f08a72; --bad-soft: #4a2a23; color-scheme: dark;
+      --bg: #1E1D1A; --surface: #27261F; --surface-2: #32302A; --fg: #D8D4CC; --heading: #ECE8E0; --muted: #9A958C; --line: #403D36;
+      --accent: #9DB49A; --accent-soft: #2E3A2D; --accent-ink: #1A221A; --indigo: #AEB0D6; --indigo-soft: #2E2E44; --rose: #D8A8A8; --rose-soft: #3E2E2E;
+      --gold: #D4B878; --unknown: #E0A070; --good: #9DBE94; --good-soft: #2A3A2A; --bad: #D89088; --bad-soft: #43302E; color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #142120; --grid: rgba(190, 230, 222, 0.07); --surface: #1d2c2b; --surface-2: #263836;
-    --fg: #e7efec; --muted: #9fb5b1; --line: #35494697; --accent: #4fc3b4; --accent-ink: #0f1f1e;
-    --accent-soft: #1f4442; --unknown: #f0a05a; --good: #5ccb8a; --good-soft: #1f3d2d;
-    --bad: #f08a72; --bad-soft: #4a2a23; color-scheme: dark;
+    --bg: #1E1D1A; --surface: #27261F; --surface-2: #32302A; --fg: #D8D4CC; --heading: #ECE8E0; --muted: #9A958C; --line: #403D36;
+    --accent: #9DB49A; --accent-soft: #2E3A2D; --accent-ink: #1A221A; --indigo: #AEB0D6; --indigo-soft: #2E2E44; --rose: #D8A8A8; --rose-soft: #3E2E2E;
+    --gold: #D4B878; --unknown: #E0A070; --good: #9DBE94; --good-soft: #2A3A2A; --bad: #D89088; --bad-soft: #43302E; color-scheme: dark;
   }
 
   * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg) ; color: var(--fg);
-    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-    background-size: 24px 24px;
-    font-family: var(--font-zh); font-size: 16px; line-height: 1.6;
-    min-height: 100%;
-  }
-  html, body { height: auto; }
-  .wrap { max-width: 760px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 48px; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.65; }
+  .wrap { max-width: 600px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 56px; }
 
-  header.top {
-    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
-    margin-bottom: 18px;
-  }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand svg { width: 36px; height: 36px; flex: none; }
-  .brand h1 { font-size: 1.25rem; margin: 0; line-height: 1.2; text-wrap: balance; }
-  .brand p { margin: 2px 0 0; font-size: 0.8rem; color: var(--muted); }
-  nav.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-  nav.tabs button {
-    font: inherit; font-size: 0.9rem; font-weight: 500; padding: 7px 12px; border-radius: 999px;
-    border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer;
-  }
+  /* header, like the hub's .top */
+  header.top { text-align: center; margin-bottom: 18px; }
+  header.top .emoji { font-size: 2.6rem; line-height: 1; margin-bottom: 8px; }
+  header.top h1 { font-size: 1.7rem; font-weight: 700; color: var(--heading); letter-spacing: .04em; margin: 0; text-wrap: balance; }
+  header.top p { margin: 6px 0 0; font-size: .9rem; color: var(--muted); }
+  nav.tabs { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 16px 0 4px; }
+  nav.tabs button { font: inherit; font-size: .88rem; font-weight: 700; padding: 6px 16px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
   nav.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  nav.tabs button:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--unknown); outline-offset: 2px; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  /* section label with side rules, like .exam-label */
+  .label { display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 900; color: var(--fg); margin: 22px 4px 12px; }
+  .label::before, .label::after { content: ''; flex: 1; height: 1.5px; background: var(--line); }
+  .label span { background: var(--surface-2); border-radius: 20px; padding: 3px 14px; white-space: nowrap; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
   .card + .card { margin-top: 14px; }
-  h2 { font-size: 1.1rem; margin: 0 0 10px; }
-  h3 { font-size: 1rem; margin: 0 0 8px; }
-  .muted { color: var(--muted); font-size: 0.9rem; }
+  h2 { font-size: 1.15rem; color: var(--heading); margin: 0 0 10px; }
+  h3 { font-size: 1rem; color: var(--heading); margin: 0 0 6px; }
+  .muted { color: var(--muted); font-size: .88rem; }
   .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
 
-  .btn {
-    font: inherit; font-weight: 700; padding: 10px 18px; border-radius: 10px; cursor: pointer;
-    border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink);
-  }
+  .btn { font: inherit; font-weight: 700; padding: 10px 20px; border-radius: 10px; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); letter-spacing: .03em; }
   .btn.secondary { background: var(--surface); color: var(--accent); }
   .btn.danger { background: var(--surface); color: var(--bad); border-color: var(--bad); }
-  .btn.small { padding: 6px 12px; font-size: 0.85rem; border-radius: 8px; }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  input[type="text"], input[type="password"], textarea {
-    font: inherit; width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line);
-    background: var(--surface); color: var(--fg);
-  }
+  .btn.small { padding: 5px 12px; font-size: .84rem; border-radius: 8px; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  input[type="text"], input[type="password"], input[type="date"], input[type="number"], textarea { font: inherit; width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
   textarea { min-height: 120px; resize: vertical; }
-  label.field { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 4px; }
-
-  .banner {
-    border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; margin-bottom: 14px;
-    background: var(--bad-soft); color: var(--fg); border: 1px solid var(--bad);
-  }
+  label.field, span.field { display: block; font-size: .84rem; color: var(--muted); margin-bottom: 4px; }
+  .banner { border-radius: 10px; padding: 10px 14px; font-size: .88rem; margin: 10px 0 14px; background: var(--bad-soft); border: 1px solid var(--bad); }
   .banner.ok { background: var(--accent-soft); border-color: var(--accent); }
+  .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .textanswer { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .textanswer input { flex: 1; min-width: 160px; font-family: var(--font-num); font-size: 1.05rem; }
 
-  /* roster buttons */
-  .roster { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
-  .roster button {
-    font: inherit; font-size: 1rem; font-weight: 500; padding: 10px 16px; border-radius: 12px; cursor: pointer;
-    border: 1px solid var(--line); background: var(--surface-2); color: var(--fg);
-  }
+  /* roster */
+  .roster { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 14px; }
+  .roster button { font: inherit; font-size: 1rem; font-weight: 700; padding: 10px 16px; border-radius: 12px; cursor: pointer; border: 1px solid var(--line); background: var(--surface-2); color: var(--heading); display: flex; align-items: center; gap: 6px; }
   .roster button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-
-  [hidden] { display: none !important; }
-  .choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
-  @media (max-width: 480px) { .choice-row { grid-template-columns: 1fr; } }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-  .chips button {
-    font: inherit; font-size: 0.9rem; font-weight: 600; padding: 6px 12px; border-radius: 999px; cursor: pointer;
-    border: 1px solid var(--line); background: var(--surface-2); color: var(--fg);
-  }
-  .chips button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  .toggles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 4px 12px; margin-top: 4px; }
-  .toggle-head { grid-column: 1 / -1; font-weight: 700; font-size: 0.9rem; margin-top: 8px; }
-  .toggle { font-size: 0.9rem; display: flex; align-items: center; gap: 4px; }
-  span.field { display: block; font-size: 0.85rem; color: var(--muted); }
-
-  /* passport + islands */
-  .avatar { display: inline-block; font-size: 1.3em; line-height: 1; margin-right: 4px; }
+  .avatar { display: inline-block; font-size: 1.3em; line-height: 1; }
   .avatar-big { font-size: 3rem; line-height: 1; }
+
+  /* passport */
   .passport-head { display: flex; align-items: center; gap: 14px; }
-  .pp-name { font-size: 1.3rem; font-weight: 700; }
-  .homework { background: var(--accent-soft); border-radius: 10px; padding: 8px 12px; font-weight: 500; margin: 12px 0; }
-  .islands { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media (max-width: 560px) { .islands { grid-template-columns: 1fr; } }
-  .island { border: 2px solid var(--line); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); }
-  .island.geo { border-color: var(--accent); background: linear-gradient(180deg, var(--accent-soft), var(--surface) 60%); }
-  .island.num { border-color: var(--unknown); background: linear-gradient(180deg, color-mix(in srgb, var(--unknown) 18%, var(--surface)), var(--surface) 60%); }
-  .island-art { font-size: 2.6rem; line-height: 1; }
-  .island h3 { margin: 0 0 2px; font-size: 1.1rem; }
-  .island-stats { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.9rem; margin-top: 6px; }
-  .island-stats .done { color: var(--good); font-weight: 700; }
-  .stamps { display: flex; flex-wrap: wrap; gap: 2px; font-size: 1rem; min-height: 1.2em; }
-  .stamps .more { font-size: 0.8rem; color: var(--muted); align-self: center; }
-  .island .go { align-self: flex-end; }
-  .challenge { margin: 10px 0 12px; }
-  .ch-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .pp-name { font-size: 1.3rem; font-weight: 700; color: var(--heading); }
+  .homework { background: var(--surface-2); border-radius: 10px; padding: 8px 14px; font-weight: 500; margin: 14px 0 0; font-size: .92rem; }
+
+  .islands { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .island { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; transition: transform .18s, box-shadow .18s; }
+  .island:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(80,76,70,.12); }
+  .island-top { padding: 22px 20px 16px; text-align: center; background: var(--t-soft); }
+  .island-top .icon { font-size: 2.4rem; line-height: 1; margin-bottom: 8px; }
+  .island-top h3 { font-size: 1.2rem; margin: 0 0 4px; color: var(--t-ink); }
+  .island-top p { margin: 0; font-size: .84rem; color: var(--t-ink); opacity: .8; }
+  .island-stats { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 14px; font-size: .86rem; margin-top: 10px; color: var(--t-ink); }
+  .island-stats .done { font-weight: 700; }
+  .stamps { display: flex; justify-content: center; flex-wrap: wrap; gap: 2px; font-size: .95rem; min-height: 1.3em; margin-top: 6px; }
+  .stamps .more { font-size: .78rem; color: var(--muted); align-self: center; }
+  .island-go { padding: 11px 20px; font: inherit; font-size: .88rem; font-weight: 700; text-align: center; letter-spacing: .03em; background: var(--t-ink); color: var(--t-text); border: 0; cursor: pointer; width: 100%; }
+  .island.t-sage { --t-soft: var(--accent-soft); --t-ink: var(--accent); --t-text: var(--accent-ink); }
+  .island.t-indigo { --t-soft: var(--indigo-soft); --t-ink: var(--indigo); --t-text: #EEEEF4; }
+  .island.t-rose { --t-soft: var(--rose-soft); --t-ink: var(--rose); --t-text: #F4EEEE; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .island.t-indigo { --t-text: #1E1E30; } :root:not([data-theme="light"]) .island.t-rose { --t-text: #30201F; } }
+  :root[data-theme="dark"] .island.t-indigo { --t-text: #1E1E30; } :root[data-theme="dark"] .island.t-rose { --t-text: #30201F; }
+
+  /* challenge grid */
+  .challenge { margin-top: 14px; }
+  .ch-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; }
   .ch-grid { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
-  .ch-day { border: 1px solid var(--line); border-radius: 10px; padding: 6px 4px; text-align: center; background: var(--surface); min-width: 0; }
+  .ch-day { border: 1px solid var(--line); border-radius: 10px; padding: 6px 2px; text-align: center; background: var(--surface); min-width: 0; }
   .ch-day.today { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-  .ch-day.past { opacity: .85; }
-  .ch-day .d { font-family: var(--font-num); font-weight: 700; font-size: .8rem; }
-  .ch-day .w { font-size: .7rem; color: var(--muted); }
-  .ch-day .cells { display: flex; justify-content: center; gap: 2px; margin-top: 4px; font-size: 1rem; }
+  .ch-day .d { font-family: var(--font-num); font-weight: 700; font-size: .8rem; color: var(--heading); }
+  .ch-day .w { font-size: .68rem; color: var(--muted); }
+  .ch-day .cells { display: flex; justify-content: center; gap: 2px; margin-top: 4px; font-size: .95rem; }
   .ch-day .cells span { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.1; }
-  .ch-day .cells small { font-size: .65rem; }
-  .quiz-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-  .quiz-head .who { font-weight: 700; }
-  .gems { font-weight: 800; }
-  .gem-pop { color: var(--unknown); font-weight: 800; }
-  /* island path */
-  .path { display: flex; align-items: flex-end; justify-content: space-between; gap: 4px; padding: 26px 2px 6px; margin-bottom: 8px; position: relative; }
-  .path::before { content: ''; position: absolute; left: 14px; right: 14px; bottom: 19px; height: 4px; background: var(--line); border-radius: 999px; }
-  .node { position: relative; display: flex; flex-direction: column; align-items: center; width: 30px; }
-  .node .dot { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; font-family: var(--font-num); font-weight: 800; font-size: 0.85rem; color: var(--muted); position: relative; z-index: 1; }
-  .node.ok .dot { background: var(--good); border-color: var(--good); color: #fff; }
-  .node.ng .dot { background: var(--bad); border-color: var(--bad); color: #fff; }
-  .node.cur .dot { border-color: var(--accent); color: var(--accent); background: var(--surface); box-shadow: 0 0 0 4px var(--accent-soft); }
-  .node .pin { position: absolute; top: -26px; font-size: 22px; line-height: 1; animation: bob 1s ease-in-out infinite alternate; }
-  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
-  @media (prefers-reduced-motion: reduce) { .node .pin { animation: none; } }
-  .chest { font-size: 3.2rem; line-height: 1; transition: transform .4s; transform-origin: left bottom; display: inline-block; }
-  .chest.open { transform: scale(1.12) rotate(-6deg); }
-  .st { color: var(--line); } .st.on { color: var(--unknown); }
-  .stars { font-size: 2.2rem; color: var(--unknown); letter-spacing: .08em; line-height: 1; margin: 6px 0; }
-  .rtitle { font-weight: 700; margin: 6px 0 0; color: var(--accent); }
-  .confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
-  .textanswer { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
-  .textanswer input { flex: 1; min-width: 160px; font-family: var(--font-num); font-size: 1.1rem; }
-  .streak { font-size: .8rem; font-weight: 700; background: var(--unknown); color: #fff; padding: 2px 8px; border-radius: 999px; }
+  .ch-day .cells small { font-size: .62rem; }
 
   /* quiz */
-  .progress { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-  .bar { flex: 1; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
-  .bar > div { height: 100%; background: var(--accent); width: 0; transition: width .25s; }
-  @media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } }
-  .qtype { display: inline-block; font-size: 0.75rem; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--fg); }
-  .qtext { font-size: 1.05rem; margin: 10px 0; }
+  .quiz-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; font-size: .9rem; }
+  .quiz-head .who { font-weight: 700; color: var(--heading); }
+  .gems { font-weight: 800; color: var(--gold); }
+  .gem-pop { color: var(--gold); font-weight: 800; }
+  .streak { font-size: .78rem; font-weight: 700; background: var(--gold); color: #fff; padding: 2px 8px; border-radius: 999px; }
+  .qtype { display: inline-block; font-size: .76rem; letter-spacing: .04em; padding: 2px 10px; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+  .path { display: flex; align-items: flex-end; justify-content: space-between; gap: 4px; padding: 28px 2px 6px; margin-bottom: 6px; position: relative; }
+  .path::before { content: ''; position: absolute; left: 14px; right: 14px; bottom: 19px; height: 3px; background: var(--line); border-radius: 999px; }
+  .node { position: relative; display: flex; flex-direction: column; align-items: center; width: 30px; }
+  .node .dot { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; font-family: var(--font-num); font-weight: 800; font-size: .82rem; color: var(--muted); position: relative; z-index: 1; }
+  .node.ok .dot { background: var(--good); border-color: var(--good); color: #fff; }
+  .node.ng .dot { background: var(--bad); border-color: var(--bad); color: #fff; }
+  .node.cur .dot { border-color: var(--indigo); color: var(--indigo); background: var(--surface); box-shadow: 0 0 0 4px var(--indigo-soft); }
+  .node .pin { position: absolute; top: -28px; font-size: 22px; line-height: 1; animation: bob 1s ease-in-out infinite alternate; }
+  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+  @media (prefers-reduced-motion: reduce) { .node .pin { animation: none; } }
+  .qtext { font-size: 1.05rem; margin: 10px 0; color: var(--heading); }
   .figure { background: var(--surface-2); border-radius: 12px; padding: 8px; display: flex; justify-content: center; }
   .figure svg { width: 100%; max-width: 420px; height: auto; display: block; }
   .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
   @media (max-width: 420px) { .options { grid-template-columns: 1fr; } }
-  .opt {
-    font: inherit; text-align: left; padding: 12px 14px; border-radius: 12px; cursor: pointer;
-    border: 2px solid var(--line); background: var(--surface); color: var(--fg);
-    display: flex; align-items: center; gap: 10px;
-  }
+  .opt { font: inherit; text-align: left; padding: 12px 14px; border-radius: 12px; cursor: pointer; border: 2px solid var(--line); background: var(--surface); color: var(--heading); display: flex; align-items: center; gap: 10px; }
   .opt .letter { font-family: var(--font-num); font-weight: 800; color: var(--muted); }
-  .opt .val { font-family: var(--font-num); font-weight: 700; font-size: 1.15rem; }
-  .opt:hover:not(:disabled) { border-color: var(--accent); }
+  .opt .val { font-family: var(--font-num); font-weight: 700; font-size: 1.1rem; }
+  .opt:hover:not(:disabled) { border-color: var(--indigo); }
   .opt:disabled { cursor: default; }
   .opt.correct { border-color: var(--good); background: var(--good-soft); }
   .opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
   .feedback { margin-top: 14px; padding: 12px 14px; border-radius: 12px; white-space: pre-line; font-weight: 500; }
   .feedback.good { background: var(--good-soft); border: 1px solid var(--good); }
   .feedback.bad { background: var(--bad-soft); border: 1px solid var(--bad); }
-  .feedback .calc { font-family: var(--font-num); font-weight: 700; font-size: 1.05rem; margin-top: 4px; }
-  .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .feedback .calc { font-family: var(--font-num); font-weight: 700; font-size: 1.02rem; margin-top: 4px; }
 
   /* result */
+  .chest { font-size: 3rem; line-height: 1; transition: transform .4s; transform-origin: left bottom; display: inline-block; }
+  .chest.open { transform: scale(1.12) rotate(-6deg); }
+  .stars { font-size: 2.1rem; letter-spacing: .08em; line-height: 1; margin: 6px 0; }
+  .st { color: var(--line); } .st.on { color: var(--gold); }
   .score { font-family: var(--font-num); font-size: 3rem; font-weight: 800; line-height: 1; color: var(--accent); }
+  .rtitle { font-weight: 700; margin: 6px 0 0; color: var(--indigo); }
   .review { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; }
-  .review li { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; }
+  .review li { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: .9rem; }
   .review li.bad { border-color: var(--bad); }
   .review li .calc { font-family: var(--font-num); font-weight: 700; }
-
-  /* teacher */
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-  .stat { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
-  .stat .v { font-family: var(--font-num); font-size: 1.6rem; font-weight: 800; }
-  .stat .l { font-size: 0.8rem; color: var(--muted); }
-  .tablewrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font-weight: 700; color: var(--muted); font-size: 0.8rem; letter-spacing: 0.04em; }
-  td.num, th.num { text-align: right; }
-  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; font-family: var(--font-num); }
-  .pill.good { background: var(--good-soft); color: var(--fg); }
-  .pill.mid { background: var(--accent-soft); color: var(--fg); }
-  .pill.bad { background: var(--bad-soft); color: var(--fg); }
-  .pill.live { background: var(--unknown); color: #fff; }
-  details.attempt { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
-  details.attempt + details.attempt { margin-top: 8px; }
-  details.attempt summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
-  details.attempt summary .who { font-weight: 700; }
-  .ans-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 6px; margin: 10px 0; }
-  .ans-grid span {
-    display: block; text-align: center; font-family: var(--font-num); font-weight: 800; font-size: 0.85rem;
-    border-radius: 8px; padding: 6px 0; background: var(--surface-2);
-  }
-  .ans-grid span.ok { background: var(--good-soft); color: var(--good); }
-  .ans-grid span.ng { background: var(--bad-soft); color: var(--bad); }
-  .typebar { display: grid; grid-template-columns: 1fr; gap: 8px; }
-  .typebar .row { display: grid; grid-template-columns: minmax(120px, 1.2fr) 3fr auto; gap: 10px; align-items: center; font-size: 0.9rem; }
-  .typebar .track { height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
-  .typebar .fill { height: 100%; background: var(--bad); }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 560px) { .row2 { grid-template-columns: 1fr; } .typebar .row { grid-template-columns: 1fr; gap: 4px; } }
-  .inline-confirm { display: inline-flex; gap: 6px; align-items: center; }
+  .confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
 
   /* concept */
-  .formula { font-family: var(--font-num); font-weight: 800; font-size: 1.3rem; text-align: center; padding: 10px; border-radius: 10px; background: var(--accent-soft); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 560px) { .row2 { grid-template-columns: 1fr; } }
+  .formula { font-family: var(--font-num); font-weight: 800; font-size: 1.25rem; text-align: center; padding: 10px; border-radius: 10px; background: var(--surface-2); color: var(--heading); }
+
+  /* teacher */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .stat { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+  .stat .v { font-family: var(--font-num); font-size: 1.5rem; font-weight: 800; color: var(--heading); }
+  .stat .l { font-size: .78rem; color: var(--muted); }
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 700; color: var(--muted); font-size: .78rem; letter-spacing: .04em; }
+  td.num, th.num { text-align: right; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .8rem; font-weight: 700; font-family: var(--font-num); }
+  .pill.good { background: var(--good-soft); color: var(--good); }
+  .pill.mid { background: var(--surface-2); color: var(--fg); }
+  .pill.bad { background: var(--bad-soft); color: var(--bad); }
+  .pill.live { background: var(--gold); color: #fff; }
+  details.attempt { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+  details.attempt + details.attempt { margin-top: 8px; }
+  details.attempt summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+  details.attempt summary .who { font-weight: 700; color: var(--heading); }
+  .ans-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 6px; margin: 10px 0; }
+  .ans-grid span { display: block; text-align: center; font-family: var(--font-num); font-weight: 800; font-size: .85rem; border-radius: 8px; padding: 6px 0; background: var(--surface-2); }
+  .ans-grid span.ok { background: var(--good-soft); color: var(--good); }
+  .ans-grid span.ng { background: var(--bad-soft); color: var(--bad); }
+  .typebar { display: grid; gap: 8px; }
+  .typebar .row { display: grid; grid-template-columns: minmax(120px, 1.2fr) 3fr auto; gap: 10px; align-items: center; font-size: .88rem; }
+  .typebar .track { height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .typebar .fill { height: 100%; background: var(--bad); }
+  @media (max-width: 560px) { .typebar .row { grid-template-columns: 1fr; gap: 4px; } }
+  .toggles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 4px 12px; margin-top: 4px; }
+  .toggle-head { grid-column: 1 / -1; font-weight: 700; font-size: .9rem; margin-top: 8px; color: var(--heading); }
+  .toggle { font-size: .9rem; display: flex; align-items: center; gap: 4px; }
+  .inline-confirm { display: inline-flex; gap: 6px; align-items: center; }
+  .footer-note { margin-top: 20px; font-size: .78rem; color: var(--muted); text-align: center; line-height: 1.7; }
 </style>
+
 </head>
 <body>
 <canvas id="confetti" class="confetti" hidden></canvas>
 <div class="wrap">
   <header class="top">
-    <div class="brand">
-      <svg viewBox="0 0 36 36" aria-hidden="true"><polygon points="4,30 18,6 32,30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 30 A 7 7 0 0 0 9.6 24.7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="6" r="2.6" fill="currentColor"/></svg>
-      <div>
-        <h1>幾何探險家</h1>
-        <p>平面圖形島・因數與倍數島．每次 10 題，每次都不一樣</p>
-      </div>
-    </div>
+    <div class="emoji">🧭</div>
+    <h1>五年級探險護照</h1>
+    <p>每天挑一座島出發，10 關，每次題目都不一樣</p>
     <nav class="tabs" role="tablist">
-      <button role="tab" aria-selected="true" data-tab="quiz" id="tab-quiz">🗺️ 探險</button>
-      <button role="tab" aria-selected="false" data-tab="concept" id="tab-concept">💡 觀念口訣</button>
-      <button role="tab" aria-selected="false" data-tab="teacher" id="tab-teacher">🔒 老師後台</button>
+      <button role="tab" aria-selected="true" data-tab="quiz" id="tab-quiz">探險</button>
+      <button role="tab" aria-selected="false" data-tab="concept" id="tab-concept">觀念口訣</button>
+      <button role="tab" aria-selected="false" data-tab="teacher" id="tab-teacher">老師後台</button>
     </nav>
   </header>
 
@@ -297,51 +263,25 @@
         </div>
       </div>
 
-      <div class="card passport" id="passport" hidden>
-        <div class="passport-head">
-          <span class="avatar-big" id="pp-avatar">🦊</span>
-          <div>
-            <div class="pp-name" id="pp-name">探險家</div>
-            <div class="muted">探險護照 · <span class="num" id="pp-gems">💎 0</span></div>
-          </div>
-        </div>
-        <p class="homework" id="pp-homework">📝 回家作業：兩座島今天都要去探險一次！</p>
-        <div class="challenge" id="pp-challenge" hidden>
-          <div class="ch-head"><b id="ch-title">🏖️ 假期挑戰</b><span class="muted num" id="ch-progress"></span></div>
-          <div class="ch-grid" id="ch-grid"></div>
-          <p class="muted" style="margin:6px 0 0;font-size:.8rem">當天做完才會打 ✅，過了那一天就補不回來囉！</p>
-        </div>
-        <div class="islands">
-          <div class="island geo" id="island-geo">
-            <div class="island-art">📐</div>
-            <div class="island-body">
-              <h3>平面圖形島</h3>
-              <div class="muted">三角形 180°・四邊形 360°</div>
-              <div class="island-stats">
-                <span>探險 <b class="num" id="geo-count">0</b> 次</span>
-                <span>最佳 <b id="geo-best">☆☆☆</b></span>
-                <span id="geo-today">⬜ 今天還沒去</span>
-              </div>
-              <div class="stamps" id="geo-stamps"></div>
+      <div id="passport" hidden>
+        <div class="card" style="margin-top:14px">
+          <div class="passport-head">
+            <span class="avatar-big" id="pp-avatar">🦊</span>
+            <div>
+              <div class="pp-name" id="pp-name">探險家</div>
+              <div class="muted">探險護照 · <span class="num" id="pp-gems">💎 0</span></div>
             </div>
-            <button class="btn go" type="button" data-unit="geo">出發 →</button>
+            <span style="flex:1"></span>
+            <button class="btn secondary small" type="button" id="btn-switch">換人</button>
           </div>
-          <div class="island num" id="island-num">
-            <div class="island-art">🔢</div>
-            <div class="island-body">
-              <h3>因數與倍數島</h3>
-              <div class="muted">因數・倍數・寫出來、圈出來</div>
-              <div class="island-stats">
-                <span>探險 <b class="num" id="num-count">0</b> 次</span>
-                <span>最佳 <b id="num-best">☆☆☆</b></span>
-                <span id="num-today">⬜ 今天還沒去</span>
-              </div>
-              <div class="stamps" id="num-stamps"></div>
-            </div>
-            <button class="btn go" type="button" data-unit="num">出發 →</button>
+          <p class="homework" id="pp-homework">📝 回家作業：每座島今天都要去探險一次！</p>
+          <div class="challenge" id="pp-challenge" hidden>
+            <div class="ch-head"><b id="ch-title">🏖️ 假期挑戰</b><span class="muted num" id="ch-progress"></span></div>
+            <div class="ch-grid" id="ch-grid"></div>
+            <p class="muted" style="margin:6px 0 0;font-size:.78rem">當天做完才會打 ✅，過了那一天就補不回來囉！</p>
           </div>
         </div>
-        <div class="actions"><button class="btn secondary small" type="button" id="btn-switch">換人</button></div>
+        <div id="island-groups"></div>
       </div>
     </div>
 
@@ -349,7 +289,7 @@
       <div class="quiz-head">
         <span class="avatar" id="q-avatar">🦊</span>
         <span class="who" id="q-who">探險家</span>
-        <span class="qtype" id="q-island">📐 平面圖形島</span>
+        <span class="qtype" id="q-island">平面圖形島</span>
         <span class="muted num" id="q-run">第 1 次探險</span>
         <span style="flex:1"></span>
         <span class="num gems" id="q-gems">💎 0</span>
@@ -373,7 +313,7 @@
 
     <div id="screen-result" class="card" hidden>
       <div class="chest" id="r-chest">🎁</div>
-      <div class="stars" id="r-stars">☆☆☆</div>
+      <div class="stars" id="r-stars"></div>
       <h2 id="r-title">探險完成！</h2>
       <div class="score"><span id="r-score">0</span><span style="font-size:1.2rem;color:var(--muted)"> / 10</span></div>
       <p class="rtitle" id="r-badge"></p>
@@ -390,6 +330,7 @@
 
   <!-- ========== 觀念 ========== -->
   <section id="sec-concept" hidden>
+    <div class="label"><span>📐 平面圖形</span></div>
     <div class="row2">
       <div class="card">
         <h3>🔺 三角形內角和</h3>
@@ -413,18 +354,21 @@
         <p>兩邊一樣長（圖上畫短線的邊），所以兩個底角一樣大。</p>
         <p class="muted">已知頂角：<span class="num">(180° − 頂角) ÷ 2</span>　已知底角：<span class="num">180° − 底角 × 2</span></p>
       </div>
+    </div>
+    <div class="label"><span>🔢 因數與倍數</span></div>
+    <div class="row2">
       <div class="card">
-        <h3>🔢 因數</h3>
+        <h3>因數</h3>
         <p>能把一個數<b>整除</b>的數，就是它的因數。12 的因數：1、2、3、4、6、12。</p>
         <p class="muted">找因數小技巧：兩個一組找（1 和 12、2 和 6、3 和 4），就不會漏掉。</p>
       </div>
       <div class="card">
-        <h3>✖️ 倍數</h3>
+        <h3>倍數</h3>
         <p>一個數乘以 1、2、3、4…得到的數，都是它的倍數。6 的倍數：6、12、18、24…</p>
         <p class="muted">2 的倍數個位是 0、2、4、6、8；5 的倍數個位是 0 或 5；10 的倍數個位是 0。</p>
       </div>
       <div class="card">
-        <h3>🤔 因數還是倍數？</h3>
+        <h3>因數還是倍數？</h3>
         <p>想：<b>誰可以被誰整除？</b>　15 ÷ 3 = 5 整除 → 15 是 3 的倍數，3 是 15 的因數。</p>
         <p class="muted">大的數是小的數的倍數，小的數是大的數的因數（前提是要整除）。</p>
       </div>
@@ -451,16 +395,13 @@
         </div>
         <div class="stats" id="t-stats" style="margin-top:12px"></div>
         <div class="tablewrap" style="margin-top:14px">
-          <table id="t-students">
-            <thead><tr><th>學生</th><th class="num">📐 次數</th><th class="num">📐 最佳</th><th class="num">🔢 次數</th><th class="num">🔢 最佳</th><th>今天</th></tr></thead>
-            <tbody></tbody>
-          </table>
+          <table id="t-students"><thead></thead><tbody></tbody></table>
         </div>
       </div>
 
       <div class="card" id="t-challenge-card" hidden>
         <h2 id="t-challenge-title">🏖️ 假期挑戰</h2>
-        <p class="muted">每天兩座島：左邊 📐、右邊 🔢。✅ 當天完成、❌ 沒做、⬜ 今天還沒、· 還沒到。</p>
+        <p class="muted" id="t-challenge-note">✅ 當天完成、❌ 沒做、⬜ 今天還沒、· 還沒到。</p>
         <div class="tablewrap"><table id="t-challenge"><thead></thead><tbody></tbody></table></div>
       </div>
 
@@ -508,13 +449,21 @@
       </div>
     </div>
   </section>
+
+  <div class="footer-note">每天一點點，探險家就是這樣練成的 🌿</div>
 </div>
 
 <script>
 (function () {
   'use strict';
   const $ = (id) => document.getElementById(id);
-  const UNITS = { geo: '📐 平面圖形島', num: '🔢 因數與倍數島' };
+  // ===== 島嶼設定：要加新科目／新單元，在這裡加一行，再加對應的題型（unit 用同一個 id）=====
+  const ISLANDS = [
+    { id: 'geo', subject: '數學', name: '平面圖形島', icon: '📐', desc: '三角形 180°・四邊形 360°', theme: 't-sage' },
+    { id: 'num', subject: '數學', name: '因數與倍數島', icon: '🔢', desc: '因數・倍數・寫出來、圈出來', theme: 't-indigo' }
+  ];
+  const UNITS = Object.fromEntries(ISLANDS.map(i => [i.id, i.icon + ' ' + i.name]));
+  const islandOf = (id) => ISLANDS.find(i => i.id === id) || ISLANDS[0];
 
   /* ---------- 工具 ---------- */
   const rnd = (min, max, step = 1) => min + step * Math.floor(Math.random() * (Math.floor((max - min) / step) + 1));
@@ -550,13 +499,13 @@
       } },
     isoTop: { unit: 'geo', name: '等腰三角形：已知頂角',
       make() {
-        const t = rnd(30, 100, 10), b = (180 - t) / 2;
+        const t = rnd(40, 100, 10), b = (180 - t) / 2;
         return { angles: [b, b, t], labels: ['?', '?', t + '°'], unknownIdx: [0, 1], answer: b, eqSides: [[2, 0], [2, 1]],
           text: `等腰三角形兩條腰一樣長（畫短線的邊），所以兩個底角一樣大。頂角是 ${t}°，請問一個底角「?」是幾度？`, calc: `(180° − ${t}°) ÷ 2 = ${b}°` };
       } },
     isoBase: { unit: 'geo', name: '等腰三角形：已知底角',
       make() {
-        const b = rnd(30, 75, 5), t = 180 - 2 * b;
+        const b = rnd(35, 70, 5), t = 180 - 2 * b;
         return { angles: [b, b, t], labels: [b + '°', b + '°', '?'], unknownIdx: [2], answer: t, eqSides: [[2, 0], [2, 1]],
           text: `等腰三角形的兩個底角都是 ${b}°，請問頂角「?」是幾度？`, calc: `180° − ${b}° − ${b}° = ${t}°` };
       } },
@@ -818,7 +767,7 @@
         const r = 14, cross = e1[0] * e2[1] - e1[1] * e2[0], sweep = cross > 0 ? 1 : 0;
         out += `<path d="M ${V[0] + e1[0] * r} ${V[1] + e1[1] * r} A ${r} ${r} 0 0 ${sweep} ${V[0] + e2[0] * r} ${V[1] + e2[1] * r}" fill="none" stroke="${color}" stroke-width="1.8"/>`;
       }
-      const off = ang < 45 ? 34 : 27;
+      const off = ang < 45 ? 40 : 27;
       const lx = V[0] + bis[0] * off, ly = V[1] + bis[1] * off + 5;
       out += `<text x="${lx}" y="${ly}" text-anchor="middle" font-family="Nunito, 'Noto Sans TC', sans-serif" font-weight="800" font-size="${isUnknown ? 17 : 14}" fill="${color}">${q.labels[i]}</text>`;
     }
@@ -945,7 +894,7 @@
     try { student = await store.getStudent(slugOf(name)); } catch (e) { console.warn('getStudent', e); }
     if (state.student === name) renderPassport();
   }
-  function emptyStudent(name) { return { name, gems: 0, geo: { count: 0, best: 0, bestScore: 0, lastDate: '' }, num: { count: 0, best: 0, bestScore: 0, lastDate: '' } }; }
+  function emptyStudent(name) { const s = { name, gems: 0 }; ISLANDS.forEach(i => { s[i.id] = { count: 0, best: 0, bestScore: 0, lastDate: '' }; }); return s; }
   function renderPassport() {
     const pp = $('passport');
     if (!state.student) { pp.hidden = true; return; }
@@ -954,17 +903,27 @@
     $('pp-avatar').textContent = avatarFor(state.student);
     $('pp-name').textContent = state.student;
     $('pp-gems').textContent = `💎 ${s.gems || 0}`;
-    ['geo', 'num'].forEach(u => {
-      const d = s[u] || { count: 0, best: 0, lastDate: '' };
-      $(u + '-count').textContent = d.count || 0;
-      $(u + '-best').innerHTML = starStr(d.best || 0);
-      const today = d.lastDate === todayStr();
-      $(u + '-today').textContent = today ? '✅ 今天完成' : '⬜ 今天還沒去';
-      $(u + '-today').className = today ? 'done' : '';
-      const st = $(u + '-stamps'); st.innerHTML = '';
-      const n = Math.min(d.count || 0, 12);
-      for (let i = 0; i < n; i++) { const sp = document.createElement('span'); sp.textContent = u === 'geo' ? '📐' : '🔢'; st.appendChild(sp); }
-      if ((d.count || 0) > 12) { const sp = document.createElement('span'); sp.className = 'more'; sp.textContent = `+${d.count - 12}`; st.appendChild(sp); }
+    const groups = $('island-groups'); groups.innerHTML = '';
+    const subjects = [...new Set(ISLANDS.map(i => i.subject))];
+    subjects.forEach(sub => {
+      groups.insertAdjacentHTML('beforeend', `<div class="label"><span>${esc(sub)}</span></div>`);
+      const grid = document.createElement('div'); grid.className = 'islands';
+      ISLANDS.filter(i => i.subject === sub).forEach(isl => {
+        const d = s[isl.id] || { count: 0, best: 0, lastDate: '' };
+        const today = d.lastDate === todayStr();
+        const n = Math.min(d.count || 0, 12);
+        grid.insertAdjacentHTML('beforeend', `<div class="island ${isl.theme}">
+          <div class="island-top">
+            <div class="icon">${isl.icon}</div>
+            <h3>${esc(isl.name)}</h3>
+            <p>${esc(isl.desc)}</p>
+            <div class="island-stats"><span>探險 <b class="num">${d.count || 0}</b> 次</span><span>最佳 ${starStr(d.best || 0)}</span><span class="${today ? 'done' : ''}">${today ? '✅ 今天完成' : '⬜ 今天還沒去'}</span></div>
+            <div class="stamps">${isl.icon.repeat(n)}${(d.count || 0) > 12 ? `<span class="more">+${d.count - 12}</span>` : ''}</div>
+          </div>
+          <button class="island-go" type="button" data-unit="${isl.id}">出發 →</button>
+        </div>`);
+      });
+      groups.appendChild(grid);
     });
     renderChallenge(s);
   }
@@ -987,15 +946,15 @@
         return `<span><small>${icon}</small>${mark}</span>`;
       };
       const l = dayLabel(d);
-      return `<div class="ch-day ${cls}"><div class="d">${l.md}</div><div class="w">${l.w}</div><div class="cells">${cell('geo', '📐')}${cell('num', '🔢')}</div></div>`;
+      return `<div class="ch-day ${cls}"><div class="d">${l.md}</div><div class="w">${l.w}</div><div class="cells">${ISLANDS.map(i => cell(i.id, i.icon)).join('')}</div></div>`;
     }).join('');
-    $('ch-progress').textContent = `完成 ${done} / ${days.length * 2}`;
-    $('pp-homework').textContent = '📝 回家作業：假期每天兩座島都要去探險一次！';
+    $('ch-progress').textContent = `完成 ${done} / ${days.length * ISLANDS.length}`;
+    $('pp-homework').textContent = '📝 回家作業：假期每天每座島都要去探險一次！';
   }
   on('btn-name-ok', 'click', () => chooseStudent($('name-input').value));
   on('name-input', 'keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); chooseStudent($('name-input').value); } });
   on('btn-switch', 'click', () => { state.student = ''; student = null; $('name-input').value = ''; renderRoster(); renderPassport(); });
-  document.querySelectorAll('.island .go').forEach(b => b.addEventListener('click', () => startQuiz(b.dataset.unit)));
+  on('island-groups', 'click', (e) => { const b = e.target.closest('.island-go'); if (b) startQuiz(b.dataset.unit); });
 
   /* ---------- 探險（作答） ---------- */
   function attemptDoc(extra) {
@@ -1122,7 +1081,8 @@
       ul.appendChild(li);
     });
     if (stars >= 2) confetti();
-    $('btn-other').textContent = state.unit === 'geo' ? '去因數與倍數島 →' : '去平面圖形島 →';
+    const nextIsl = ISLANDS[(ISLANDS.findIndex(i => i.id === state.unit) + 1) % ISLANDS.length];
+    $('btn-other').textContent = `去${nextIsl.name} →`; $('btn-other').hidden = ISLANDS.length < 2;
     // 更新護照
     const unit = state.unit, gems = state.gems, date = todayStr();
     try {
@@ -1142,7 +1102,7 @@
   function goHome() { state.streak = 0; renderRoster(); renderPassport(); showScreen('start'); }
   on('btn-next', 'click', next);
   on('btn-again', 'click', () => startQuiz(state.unit));
-  on('btn-other', 'click', () => startQuiz(state.unit === 'geo' ? 'num' : 'geo'));
+  on('btn-other', 'click', () => startQuiz(ISLANDS[(ISLANDS.findIndex(i => i.id === state.unit) + 1) % ISLANDS.length].id));
   on('btn-passport', 'click', goHome);
   on('btn-leave', 'click', () => {
     const b = $('btn-leave');
@@ -1156,7 +1116,9 @@
   function badgeFor(unit, pct) {
     const lv = pct === 1 ? 3 : pct >= 0.8 ? 2 : pct >= 0.5 ? 1 : 0;
     const names = { geo: ['圖形探險新手', '角度學徒', '角度高手', '平面圖形大師'], num: ['因數倍數新手', '因數偵探', '倍數獵人', '因數倍數大師'] };
-    return '今天的稱號：' + (names[unit] || names.geo)[lv];
+    const isl = islandOf(unit);
+    const generic = [`${isl.name}新手`, `${isl.name}學徒`, `${isl.name}高手`, `${isl.name}大師`];
+    return '今天的稱號：' + (names[unit] || generic)[lv];
   }
   function confetti() {
     const c = $('confetti'); if (!c) return;
@@ -1220,25 +1182,26 @@
     const students = new Map();
     const today = todayStr();
     done.forEach(a => {
-      const s = students.get(a.student) || { name: a.student, geo: { count: 0, best: 0, today: false }, num: { count: 0, best: 0, today: false } };
-      const u = s[a.unit] || s.geo;
+      const s = students.get(a.student) || (() => { const o = { name: a.student }; ISLANDS.forEach(i => { o[i.id] = { count: 0, best: 0, today: false }; }); return o; })();
+      const u = s[a.unit] || (s[a.unit] = { count: 0, best: 0, today: false });
       u.count++; u.best = Math.max(u.best, a.score / (a.total || TOTAL));
       if (finishDate(a) === today) u.today = true;
       students.set(a.student, s);
     });
     const allAns = done.flatMap(a => a.answers || []);
-    const bothToday = [...students.values()].filter(s => s.geo.today && s.num.today).length;
+    const bothToday = [...students.values()].filter(s => ISLANDS.every(i => s[i.id] && s[i.id].today)).length;
     $('t-stats').innerHTML = `
       <div class="stat"><div class="v">${students.size}</div><div class="l">探險過的學生</div></div>
       <div class="stat"><div class="v">${done.length}</div><div class="l">完成的探險</div></div>
-      <div class="stat"><div class="v">${bothToday}</div><div class="l">今天兩座島都去過</div></div>
+      <div class="stat"><div class="v">${bothToday}</div><div class="l">今天每座島都去過</div></div>
       <div class="stat"><div class="v">${allAns.length ? Math.round(allAns.filter(a => a.ok).length / allAns.length * 100) + '%' : '—'}</div><div class="l">整體答對率</div></div>`;
+    $('t-students').querySelector('thead').innerHTML = '<tr><th>學生</th>' + ISLANDS.map(i => `<th class="num">${i.icon} 次數</th><th class="num">${i.icon} 最佳</th>`).join('') + '<th>今天</th></tr>';
     const tb = $('t-students').querySelector('tbody');
     tb.innerHTML = '';
-    if (!students.size) tb.innerHTML = `<tr><td colspan="6" class="muted">${auth.canWrite ? '還沒有人完成探險。' : '目前沒有登入老師帳號，看不到紀錄。'}</td></tr>`;
+    if (!students.size) tb.innerHTML = `<tr><td colspan="${ISLANDS.length * 2 + 2}" class="muted">${auth.canWrite ? '還沒有人完成探險。' : '目前沒有登入老師帳號，看不到紀錄。'}</td></tr>`;
     [...students.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant')).forEach(s => {
       const cell = (u) => `<td class="num">${u.count}</td><td class="num">${u.count ? `<span class="pill ${pillClass(u.best, 1)}">${Math.round(u.best * TOTAL)} / ${TOTAL}</span>` : '—'}</td>`;
-      tb.insertAdjacentHTML('beforeend', `<tr><td>${avatarFor(s.name)} ${esc(s.name)}</td>${cell(s.geo)}${cell(s.num)}<td>${s.geo.today ? '📐✅' : '📐⬜'} ${s.num.today ? '🔢✅' : '🔢⬜'}</td></tr>`);
+      tb.insertAdjacentHTML('beforeend', `<tr><td>${avatarFor(s.name)} ${esc(s.name)}</td>${ISLANDS.map(i => cell(s[i.id] || { count: 0, best: 0 })).join('')}<td>${ISLANDS.map(i => i.icon + ((s[i.id] && s[i.id].today) ? '✅' : '⬜')).join(' ')}</td></tr>`);
     });
     renderTeacherChallenge(done);
     const tbox = $('t-types'); tbox.innerHTML = '';
@@ -1246,7 +1209,7 @@
       const list = allAns.filter(a => a.type === k);
       const wrong = list.filter(a => !a.ok).length;
       const pct = list.length ? Math.round(wrong / list.length * 100) : 0;
-      tbox.insertAdjacentHTML('beforeend', `<div class="row"><span>${GEN[k].unit === 'num' ? '🔢' : '📐'} ${GEN[k].name}</span><div class="track"><div class="fill" style="width:${pct}%"></div></div><span class="num muted">${list.length ? `${wrong}/${list.length} 錯（${pct}%）` : '尚無作答'}</span></div>`);
+      tbox.insertAdjacentHTML('beforeend', `<div class="row"><span>${islandOf(GEN[k].unit).icon} ${GEN[k].name}</span><div class="track"><div class="fill" style="width:${pct}%"></div></div><span class="num muted">${list.length ? `${wrong}/${list.length} 錯（${pct}%）` : '尚無作答'}</span></div>`);
     });
     const abox = $('t-attempts'); abox.innerHTML = '';
     if (!attempts.length) abox.innerHTML = `<p class="muted">${auth.canWrite ? '還沒有作答紀錄。學生完成探險後，這裡就會出現。' : '目前沒有登入老師帳號，看不到紀錄。'}</p>`;
@@ -1256,7 +1219,7 @@
       const dur = a.finishedAt ? Math.round((new Date(a.finishedAt) - new Date(a.startedAt)) / 60000) : null;
       d.innerHTML = `<summary>
           <span class="who">${avatarFor(a.student)} ${esc(a.student)}</span>
-          <span class="qtype">${UNITS[a.unit] || '📐 平面圖形島'}${a.run ? ` · 第 ${a.run} 次` : ''}</span>
+          <span class="qtype">${UNITS[a.unit] || a.unit || ''}${a.run ? ` · 第 ${a.run} 次` : ''}</span>
           <span class="muted num">${fmtTime(a.startedAt)}</span>
           ${a.done ? `<span class="pill ${pillClass(a.score, a.total || TOTAL)}">${a.score} / ${a.total || TOTAL}</span>` : `<span class="pill live">探險中 ${ans.length}/${a.total || TOTAL}</span>`}
           ${dur !== null ? `<span class="muted num">${dur < 1 ? '不到 1' : dur} 分鐘</span>` : ''}
@@ -1293,13 +1256,15 @@
     });
     const l0 = dayLabel(days[0]), l1 = dayLabel(days[days.length - 1]);
     $('t-challenge-title').textContent = `🏖️ 假期挑戰 ${l0.md}～${l1.md}`;
+    $('t-challenge-note').textContent = `每格依序是 ${ISLANDS.map(i => i.icon + i.name).join('、')}。✅ 當天完成、❌ 沒做、⬜ 今天還沒、· 還沒到。`;
     const t = $('t-challenge');
     t.querySelector('thead').innerHTML = '<tr><th>學生</th>' + days.map(d => { const l = dayLabel(d); return `<th class="num">${l.md}<br><span class="muted">${l.w}</span></th>`; }).join('') + '<th class="num">完成</th></tr>';
     const mark = (ok, d) => ok ? '✅' : d < today ? '❌' : d === today ? '⬜' : '·';
     t.querySelector('tbody').innerHTML = [...byStudent.entries()].sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant')).map(([name, rec]) => {
       let n = 0;
-      const cells = days.map(d => { const r = rec[d] || {}; if (r.geo) n++; if (r.num) n++; return `<td class="num">${mark(r.geo, d)}${mark(r.num, d)}</td>`; }).join('');
-      return `<tr><td>${avatarFor(name)} ${esc(name)}</td>${cells}<td class="num"><span class="pill ${pillClass(n, days.length * 2)}">${n} / ${days.length * 2}</span></td></tr>`;
+      const cells = days.map(d => { const r = rec[d] || {}; ISLANDS.forEach(i => { if (r[i.id]) n++; }); return `<td class="num">${ISLANDS.map(i => mark(r[i.id], d)).join('')}</td>`; }).join('');
+      const max = days.length * ISLANDS.length;
+      return `<tr><td>${avatarFor(name)} ${esc(name)}</td>${cells}<td class="num"><span class="pill ${pillClass(n, max)}">${n} / ${max}</span></td></tr>`;
     }).join('') || '<tr><td colspan="99" class="muted">名單是空的。</td></tr>';
   }
   let settingsDirty = false;
@@ -1307,7 +1272,7 @@
     if (settingsDirty) return;
     const box = $('type-toggles'); if (!box) return;
     box.innerHTML = '';
-    ['geo', 'num'].forEach(u => {
+    ISLANDS.map(i => i.id).forEach(u => {
       const h = document.createElement('div'); h.className = 'toggle-head'; h.textContent = UNITS[u]; box.appendChild(h);
       keysOfUnit(u).forEach(k => {
         const lab = document.createElement('label'); lab.className = 'toggle';
