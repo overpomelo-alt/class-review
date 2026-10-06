@@ -1265,7 +1265,7 @@
     [...students.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant')).forEach(s => {
       const cell = (u) => `<td class="num">${u.count}</td><td class="num">${u.count ? `<span class="pill ${pillClass(u.best, 1)}">${Math.round(u.best * TOTAL)} / ${TOTAL}</span>` : '—'}</td>`;
       const devs = [...(studentDevs.get(s.name) || [])];
-      const devCell = hasDev ? `<td class="num">${devs.map(u => { const others = [...devNames.get(u)].filter(n => n !== s.name); return `<span title="${esc(others.length ? '這台裝置也用過：' + others.join('、') : '')}">${'#' + u.slice(-4).toUpperCase()}${others.length ? '⚠️' : ''}</span>`; }).join(' ')}</td>` : '';
+      const devCell = hasDev ? `<td>${devs.map(u => { const others = [...devNames.get(u)].filter(n => n !== s.name); return `<div class="num" style="white-space:nowrap">${'#' + u.slice(-4).toUpperCase()}${others.length ? ` ⚠️ <span class="muted">也用過：${esc(others.join('、'))}</span>` : ''}</div>`; }).join('')}</td>` : '';
       tb.insertAdjacentHTML('beforeend', `<tr><td>${avatarFor(s.name)} ${esc(s.name)}</td>${ISLANDS.map(i => cell(s[i.id] || { count: 0, best: 0 })).join('')}<td>${ISLANDS.map(i => i.icon + ((s[i.id] && s[i.id].today) ? '✅' : '⬜')).join(' ')}</td>${devCell}</tr>`);
     });
     renderTeacherChallenge(done);
