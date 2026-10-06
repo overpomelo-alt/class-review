@@ -9,7 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
-  // classroom-helper 的 Firebase 專案（和 index.html 同一個）
+  // classroom-helper 的 Firebase 專案（和 classroom-helper 的 index.html 同一個）
   const firebaseConfig = {
     apiKey: 'AIzaSyDTgvorWTr4jsIY5UL5zVrHjpuc2DL--vA',
     authDomain: 'classroom-helper-88f09.firebaseapp.com',
@@ -123,6 +123,19 @@
   }
   .roster button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 
+  .choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  @media (max-width: 480px) { .choice-row { grid-template-columns: 1fr; } }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .chips button {
+    font: inherit; font-size: 0.9rem; font-weight: 600; padding: 6px 12px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--fg);
+  }
+  .chips button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .toggles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 4px 12px; margin-top: 4px; }
+  .toggle-head { grid-column: 1 / -1; font-weight: 700; font-size: 0.9rem; margin-top: 8px; }
+  .toggle { font-size: 0.9rem; display: flex; align-items: center; gap: 4px; }
+  span.field { display: block; font-size: 0.85rem; color: var(--muted); }
+
   /* quiz */
   .progress { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
   .bar { flex: 1; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
@@ -203,7 +216,7 @@
       <svg viewBox="0 0 36 36" aria-hidden="true"><polygon points="4,30 18,6 32,30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 30 A 7 7 0 0 0 9.6 24.7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="6" r="2.6" fill="currentColor"/></svg>
       <div>
         <h1>幾何探險家</h1>
-        <p>三角形 180°、四邊形 360°．每次 20 題都不一樣</p>
+        <p>三角形 180°、四邊形 360°．角度、因數與倍數．每次題目都不一樣</p>
       </div>
     </div>
     <nav class="tabs" role="tablist">
@@ -219,10 +232,14 @@
   <section id="sec-quiz">
     <div id="screen-start" class="card">
       <h2>你是誰？</h2>
-      <p class="muted">選自己的名字，或輸入名字，再按「開始闖關」。每次 20 題，題目和數字每次都會換。</p>
+      <p class="muted">選自己的名字，或輸入名字，再按「開始闖關」。題目和數字每次都會換。</p>
       <div id="roster" class="roster"></div>
       <label class="field" for="name-input">沒有在名單上？自己輸入</label>
       <input type="text" id="name-input" placeholder="輸入名字" autocomplete="off" maxlength="20">
+      <div class="choice-row">
+        <div><span class="field">單元</span><div class="chips" id="unit-chips"></div></div>
+        <div><span class="field">題數</span><div class="chips" id="total-chips"></div></div>
+      </div>
       <div class="actions">
         <button class="btn" id="btn-start">開始闖關 →</button>
       </div>
@@ -236,7 +253,7 @@
       </div>
       <span class="qtype" id="q-type"></span>
       <p class="qtext" id="q-text"></p>
-      <div class="figure"><svg id="q-svg" viewBox="0 0 360 190" role="img" aria-label="題目圖形"></svg></div>
+      <div class="figure" id="q-figure"><svg id="q-svg" viewBox="0 0 360 190" role="img" aria-label="題目圖形"></svg></div>
       <div class="options" id="q-options"></div>
       <div id="q-feedback" class="feedback" hidden></div>
       <div class="actions">
@@ -343,6 +360,14 @@
             <p class="muted">學生用自己的裝置打開這個網址就能作答，不用登入；每一筆作答都會即時出現在這裡。</p>
           </div>
         </div>
+        <div style="margin-top:14px">
+          <span class="field">預設題數（學生開始時會先選到這個）</span>
+          <div class="chips" id="set-total-chips"></div>
+        </div>
+        <div style="margin-top:14px">
+          <span class="field">開放的題型（沒勾的不會出題）</span>
+          <div class="toggles" id="type-toggles"></div>
+        </div>
         <div class="actions">
           <span class="muted" id="settings-msg"></span>
           <button class="btn" id="btn-save-settings">儲存名單</button>
@@ -356,128 +381,209 @@
 (function () {
   'use strict';
   const $ = (id) => document.getElementById(id);
-  const TOTAL = 20;
+  const TOTAL_CHOICES = [10, 20, 30, 50];
+  const UNITS = { geo: '📐 角度', num: '🔢 因數與倍數', mix: '🎲 混合' };
 
-  /* ---------- 題型產生器 ---------- */
+  /* ---------- 工具 ---------- */
   const rnd = (min, max, step = 1) => min + step * Math.floor(Math.random() * (Math.floor((max - min) / step) + 1));
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const factorsOf = (n) => { const f = []; for (let i = 1; i <= n; i++) if (n % i === 0) f.push(i); return f; };
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  const lcm = (a, b) => a * b / gcd(a, b);
+  const listStr = (arr) => arr.join('、');
+  // 從候選中挑 3 個干擾選項，和正解一起打亂
+  const withDistractors = (answer, cands) => {
+    const list = shuffle([...new Set(cands)].filter(v => v !== answer && v > 0)).slice(0, 3);
+    return shuffle([answer, ...list]);
+  };
 
-  // 每個產生器回傳 { type, typeName, text, angles:[...全部內角], labels:[...每個頂點顯示的文字或 null], unknownIdx:[...], answer, calc, eqSides?:[[i,j],...] }
+  /* ---------- 題型產生器 ----------
+     每個產生器回傳 { text, answer, calc, options?, angles?, labels?, unknownIdx?, eqSides? }
+     角度題：有 angles/labels，會畫圖；數字題：沒有圖，直接顯示題目 */
   const GEN = {
-    tri2: {
-      name: '三角形：已知兩角',
+    /* ===== 角度 ===== */
+    tri2: { unit: 'geo', name: '三角形：已知兩角',
       make() {
         let a, b, c;
         do { a = rnd(25, 110, 5); b = rnd(25, 110, 5); c = 180 - a - b; } while (c < 25 || c > 120);
         return { angles: [c, a, b], labels: ['?', a + '°', b + '°'], unknownIdx: [0], answer: c,
-          text: `三角形有兩個角分別是 ${a}° 和 ${b}°，請問「?」是幾度？`,
-          calc: `180° − ${a}° − ${b}° = ${c}°` };
-      }
-    },
-    triRight: {
-      name: '直角三角形',
+          text: `三角形有兩個角分別是 ${a}° 和 ${b}°，請問「?」是幾度？`, calc: `180° − ${a}° − ${b}° = ${c}°` };
+      } },
+    triRight: { unit: 'geo', name: '直角三角形',
       make() {
         const x = rnd(20, 70, 5), y = 90 - x;
         return { angles: [y, 90, x], labels: ['?', '90°', x + '°'], unknownIdx: [0], answer: y,
-          text: `直角三角形有一個 90° 的直角，另一個角是 ${x}°，請問「?」是幾度？`,
-          calc: `180° − 90° − ${x}° = ${y}°（或 90° − ${x}° = ${y}°）` };
-      }
-    },
-    isoTop: {
-      name: '等腰三角形：已知頂角',
+          text: `直角三角形有一個 90° 的直角，另一個角是 ${x}°，請問「?」是幾度？`, calc: `180° − 90° − ${x}° = ${y}°（或 90° − ${x}° = ${y}°）` };
+      } },
+    isoTop: { unit: 'geo', name: '等腰三角形：已知頂角',
       make() {
-        const t = rnd(20, 100, 10), b = (180 - t) / 2;
-        return { angles: [t, b, b], labels: [t + '°', '?', '?'], unknownIdx: [1, 2], answer: b, eqSides: [[0, 1], [0, 2]],
-          text: `等腰三角形兩條腰一樣長（畫短線的邊），所以兩個底角一樣大。頂角是 ${t}°，請問一個底角「?」是幾度？`,
-          calc: `(180° − ${t}°) ÷ 2 = ${b}°` };
-      }
-    },
-    isoBase: {
-      name: '等腰三角形：已知底角',
+        const t = rnd(30, 100, 10), b = (180 - t) / 2;
+        return { angles: [b, b, t], labels: ['?', '?', t + '°'], unknownIdx: [0, 1], answer: b, eqSides: [[2, 0], [2, 1]],
+          text: `等腰三角形兩條腰一樣長（畫短線的邊），所以兩個底角一樣大。頂角是 ${t}°，請問一個底角「?」是幾度？`, calc: `(180° − ${t}°) ÷ 2 = ${b}°` };
+      } },
+    isoBase: { unit: 'geo', name: '等腰三角形：已知底角',
       make() {
         const b = rnd(30, 75, 5), t = 180 - 2 * b;
-        return { angles: [t, b, b], labels: ['?', b + '°', b + '°'], unknownIdx: [0], answer: t, eqSides: [[0, 1], [0, 2]],
-          text: `等腰三角形的兩個底角都是 ${b}°，請問頂角「?」是幾度？`,
-          calc: `180° − ${b}° − ${b}° = ${t}°` };
-      }
-    },
-    quad3: {
-      name: '四邊形：已知三角',
+        return { angles: [b, b, t], labels: [b + '°', b + '°', '?'], unknownIdx: [2], answer: t, eqSides: [[2, 0], [2, 1]],
+          text: `等腰三角形的兩個底角都是 ${b}°，請問頂角「?」是幾度？`, calc: `180° − ${b}° − ${b}° = ${t}°` };
+      } },
+    quad3: { unit: 'geo', name: '四邊形：已知三角',
       make() {
         let a, b, c, d;
         do { a = rnd(60, 130, 5); b = rnd(60, 130, 5); c = rnd(60, 130, 5); d = 360 - a - b - c; } while (d < 55 || d > 135);
         return { angles: [a, b, c, d], labels: [a + '°', b + '°', c + '°', '?'], unknownIdx: [3], answer: d,
-          text: `四邊形有三個角分別是 ${a}°、${b}°、${c}°，請問「?」是幾度？`,
-          calc: `360° − ${a}° − ${b}° − ${c}° = ${d}°` };
-      }
-    },
-    quadRight2: {
-      name: '四邊形：兩個直角',
+          text: `四邊形有三個角分別是 ${a}°、${b}°、${c}°，請問「?」是幾度？`, calc: `360° − ${a}° − ${b}° − ${c}° = ${d}°` };
+      } },
+    quadRight2: { unit: 'geo', name: '四邊形：兩個直角',
       make() {
         const x = rnd(50, 130, 5), y = 180 - x;
         return { angles: [90, 90, x, y], labels: ['90°', '90°', x + '°', '?'], unknownIdx: [3], answer: y,
-          text: `這個四邊形有兩個直角，另一個角是 ${x}°，請問「?」是幾度？`,
-          calc: `360° − 90° − 90° − ${x}° = ${y}°` };
-      }
-    },
-    quadRight1: {
-      name: '四邊形：一個直角',
+          text: `這個四邊形有兩個直角，另一個角是 ${x}°，請問「?」是幾度？`, calc: `360° − 90° − 90° − ${x}° = ${y}°` };
+      } },
+    quadRight1: { unit: 'geo', name: '四邊形：一個直角',
       make() {
         let a, b, d;
         do { a = rnd(60, 130, 5); b = rnd(60, 130, 5); d = 360 - 90 - a - b; } while (d < 50 || d > 135);
         return { angles: [90, a, b, d], labels: ['90°', a + '°', b + '°', '?'], unknownIdx: [3], answer: d,
-          text: `四邊形有一個直角，另外兩個角是 ${a}° 和 ${b}°，請問「?」是幾度？`,
-          calc: `360° − 90° − ${a}° − ${b}° = ${d}°` };
-      }
-    },
-    para: {
-      name: '平行四邊形',
+          text: `四邊形有一個直角，另外兩個角是 ${a}° 和 ${b}°，請問「?」是幾度？`, calc: `360° − 90° − ${a}° − ${b}° = ${d}°` };
+      } },
+    para: { unit: 'geo', name: '平行四邊形',
       make() {
         const x = rnd(50, 130, 5), y = (360 - 2 * x) / 2;
         return { angles: [x, y, x, y], labels: [x + '°', '?', x + '°', '?'], unknownIdx: [1, 3], answer: y,
-          text: `平行四邊形相對的角一樣大。已知兩個相對的角都是 ${x}°，另外兩個角也相等，請問「?」是幾度？`,
-          calc: `(360° − ${x}° − ${x}°) ÷ 2 = ${y}°` };
-      }
-    },
-    quadTwoEqual: {
-      name: '四邊形：兩角相等',
+          text: `平行四邊形相對的角一樣大。已知兩個相對的角都是 ${x}°，另外兩個角也相等，請問「?」是幾度？`, calc: `(360° − ${x}° − ${x}°) ÷ 2 = ${y}°` };
+      } },
+    quadTwoEqual: { unit: 'geo', name: '四邊形：兩角相等',
       make() {
         let x, y, d;
         do { x = rnd(60, 120, 5); y = rnd(60, 130, 5); d = 360 - 2 * x - y; } while (d < 50 || d > 135);
         return { angles: [x, y, x, d], labels: [x + '°', y + '°', x + '°', '?'], unknownIdx: [3], answer: d,
-          text: `四邊形有兩個角都是 ${x}°，還有一個角是 ${y}°，請問「?」是幾度？`,
-          calc: `360° − ${x}° − ${x}° − ${y}° = ${d}°` };
-      }
-    }
+          text: `四邊形有兩個角都是 ${x}°，還有一個角是 ${y}°，請問「?」是幾度？`, calc: `360° − ${x}° − ${x}° − ${y}° = ${d}°` };
+      } },
+
+    /* ===== 因數與倍數 ===== */
+    facPick: { unit: 'num', name: '因數判斷',
+      make() {
+        const n = pick([12, 16, 18, 20, 24, 28, 30, 32, 36, 40, 42, 45, 48, 54, 56, 60, 72]);
+        const f = factorsOf(n);
+        const ans = pick(f.filter(x => x > 1 && x < n));
+        const non = []; for (let i = 2; i < n; i++) if (n % i !== 0) non.push(i);
+        return { answer: ans, options: withDistractors(ans, shuffle(non)),
+          text: `下面哪一個數是 ${n} 的因數？`, calc: `${n} 的因數：${listStr(f)}\n${n} ÷ ${ans} = ${n / ans}，剛好整除，所以 ${ans} 是 ${n} 的因數` };
+      } },
+    mulPick: { unit: 'num', name: '倍數判斷',
+      make() {
+        const n = rnd(3, 12);
+        const k = rnd(3, 12), ans = n * k;
+        const non = []; for (let i = n + 1; i < n * 13; i++) if (i % n !== 0) non.push(i);
+        return { answer: ans, options: withDistractors(ans, shuffle(non.filter(v => Math.abs(v - ans) <= n * 3))),
+          text: `下面哪一個數是 ${n} 的倍數？`, calc: `${n} × ${k} = ${ans}，所以 ${ans} 是 ${n} 的倍數\n（${n} 的倍數：${listStr([1, 2, 3, 4, 5].map(i => n * i))}…）` };
+      } },
+    facCount: { unit: 'num', name: '因數有幾個',
+      make() {
+        const n = pick([6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 24, 25, 27, 28, 30, 32, 36, 40, 45, 48, 49, 50]);
+        const f = factorsOf(n), ans = f.length;
+        return { answer: ans, options: withDistractors(ans, [ans - 1, ans + 1, ans - 2, ans + 2, ans + 3]),
+          text: `${n} 的因數一共有幾個？`, calc: `${n} 的因數：${listStr(f)}\n一共 ${ans} 個` };
+      } },
+    mul2510: { unit: 'num', name: '2、5、10 的倍數',
+      make() {
+        const n = pick([2, 5, 10]);
+        const base = rnd(11, 99);
+        const ans = base * n;
+        const non = []; for (let i = ans - 15; i <= ans + 15; i++) if (i > 10 && i % n !== 0) non.push(i);
+        const rule = n === 2 ? '個位是 0、2、4、6、8' : n === 5 ? '個位是 0 或 5' : '個位是 0';
+        return { answer: ans, options: withDistractors(ans, shuffle(non)),
+          text: `下面哪一個數是 ${n} 的倍數？（看個位數就知道）`, calc: `${n} 的倍數，${rule}\n${ans} 的個位是 ${ans % 10}，所以 ${ans} 是 ${n} 的倍數` };
+      } },
+    cfPick: { unit: 'num', name: '公因數',
+      make() {
+        let a, b, cf;
+        do { a = pick([8, 12, 16, 18, 20, 24, 30, 36, 40, 48]); b = pick([6, 8, 9, 10, 12, 15, 16, 18, 20, 24, 36]); cf = factorsOf(gcd(a, b)); } while (a === b || cf.length < 3);
+        const ans = pick(cf.filter(x => x > 1));
+        const non = []; for (let i = 2; i <= Math.max(a, b); i++) if (!(a % i === 0 && b % i === 0)) non.push(i);
+        return { answer: ans, options: withDistractors(ans, shuffle(non.filter(v => v <= Math.min(a, b) + 4))),
+          text: `下面哪一個數是 ${a} 和 ${b} 的公因數？`, calc: `${a} 的因數：${listStr(factorsOf(a))}\n${b} 的因數：${listStr(factorsOf(b))}\n公因數：${listStr(cf)}` };
+      } },
+    cmPick: { unit: 'num', name: '公倍數',
+      make() {
+        let a, b;
+        do { a = rnd(2, 9); b = rnd(2, 9); } while (a === b || a % b === 0 || b % a === 0);
+        const l = lcm(a, b), k = rnd(1, 3), ans = l * k;
+        const non = []; for (let i = 4; i <= l * 3 + 10; i++) if (i % l !== 0) non.push(i);
+        return { answer: ans, options: withDistractors(ans, shuffle(non.filter(v => Math.abs(v - ans) <= l + 6 && (v % a === 0 || v % b === 0)).concat(shuffle(non).slice(0, 4)))),
+          text: `下面哪一個數是 ${a} 和 ${b} 的公倍數？`, calc: `${a} 的倍數：${listStr([1, 2, 3, 4, 5, 6].map(i => a * i))}…\n${b} 的倍數：${listStr([1, 2, 3, 4, 5, 6].map(i => b * i))}…\n${ans} ÷ ${a} = ${ans / a}，${ans} ÷ ${b} = ${ans / b}，都整除` };
+      } },
+    gcf: { unit: 'num', name: '最大公因數',
+      make() {
+        let a, b, g;
+        do { a = pick([8, 12, 16, 18, 20, 24, 27, 30, 32, 36, 40, 45, 48]); b = pick([6, 8, 9, 10, 12, 15, 16, 18, 20, 24, 30, 36]); g = gcd(a, b); } while (a === b || g < 2);
+        const cf = factorsOf(g);
+        return { answer: g, options: withDistractors(g, [...cf.filter(x => x > 1 && x < g), g * 2, g + 1, g - 1, Math.min(a, b)]),
+          text: `${a} 和 ${b} 的最大公因數是多少？`, calc: `${a} 的因數：${listStr(factorsOf(a))}\n${b} 的因數：${listStr(factorsOf(b))}\n公因數：${listStr(cf)}，最大的是 ${g}` };
+      } },
+    lcmQ: { unit: 'num', name: '最小公倍數',
+      make() {
+        let a, b;
+        do { a = rnd(2, 10); b = rnd(2, 10); } while (a === b || a % b === 0 || b % a === 0);
+        const l = lcm(a, b);
+        return { answer: l, options: withDistractors(l, [a * b, l * 2, l + a, l - b, Math.max(a, b) * 2]),
+          text: `${a} 和 ${b} 的最小公倍數是多少？`, calc: `${a} 的倍數：${listStr([1, 2, 3, 4, 5, 6].map(i => a * i))}…\n${b} 的倍數：${listStr([1, 2, 3, 4, 5, 6].map(i => b * i))}…\n第一個一樣的是 ${l}` };
+      } },
+    facApp: { unit: 'num', name: '因數應用：平分',
+      make() {
+        const n = pick([12, 18, 20, 24, 28, 30, 36, 40, 42, 45, 48, 54, 60]);
+        const item = pick(['糖果', '貼紙', '彈珠', '餅乾', '卡片']);
+        const f = factorsOf(n).filter(x => x > 1 && x < n);
+        const ans = pick(f);
+        const non = []; for (let i = 2; i < n; i++) if (n % i !== 0) non.push(i);
+        return { answer: ans, options: withDistractors(ans, shuffle(non.filter(v => Math.abs(v - ans) <= 6))),
+          text: `有 ${n} 個${item}要平分給幾個人，每個人拿到一樣多、而且剛好分完。下面哪一個人數可以？`, calc: `人數要是 ${n} 的因數：${listStr(factorsOf(n))}\n${n} ÷ ${ans} = ${n / ans}，每人 ${n / ans} 個，剛好分完` };
+      } },
+    lcmApp: { unit: 'num', name: '公倍數應用：同一天',
+      make() {
+        let a, b;
+        do { a = rnd(2, 8); b = rnd(3, 9); } while (a === b || a % b === 0 || b % a === 0);
+        const l = lcm(a, b);
+        const who = pick([['哥哥', '妹妹'], ['小安', '小翰'], ['爸爸', '媽媽'], ['阿公', '阿嬤']]);
+        const act = pick(['去圖書館', '去運動', '去市場', '澆花']);
+        return { answer: l, options: withDistractors(l, [a * b, a + b, l * 2, l + a, Math.max(a, b) * 2]),
+          text: `${who[0]}每 ${a} 天${act}一次，${who[1]}每 ${b} 天${act}一次。今天兩個人都去了，最少再過幾天會再一起去？`, calc: `找 ${a} 和 ${b} 的最小公倍數\n${a} 的倍數：${listStr([1, 2, 3, 4, 5].map(i => a * i))}…\n${b} 的倍數：${listStr([1, 2, 3, 4, 5].map(i => b * i))}…\n最小公倍數是 ${l}，所以再過 ${l} 天` };
+      } }
   };
   const TYPE_KEYS = Object.keys(GEN);
+  const keysOfUnit = (u) => TYPE_KEYS.filter(k => u === 'mix' || GEN[k].unit === u);
 
-  function makeOptions(answer, isTri, knownSum) {
-    const cands = new Set();
-    [answer + 10, answer - 10, answer + 20, answer - 20, answer + 5, answer - 5, answer + 30, answer - 30].forEach(v => cands.add(v));
-    // 常見錯誤：用錯內角和
-    if (isTri) cands.add(360 - knownSum); else cands.add(180 - knownSum);
-    cands.add(180 - answer); cands.add(90);
-    const list = shuffle([...cands].filter(v => v > 0 && v < 180 && v !== answer)).slice(0, 3);
-    return shuffle([answer, ...list]);
+  function makeAngleOptions(answer, isTri, knownSum) {
+    const cands = [answer + 10, answer - 10, answer + 20, answer - 20, answer + 5, answer - 5, answer + 30, answer - 30,
+      isTri ? 360 - knownSum : 180 - knownSum, 180 - answer, 90].filter(v => v > 0 && v < 180);
+    return withDistractors(answer, cands);
   }
 
-  function buildQuiz() {
-    let keys = shuffle([...TYPE_KEYS, ...TYPE_KEYS]);
-    while (keys.length < TOTAL) keys.push(pick(TYPE_KEYS));
-    keys = shuffle(keys.slice(0, TOTAL));
+  function buildQuiz(total, keys) {
+    if (!keys.length) keys = TYPE_KEYS.slice();
+    let pool = [];
+    while (pool.length < total) pool = pool.concat(shuffle(keys));
+    pool = shuffle(pool.slice(0, total));
     const qs = [];
-    for (let i = 0; i < TOTAL; i++) {
-      const key = keys[i];
-      let q;
-      do { q = GEN[key].make(); } while (i > 0 && qs[i - 1].type === key && qs[i - 1].answer === q.answer);
-      q.type = key; q.typeName = GEN[key].name;
-      const isTri = q.angles.length === 3;
-      const knownSum = q.angles.reduce((s, a, idx) => q.unknownIdx.includes(idx) ? s : s + a, 0);
-      q.options = makeOptions(q.answer, isTri, knownSum);
+    for (let i = 0; i < total; i++) {
+      const key = pool[i];
+      let q, guard = 0;
+      do { q = GEN[key].make(); } while (i > 0 && qs[i - 1].type === key && qs[i - 1].answer === q.answer && ++guard < 10);
+      q.type = key; q.typeName = GEN[key].name; q.unit = GEN[key].unit;
+      if (q.angles) {
+        const isTri = q.angles.length === 3;
+        const knownSum = q.angles.reduce((s, a, idx) => q.unknownIdx.includes(idx) ? s : s + a, 0);
+        q.options = makeAngleOptions(q.answer, isTri, knownSum);
+        q.points = polygonFromAngles(q.angles);
+        q.suffix = '°';
+      } else {
+        q.suffix = '';
+      }
+      // 萬一干擾選項不夠（極少數），補到 4 個
+      let pad = 1; while (q.options.length < 4) { const v = q.answer + pad * (pad % 2 ? 1 : -1) * 3; if (v > 0 && !q.options.includes(v)) q.options.push(v); pad++; }
       q.correctIdx = q.options.indexOf(q.answer);
-      q.points = polygonFromAngles(q.angles);
       qs.push(q);
     }
     return qs;
@@ -486,7 +592,6 @@
   /* ---------- 幾何繪圖 ---------- */
   const D2R = Math.PI / 180;
   function solve2(ux, uy, vx, vy, rx, ry) {
-    // s*u + t*v = r
     const det = ux * vy - uy * vx;
     if (Math.abs(det) < 1e-9) return null;
     return [(rx * vy - ry * vx) / det, (ux * ry - uy * rx) / det];
@@ -510,7 +615,6 @@
     }
     const pts = [[0, 0]];
     for (let i = 0; i < n - 1; i++) pts.push([pts[i][0] + sides[i] * u[i][0], pts[i][1] + sides[i] * u[i][1]]);
-    // 翻轉讓第一邊在底部，再縮放到 viewBox
     const flipped = pts.map(p => [p[0], -p[1]]);
     const xs = flipped.map(p => p[0]), ys = flipped.map(p => p[1]);
     const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
@@ -525,7 +629,6 @@
     const isTri = n === 3;
     const stroke = isTri ? 'var(--accent)' : 'var(--unknown)';
     let out = `<polygon points="${P.map(p => p.join(',')).join(' ')}" fill="${stroke}" fill-opacity="0.08" stroke="${stroke}" stroke-width="2.5" stroke-linejoin="round"/>`;
-    // 等長邊記號
     (q.eqSides || []).forEach(([i, j]) => {
       const mx = (P[i][0] + P[j][0]) / 2, my = (P[i][1] + P[j][1]) / 2;
       const [dx, dy] = unit(P[j][0] - P[i][0], P[j][1] - P[i][1]);
@@ -553,8 +656,8 @@
   }
 
   /* ---------- 狀態 ---------- */
-  let state = { screen: 'start', student: '', qs: null, idx: 0, answers: [], attemptId: null, startedAt: null };
-  let settings = { roster: [] };
+  let state = { screen: 'start', student: '', qs: null, idx: 0, answers: [], attemptId: null, startedAt: null, unit: 'geo', total: 20, unitChosen: false, totalChosen: false };
+  let settings = { roster: [], defaultTotal: 20, enabledTypes: TYPE_KEYS.slice() };
   let attempts = [];
   let unsubAttempts = null;
   let currentUser = null;          // firebase user（匿名或老師）
@@ -581,6 +684,7 @@
     ['start', 'quiz', 'result'].forEach(s => { $('screen-' + s).hidden = s !== name; });
   }
   function renderRoster() {
+    renderChoices();
     const box = $('roster');
     box.innerHTML = '';
     if (!settings.roster.length) {
@@ -602,14 +706,14 @@
   function attemptDoc(extra) {
     return Object.assign({
       student: state.student, uid: currentUser.uid, startedAt: state.startedAt, finishedAt: null, done: false,
-      score: state.answers.filter(a => a.ok).length, total: TOTAL, answers: state.answers.map(a => ({ ...a }))
+      score: state.answers.filter(a => a.ok).length, total: state.total, unit: state.unit, answers: state.answers.map(a => ({ ...a }))
     }, extra || {});
   }
   async function startQuiz() {
     const name = ($('name-input').value.trim() || state.student || '').trim();
     if (!name) { $('name-input').focus(); $('name-input').placeholder = '先輸入名字才能開始喔'; return; }
     state.student = name;
-    state.qs = buildQuiz();
+    state.qs = buildQuiz(state.total, keysOfUnit(state.unit).filter(k => settings.enabledTypes.includes(k)));
     state.idx = 0; state.answers = []; state.startedAt = new Date().toISOString();
     state.attemptId = 'a_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
     showScreen('quiz');
@@ -622,18 +726,19 @@
   }
   function renderQuestion() {
     const q = state.qs[state.idx];
-    $('q-counter').textContent = `${state.idx + 1} / ${TOTAL}`;
-    $('q-bar').style.width = `${(state.idx / TOTAL) * 100}%`;
+    $('q-counter').textContent = `${state.idx + 1} / ${state.total}`;
+    $('q-bar').style.width = `${(state.idx / state.total) * 100}%`;
     $('q-score').textContent = `✔ ${state.answers.filter(a => a.ok).length}`;
-    $('q-type').textContent = q.typeName;
+    $('q-type').textContent = (q.unit === 'num' ? '🔢 ' : '📐 ') + q.typeName;
     $('q-text').textContent = q.text;
-    drawFigure($('q-svg'), q);
+    $('q-figure').hidden = !q.points;
+    if (q.points) drawFigure($('q-svg'), q);
     const box = $('q-options');
     box.innerHTML = '';
     q.options.forEach((opt, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'opt'; b.id = `opt-${state.idx}-${i}`;
-      b.innerHTML = `<span class="letter">${'ABCD'[i]}</span><span class="val">${opt}°</span>`;
+      b.innerHTML = `<span class="letter">${'ABCD'[i]}</span><span class="val">${opt}${q.suffix}</span>`;
       b.addEventListener('click', () => answer(i));
       box.appendChild(b);
     });
@@ -644,7 +749,7 @@
     const q = state.qs[state.idx];
     if (state.answers[state.idx]) return;
     const ok = i === q.correctIdx;
-    state.answers[state.idx] = { n: state.idx + 1, type: q.type, typeName: q.typeName, text: q.text, picked: q.options[i], answer: q.answer, ok, calc: q.calc };
+    state.answers[state.idx] = { n: state.idx + 1, type: q.type, typeName: q.typeName, text: q.text, picked: q.options[i], answer: q.answer, ok, calc: q.calc, suffix: q.suffix, unit: q.unit };
     document.querySelectorAll('#q-options .opt').forEach((b, j) => {
       b.disabled = true;
       if (j === q.correctIdx) b.classList.add('correct');
@@ -652,11 +757,11 @@
     });
     const fb = $('q-feedback');
     fb.className = 'feedback ' + (ok ? 'good' : 'bad');
-    fb.innerHTML = `${ok ? '答對了！' : `答錯了，正確答案是 ${q.answer}°。`}<div class="calc">${q.calc}</div>`;
+    fb.innerHTML = `${ok ? '答對了！' : `答錯了，正確答案是 ${q.answer}${q.suffix}。`}<div class="calc">${q.calc}</div>`;
     fb.hidden = false;
     $('q-score').textContent = `✔ ${state.answers.filter(a => a.ok).length}`;
     $('btn-next').hidden = false;
-    $('btn-next').textContent = state.idx === TOTAL - 1 ? '看成績 →' : '下一題 →';
+    $('btn-next').textContent = state.idx === state.total - 1 ? '看成績 →' : '下一題 →';
     $('btn-next').focus();
     if (currentUser) {
       try {
@@ -665,7 +770,7 @@
     }
   }
   async function next() {
-    if (state.idx < TOTAL - 1) { state.idx++; renderQuestion(); return; }
+    if (state.idx < state.total - 1) { state.idx++; renderQuestion(); return; }
     await finish();
   }
   async function finish() {
@@ -673,7 +778,7 @@
     const finishedAt = new Date().toISOString();
     showScreen('result');
     $('r-score').textContent = score;
-    $('r-title').textContent = score === TOTAL ? `${state.student}，全部答對，太厲害了！` : score >= 15 ? `${state.student}，闖關成功！` : `${state.student}，闖關完成！`;
+    $('r-title').textContent = score === state.total ? `${state.student}，全部答對，太厲害了！` : score >= state.total * 0.75 ? `${state.student}，闖關成功！` : `${state.student}，闖關完成！`;
     const wrong = state.answers.filter(a => !a.ok);
     $('r-note').textContent = wrong.length ? `有 ${wrong.length} 題答錯，看看算式再練一次：` : '成績已經記錄到老師後台。';
     const ul = $('r-review');
@@ -681,7 +786,7 @@
     wrong.forEach(a => {
       const li = document.createElement('li');
       li.className = 'bad';
-      li.innerHTML = `<strong>第 ${a.n} 題</strong>（${a.typeName}）你選 ${a.picked}°，正確是 ${a.answer}°<br><span class="calc">${a.calc}</span>`;
+      li.innerHTML = `<strong>第 ${a.n} 題</strong>（${a.typeName}）你選 ${a.picked}${a.suffix}，正確是 ${a.answer}${a.suffix}<br><span class="calc">${a.calc}</span>`;
       ul.appendChild(li);
     });
     if (currentUser) {
@@ -747,6 +852,7 @@
     subscribeAttempts();
     renderTeacherData();
     if (document.activeElement !== $('roster-input')) $('roster-input').value = settings.roster.join('\n');
+    renderSettingsUI();
   }
   function subscribeAttempts() {
     if (unsubAttempts) return;
@@ -772,7 +878,7 @@
     const students = new Map();
     done.forEach(a => {
       const s = students.get(a.student) || { name: a.student, scores: [], latest: null };
-      s.scores.push(a.score);
+      s.scores.push(a.score / (a.total || 20));
       if (!s.latest || a.startedAt > s.latest.startedAt) s.latest = a;
       students.set(a.student, s);
     });
@@ -781,7 +887,7 @@
     $('t-stats').innerHTML = `
       <div class="stat"><div class="v">${students.size}</div><div class="l">作答過的學生</div></div>
       <div class="stat"><div class="v">${done.length}</div><div class="l">完成的闖關</div></div>
-      <div class="stat"><div class="v">${done.length ? avg.toFixed(1) : '—'}</div><div class="l">平均分（滿分 ${TOTAL}）</div></div>
+      <div class="stat"><div class="v">${allAns.length}</div><div class="l">作答總題數</div></div>
       <div class="stat"><div class="v">${allAns.length ? Math.round(allAns.filter(a => a.ok).length / allAns.length * 100) + '%' : '—'}</div><div class="l">整體答對率</div></div>`;
 
     const tb = $('t-students').querySelector('tbody');
@@ -790,9 +896,9 @@
     [...students.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant')).forEach(s => {
       const best = Math.max(...s.scores), mean = s.scores.reduce((x, y) => x + y, 0) / s.scores.length;
       tb.insertAdjacentHTML('beforeend', `<tr><td>${esc(s.name)}</td><td class="num">${s.scores.length}</td>
-        <td class="num"><span class="pill ${pillClass(s.latest.score, TOTAL)}">${s.latest.score}</span></td>
-        <td class="num"><span class="pill ${pillClass(best, TOTAL)}">${best}</span></td>
-        <td class="num">${mean.toFixed(1)}</td></tr>`);
+        <td class="num"><span class="pill ${pillClass(s.latest.score, s.latest.total || 20)}">${s.latest.score} / ${s.latest.total || 20}</span></td>
+        <td class="num"><span class="pill ${pillClass(best, 1)}">${Math.round(best * 100)}%</span></td>
+        <td class="num">${Math.round(mean * 100)}%</td></tr>`);
     });
 
     const tbox = $('t-types');
@@ -801,7 +907,7 @@
       const list = allAns.filter(a => a.type === k);
       const wrong = list.filter(a => !a.ok).length;
       const pct = list.length ? Math.round(wrong / list.length * 100) : 0;
-      tbox.insertAdjacentHTML('beforeend', `<div class="row"><span>${GEN[k].name}</span><div class="track"><div class="fill" style="width:${pct}%"></div></div><span class="num muted">${list.length ? `${wrong}/${list.length} 錯（${pct}%）` : '尚無作答'}</span></div>`);
+      tbox.insertAdjacentHTML('beforeend', `<div class="row"><span>${GEN[k].unit === 'num' ? '🔢' : '📐'} ${GEN[k].name}</span><div class="track"><div class="fill" style="width:${pct}%"></div></div><span class="num muted">${list.length ? `${wrong}/${list.length} 錯（${pct}%）` : '尚無作答'}</span></div>`);
     });
 
     const abox = $('t-attempts');
@@ -814,13 +920,14 @@
       const dur = a.finishedAt ? Math.round((new Date(a.finishedAt) - new Date(a.startedAt)) / 60000) : null;
       d.innerHTML = `<summary>
           <span class="who">${esc(a.student)}</span>
+          <span class="qtype">${UNITS[a.unit] || '📐 角度'}</span>
           <span class="muted num">${fmtTime(a.startedAt)}</span>
-          ${a.done ? `<span class="pill ${pillClass(a.score, a.total || TOTAL)}">${a.score} / ${a.total || TOTAL}</span>` : `<span class="pill live">作答中 ${ans.length}/${a.total || TOTAL}</span>`}
+          ${a.done ? `<span class="pill ${pillClass(a.score, a.total || 20)}">${a.score} / ${a.total || 20}</span>` : `<span class="pill live">作答中 ${ans.length}/${a.total || 20}</span>`}
           ${dur !== null ? `<span class="muted num">${dur < 1 ? '不到 1' : dur} 分鐘</span>` : ''}
         </summary>
         <div class="ans-grid">${ans.map(x => `<span class="${x.ok ? 'ok' : 'ng'}" title="${esc(x.typeName)}">${x.n}</span>`).join('')}</div>
         <div class="tablewrap"><table><thead><tr><th>#</th><th>題型</th><th>題目</th><th class="num">選了</th><th class="num">正解</th></tr></thead><tbody>
-          ${ans.map(x => `<tr><td class="num">${x.n}</td><td>${esc(x.typeName)}</td><td>${esc(x.text)}</td><td class="num" style="color:${x.ok ? 'var(--good)' : 'var(--bad)'}">${x.picked}°</td><td class="num">${x.answer}°</td></tr>`).join('')}
+          ${ans.map(x => `<tr><td class="num">${x.n}</td><td>${esc(x.typeName)}</td><td>${esc(x.text)}</td><td class="num" style="color:${x.ok ? 'var(--good)' : 'var(--bad)'}">${x.picked}${x.suffix ?? '°'}</td><td class="num">${x.answer}${x.suffix ?? '°'}</td></tr>`).join('')}
         </tbody></table></div>
         <div class="actions"><span class="inline-confirm" data-del="${esc(a.id)}"><button class="btn danger small" type="button">刪除這筆</button></span></div>`;
       abox.appendChild(d);
@@ -839,13 +946,66 @@
   }
   $('btn-save-settings').addEventListener('click', async () => {
     const roster = $('roster-input').value.split('\n').map(s => s.trim()).filter(Boolean);
+    const extra = readSettingsUI();
     try {
-      await rtdb.ref(SETTINGS + '/roster').set(roster);
+      await rtdb.ref(SETTINGS).update({ roster, ...extra });
+      settingsDirty = false;
       $('settings-msg').textContent = '已儲存 ✓';
       setTimeout(() => { $('settings-msg').textContent = ''; }, 2500);
     } catch (e) { $('settings-msg').textContent = '儲存失敗：' + e.message; console.warn(e); }
   });
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  /* ---------- 單元 / 題數 / 題型設定 ---------- */
+  function chips(el, items, current, onPick) {
+    if (!el) return;
+    el.innerHTML = '';
+    items.forEach(([val, label]) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = label;
+      b.setAttribute('aria-pressed', String(val === current));
+      b.addEventListener('click', () => onPick(val));
+      el.appendChild(b);
+    });
+  }
+  function renderChoices() {
+    if (!state.totalChosen) state.total = settings.defaultTotal || 20;
+    const units = Object.entries(UNITS).filter(([u]) => u === 'mix' || keysOfUnit(u).some(k => settings.enabledTypes.includes(k)));
+    if (!units.some(([u]) => u === state.unit)) state.unit = units[0] ? units[0][0] : 'mix';
+    chips($('unit-chips'), units, state.unit, v => { state.unit = v; state.unitChosen = true; renderChoices(); });
+    chips($('total-chips'), TOTAL_CHOICES.map(n => [n, n + ' 題']), state.total, v => { state.total = v; state.totalChosen = true; renderChoices(); });
+  }
+  let settingsDirty = false, pendingTotal = 20;
+  function renderSettingsChips() {
+    chips($('set-total-chips'), TOTAL_CHOICES.map(n => [n, n + ' 題']), pendingTotal, v => { pendingTotal = v; settingsDirty = true; renderSettingsChips(); });
+  }
+  function renderSettingsUI() {
+    if (settingsDirty) return;
+    pendingTotal = settings.defaultTotal || 20;
+    renderSettingsChips();
+    const box = $('type-toggles');
+    if (!box) return;
+    box.innerHTML = '';
+    ['geo', 'num'].forEach(u => {
+      const h = document.createElement('div'); h.className = 'toggle-head'; h.textContent = UNITS[u]; box.appendChild(h);
+      keysOfUnit(u).forEach(k => {
+        const lab = document.createElement('label'); lab.className = 'toggle';
+        const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'tt-' + k; cb.checked = settings.enabledTypes.includes(k);
+        cb.addEventListener('change', () => { settingsDirty = true; });
+        lab.appendChild(cb); lab.appendChild(document.createTextNode(' ' + GEN[k].name));
+        box.appendChild(lab);
+      });
+    });
+  }
+  function readSettingsUI() {
+    const enabledTypes = TYPE_KEYS.filter(k => { const cb = $('tt-' + k); return cb ? cb.checked : true; });
+    return { defaultTotal: pendingTotal, enabledTypes: enabledTypes.length ? enabledTypes : TYPE_KEYS.slice() };
+  }
+  const parseSettings = (d) => ({
+    roster: (Array.isArray(d.roster) ? d.roster : Object.values(d.roster || {})).filter(x => typeof x === 'string'),
+    defaultTotal: TOTAL_CHOICES.includes(d.defaultTotal) ? d.defaultTotal : 20,
+    enabledTypes: Array.isArray(d.enabledTypes) ? d.enabledTypes.filter(k => TYPE_KEYS.includes(k)) : (d.enabledTypes ? Object.values(d.enabledTypes).filter(k => TYPE_KEYS.includes(k)) : TYPE_KEYS.slice())
+  });
 
   /* ---------- 啟動 ---------- */
   let settingsSubscribed = false;
@@ -854,8 +1014,7 @@
     settingsSubscribed = true;
     rtdb.ref(SETTINGS).on('value', (snap) => {
       const d = snap.val() || {};
-      const r = Array.isArray(d.roster) ? d.roster : Object.values(d.roster || {});
-      settings = { roster: r.filter(x => typeof x === 'string') };
+      settings = parseSettings(d);
       renderRoster();
       if (isTeacher && !$('sec-teacher').hidden && document.activeElement !== $('roster-input')) $('roster-input').value = settings.roster.join('\n');
     }, (err) => { console.warn('settings subscription', err); settingsSubscribed = false; });
