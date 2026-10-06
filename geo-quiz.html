@@ -788,7 +788,7 @@
   /* ---------- 資料層：Firebase Realtime Database（classroom-helper 專案） ---------- */
   const fbAuth = firebase.auth();
   const rtdb = firebase.database();
-  const P_ATTEMPTS = 'geo/attempts', P_SETTINGS = 'geo/settings', P_STUDENTS = 'geo/students';
+  const P_ATTEMPTS = 'geo/attempts', P_SETTINGS = 'geo/settings', P_STUDENTS = 'geo/students', P_PINS = 'geo/pins', P_PINCHECK = 'geo/pincheck';
   const toArr = (v) => Array.isArray(v) ? v : Object.values(v || {});
   let settingsSubscribed = false;
   const store = {
@@ -822,6 +822,14 @@
       return () => q.off('value', handler);
     },
     async saveSettings(obj) { await rtdb.ref(P_SETTINGS).update(obj); },
+    // 密碼雜湊只寫不讀（規則不開放任何人讀）；null = 刪除
+    async savePins(changes) { await rtdb.ref(P_PINS).update(changes); },
+    // 驗證：試著寫一筆到 geo/pincheck/<uid>，規則會拿 geo/pins 比對，對了才寫得進去
+    async verifyPin(slug, hash) {
+      const u = fbAuth.currentUser; if (!u) return false;
+      try { await rtdb.ref(P_PINCHECK + '/' + u.uid).set({ slug, pinHash: hash, at: firebase.database.ServerValue.TIMESTAMP }); return true; }
+      catch (e) { if (e && /PERMISSION_DENIED|permission/i.test(String(e.code || e.message))) return false; throw e; }
+    },
     async getStudent(slug) { const s = await rtdb.ref(P_STUDENTS + '/' + slug).get(); return s.exists() ? s.val() : null; },
     async updateStudent(slug, fn) {
       const r = await rtdb.ref(P_STUDENTS + '/' + slug).transaction((cur) => fn(cur));
@@ -856,14 +864,14 @@
   const starStr = (n) => [0, 1, 2].map(i => `<span class="st${i < n ? ' on' : ''}">★</span>`).join('');
 
   let state = { screen: 'start', student: '', unit: 'geo', qs: null, idx: 0, answers: [], attemptId: null, startedAt: null, streak: 0, gems: 0, run: 1, pinHash: '', verified: false };
-  let settings = { roster: [], pin: '', enabledTypes: DEFAULT_TYPES.slice(), challenge: null, pins: {} };
+  let settings = { roster: [], pin: '', enabledTypes: DEFAULT_TYPES.slice(), challenge: null, pinRequired: {} };
   // 生日密碼：存的是 SHA-256(名字:密碼) 的十六進位，不存生日本身
   async function pinHashOf(name, pin) {
     const data = new TextEncoder().encode(`${String(name).trim()}:${String(pin).trim()}`);
     if (window.crypto && crypto.subtle) { const buf = await crypto.subtle.digest('SHA-256', data); return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''); }
     let h = 2166136261; for (const b of data) { h ^= b; h = Math.imul(h, 16777619) >>> 0; } return 'fnv-' + h.toString(16);
   }
-  const needsPin = (name) => !!settings.pins[slugOf(name)];
+  const needsPin = (name) => !!settings.pinRequired[slugOf(name)];
   let student = null;          // 目前學生的護照資料
   let attempts = [];
   let auth = { canWrite: false, isTeacher: false, who: '' };
@@ -912,7 +920,7 @@
     if (needsPin(name)) {
       let remembered = '';
       try { remembered = sessionStorage.getItem('geo-pin-' + slug) || ''; } catch (e) {}
-      if (remembered && remembered === settings.pins[slug]) { state.pinHash = remembered; state.verified = true; }
+      if (remembered) { state.pinHash = remembered; state.verified = true; }
     } else { state.verified = true; }
     $('pin-box').hidden = state.verified;
     $('passport').hidden = true;
@@ -929,7 +937,11 @@
     if (!/^\d{4}$/.test(pin)) { $('pin-entry-msg').textContent = '要輸入 4 個數字喔。'; return; }
     const slug = slugOf(state.student);
     const h = await pinHashOf(state.student, pin);
-    if (h !== settings.pins[slug]) { $('pin-entry-msg').textContent = '不對喔，再想一下自己的生日。'; $('pin-entry').value = ''; $('pin-entry').focus(); return; }
+    $('btn-pin-ok').disabled = true; $('pin-entry-msg').textContent = '檢查中…';
+    let okPin = false;
+    try { okPin = await store.verifyPin(slug, h); } catch (e) { console.warn('verifyPin', e); }
+    $('btn-pin-ok').disabled = false;
+    if (!okPin) { $('pin-entry-msg').textContent = '不對喔，再想一下自己的生日。'; $('pin-entry').value = ''; $('pin-entry').focus(); return; }
     state.pinHash = h; state.verified = true;
     try { sessionStorage.setItem('geo-pin-' + slug, h); } catch (e) {}
     $('pin-box').hidden = true;
@@ -1207,7 +1219,7 @@
     if (!okay) return;
     subscribeAttempts();
     renderTeacherData();
-    if (!settingsDirty && document.activeElement !== $('roster-input')) $('roster-input').value = settings.roster.map(n => settings.pins[slugOf(n)] ? `${n},****` : n).join('\n');
+    if (!settingsDirty && document.activeElement !== $('roster-input')) $('roster-input').value = settings.roster.map(n => settings.pinRequired[slugOf(n)] ? `${n},****` : n).join('\n');
     const ps = $('pin-set'); if (ps && document.activeElement !== ps) ps.value = settings.pin || '';
     if (!settingsDirty) { $('ch-start').value = settings.challenge && settings.challenge.start ? settings.challenge.start : ''; $('ch-days').value = settings.challenge && settings.challenge.days ? settings.challenge.days : 5; }
     renderSettingsUI();
@@ -1341,7 +1353,7 @@
   const parseSettings = (d) => ({
     roster: (Array.isArray(d.roster) ? d.roster : Object.values(d.roster || {})).filter(x => typeof x === 'string'),
     pin: typeof d.pin === 'string' ? d.pin : '',
-    pins: (d.pins && typeof d.pins === 'object') ? d.pins : {},
+    pinRequired: (d.pinRequired && typeof d.pinRequired === 'object') ? d.pinRequired : {},
     enabledTypes: Array.isArray(d.enabledTypes) ? d.enabledTypes.filter(k => TYPE_KEYS.includes(k)) : (d.enabledTypes ? Object.values(d.enabledTypes).filter(k => TYPE_KEYS.includes(k)) : DEFAULT_TYPES.slice()),
     challenge: d.challenge && typeof d.challenge.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.challenge.start) ? { start: d.challenge.start, days: Math.min(14, Math.max(1, Number(d.challenge.days) || 5)) } : null
   });
@@ -1349,30 +1361,33 @@
   on('ch-start', 'input', () => { settingsDirty = true; });
   on('ch-days', 'input', () => { settingsDirty = true; });
   on('btn-save-settings', 'click', async () => {
-    const pins = {}; const roster = [];
+    const pinRequired = {}, pinChanges = {}; const roster = [];
     for (const line of $('roster-input').value.split('\n')) {
       const parts = line.replace(/，/g, ',').split(/[,\s]+/).map(s => s.trim()).filter(Boolean);
       if (!parts.length) continue;
       const name = parts[0], pin = parts[1] || '';
       roster.push(name);
       const slug = slugOf(name);
-      if (pin === '****') { if (settings.pins[slug]) pins[slug] = settings.pins[slug]; }
-      else if (/^\d{4}$/.test(pin)) pins[slug] = await pinHashOf(name, pin);
+      if (pin === '****') { if (settings.pinRequired[slug]) pinRequired[slug] = true; }
+      else if (/^\d{4}$/.test(pin)) { pinRequired[slug] = true; pinChanges[slug] = await pinHashOf(name, pin); }
       else if (pin) { $('settings-msg').textContent = `「${name}」的密碼要是 4 個數字`; return; }
     }
+    // 之前有密碼、現在拿掉的 → 刪掉伺服器上的雜湊
+    Object.keys(settings.pinRequired || {}).forEach(slug => { if (!pinRequired[slug]) pinChanges[slug] = null; });
     const ps = $('pin-set');
     const pin = ps ? ps.value.trim() : settings.pin;
     const picked = TYPE_KEYS.filter(k => { const cb = $('tt-' + k); return cb ? cb.checked : true; });
     const enabledTypes = picked.length ? picked : DEFAULT_TYPES.slice();
     const chStart = $('ch-start').value, chDays = Math.min(14, Math.max(1, Number($('ch-days').value) || 5));
     const challenge = /^\d{4}-\d{2}-\d{2}$/.test(chStart) ? { start: chStart, days: chDays } : null;
-    settings = { roster, pin, enabledTypes, challenge, pins };
+    settings = { roster, pin, enabledTypes, challenge, pinRequired };
     settingsDirty = false;
-    $('roster-input').value = roster.map(n => pins[slugOf(n)] ? `${n},****` : n).join('\n');
+    $('roster-input').value = roster.map(n => pinRequired[slugOf(n)] ? `${n},****` : n).join('\n');
     renderRoster(); renderPassport(); renderSettingsUI(); renderTeacherData();
-    if (!auth.canWrite) { $('settings-msg').textContent = '沒有登入老師帳號，設定只在這個頁面有效。'; return; }
+    if (!auth.canWrite) { try { if (Object.keys(pinChanges).length) await store.savePins(pinChanges); } catch (e) {} $('settings-msg').textContent = '沒有登入老師帳號，設定只在這個頁面有效。'; return; }
     try {
-      await store.saveSettings({ roster, pin, enabledTypes, challenge, pins });
+      await store.saveSettings({ roster, pin, enabledTypes, challenge, pinRequired });
+      if (Object.keys(pinChanges).length) await store.savePins(pinChanges);
       $('settings-msg').textContent = '已儲存 ✓';
       setTimeout(() => { $('settings-msg').textContent = ''; }, 2500);
     } catch (e) { $('settings-msg').textContent = '儲存失敗：' + (e && e.message ? e.message : e); console.warn(e); }
