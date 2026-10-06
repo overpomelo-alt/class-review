@@ -164,6 +164,21 @@
   .feedback .calc { font-family: var(--font-num); font-weight: 700; font-size: 1.05rem; margin-top: 4px; }
   .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 
+  [hidden] { display: none !important; }
+  .trail { position: relative; height: 46px; margin: 4px 14px 8px; }
+  .trail-line { position: absolute; left: 0; right: 0; top: 30px; height: 6px; border-radius: 999px; background: var(--surface-2); }
+  .trail-done { position: absolute; left: 0; top: 30px; height: 6px; border-radius: 999px; background: var(--accent); transition: width .3s; }
+  .milestone { position: absolute; top: 0; transform: translateX(-50%); font-size: 20px; opacity: .4; line-height: 1; }
+  .milestone.reached { opacity: 1; }
+  .walker { position: absolute; top: 10px; transform: translateX(-50%); font-size: 24px; line-height: 1; transition: left .3s; }
+  @media (prefers-reduced-motion: reduce) { .walker, .trail-done { transition: none; } }
+  .streak { font-size: .8rem; font-weight: 700; background: var(--unknown); color: #fff; padding: 2px 8px; border-radius: 999px; }
+  .textanswer { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .textanswer input { flex: 1; min-width: 180px; font-family: var(--font-num); font-size: 1.1rem; }
+  .stars { font-size: 2.2rem; color: var(--unknown); letter-spacing: .08em; line-height: 1; margin-bottom: 6px; }
+  .rtitle { font-weight: 700; margin: 6px 0 0; color: var(--accent); }
+  .confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+
   /* result */
   .score { font-family: var(--font-num); font-size: 3rem; font-weight: 800; line-height: 1; color: var(--accent); }
   .review { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; }
@@ -210,6 +225,7 @@
 </style>
 </head>
 <body>
+<canvas id="confetti" class="confetti" hidden></canvas>
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -248,13 +264,20 @@
     <div id="screen-quiz" class="card" hidden>
       <div class="progress">
         <span class="num" id="q-counter">1 / 20</span>
-        <div class="bar"><div id="q-bar"></div></div>
         <span class="num" id="q-score">✔ 0</span>
+        <span class="streak" id="q-streak" hidden>🔥 連續 2 題</span>
+        <span style="flex:1"></span>
+        <button class="btn secondary small" type="button" id="btn-leave">離開</button>
       </div>
+      <div class="trail" id="q-trail" aria-hidden="true"></div>
       <span class="qtype" id="q-type"></span>
       <p class="qtext" id="q-text"></p>
       <div class="figure" id="q-figure"><svg id="q-svg" viewBox="0 0 360 190" role="img" aria-label="題目圖形"></svg></div>
       <div class="options" id="q-options"></div>
+      <div class="textanswer" id="q-textarea" hidden>
+        <input type="text" id="q-input" inputmode="numeric" autocomplete="off" placeholder="例如：1 2 3 6">
+        <button class="btn" type="button" id="btn-submit">送出</button>
+      </div>
       <div id="q-feedback" class="feedback" hidden></div>
       <div class="actions">
         <button class="btn" id="btn-next" hidden>下一題 →</button>
@@ -262,8 +285,10 @@
     </div>
 
     <div id="screen-result" class="card" hidden>
+      <div class="stars" id="r-stars">☆☆☆</div>
       <h2 id="r-title">闖關完成！</h2>
-      <div class="score"><span id="r-score">0</span><span style="font-size:1.2rem;color:var(--muted)"> / 20</span></div>
+      <div class="score"><span id="r-score">0</span><span style="font-size:1.2rem;color:var(--muted)"> / <span id="r-total">20</span></span></div>
+      <p class="rtitle" id="r-badge"></p>
       <p class="muted" id="r-note"></p>
       <ul class="review" id="r-review"></ul>
       <div class="actions">
@@ -497,7 +522,7 @@
         return { answer: ans, options: withDistractors(ans, shuffle(non)),
           text: `下面哪一個數是 ${n} 的倍數？（看個位數就知道）`, calc: `${n} 的倍數，${rule}\n${ans} 的個位是 ${ans % 10}，所以 ${ans} 是 ${n} 的倍數` };
       } },
-    cfPick: { unit: 'num', name: '公因數',
+    cfPick: { unit: 'num', advanced: true, name: '公因數',
       make() {
         let a, b, cf;
         do { a = pick([8, 12, 16, 18, 20, 24, 30, 36, 40, 48]); b = pick([6, 8, 9, 10, 12, 15, 16, 18, 20, 24, 36]); cf = factorsOf(gcd(a, b)); } while (a === b || cf.length < 3);
@@ -506,7 +531,7 @@
         return { answer: ans, options: withDistractors(ans, shuffle(non.filter(v => v <= Math.min(a, b) + 4))),
           text: `下面哪一個數是 ${a} 和 ${b} 的公因數？`, calc: `${a} 的因數：${listStr(factorsOf(a))}\n${b} 的因數：${listStr(factorsOf(b))}\n公因數：${listStr(cf)}` };
       } },
-    cmPick: { unit: 'num', name: '公倍數',
+    cmPick: { unit: 'num', advanced: true, name: '公倍數',
       make() {
         let a, b;
         do { a = rnd(2, 9); b = rnd(2, 9); } while (a === b || a % b === 0 || b % a === 0);
@@ -515,7 +540,7 @@
         return { answer: ans, options: withDistractors(ans, shuffle(non.filter(v => Math.abs(v - ans) <= l + 6 && (v % a === 0 || v % b === 0)).concat(shuffle(non).slice(0, 4)))),
           text: `下面哪一個數是 ${a} 和 ${b} 的公倍數？`, calc: `${a} 的倍數：${listStr([1, 2, 3, 4, 5, 6].map(i => a * i))}…\n${b} 的倍數：${listStr([1, 2, 3, 4, 5, 6].map(i => b * i))}…\n${ans} ÷ ${a} = ${ans / a}，${ans} ÷ ${b} = ${ans / b}，都整除` };
       } },
-    gcf: { unit: 'num', name: '最大公因數',
+    gcf: { unit: 'num', advanced: true, name: '最大公因數',
       make() {
         let a, b, g;
         do { a = pick([8, 12, 16, 18, 20, 24, 27, 30, 32, 36, 40, 45, 48]); b = pick([6, 8, 9, 10, 12, 15, 16, 18, 20, 24, 30, 36]); g = gcd(a, b); } while (a === b || g < 2);
@@ -523,7 +548,7 @@
         return { answer: g, options: withDistractors(g, [...cf.filter(x => x > 1 && x < g), g * 2, g + 1, g - 1, Math.min(a, b)]),
           text: `${a} 和 ${b} 的最大公因數是多少？`, calc: `${a} 的因數：${listStr(factorsOf(a))}\n${b} 的因數：${listStr(factorsOf(b))}\n公因數：${listStr(cf)}，最大的是 ${g}` };
       } },
-    lcmQ: { unit: 'num', name: '最小公倍數',
+    lcmQ: { unit: 'num', advanced: true, name: '最小公倍數',
       make() {
         let a, b;
         do { a = rnd(2, 10); b = rnd(2, 10); } while (a === b || a % b === 0 || b % a === 0);
@@ -541,7 +566,7 @@
         return { answer: ans, options: withDistractors(ans, shuffle(non.filter(v => Math.abs(v - ans) <= 6))),
           text: `有 ${n} 個${item}要平分給幾個人，每個人拿到一樣多、而且剛好分完。下面哪一個人數可以？`, calc: `人數要是 ${n} 的因數：${listStr(factorsOf(n))}\n${n} ÷ ${ans} = ${n / ans}，每人 ${n / ans} 個，剛好分完` };
       } },
-    lcmApp: { unit: 'num', name: '公倍數應用：同一天',
+    lcmApp: { unit: 'num', advanced: true, name: '公倍數應用：同一天',
       make() {
         let a, b;
         do { a = rnd(2, 8); b = rnd(3, 9); } while (a === b || a % b === 0 || b % a === 0);
@@ -550,10 +575,46 @@
         const act = pick(['去圖書館', '去運動', '去市場', '澆花']);
         return { answer: l, options: withDistractors(l, [a * b, a + b, l * 2, l + a, Math.max(a, b) * 2]),
           text: `${who[0]}每 ${a} 天${act}一次，${who[1]}每 ${b} 天${act}一次。今天兩個人都去了，最少再過幾天會再一起去？`, calc: `找 ${a} 和 ${b} 的最小公倍數\n${a} 的倍數：${listStr([1, 2, 3, 4, 5].map(i => a * i))}…\n${b} 的倍數：${listStr([1, 2, 3, 4, 5].map(i => b * i))}…\n最小公倍數是 ${l}，所以再過 ${l} 天` };
+      } },
+    facList: { unit: 'num', name: '寫出所有因數', input: 'text',
+      make() {
+        const n = pick([8, 10, 12, 14, 15, 16, 18, 20, 21, 24, 25, 27, 28, 30, 32, 35, 36, 40, 42, 45, 48, 49, 50, 54, 56, 60]);
+        const f = factorsOf(n);
+        return { expected: f, answer: listStr(f),
+          text: `請寫出 ${n} 的所有因數（數字之間用空格或逗號隔開）`, calc: `${n} 的因數：${listStr(f)}，一共 ${f.length} 個\n小技巧：兩個一組找（1 和 ${n}、…），就不會漏掉` };
+      } },
+    mulList: { unit: 'num', name: '寫出倍數', input: 'text',
+      make() {
+        const n = rnd(2, 12), cnt = pick([4, 5, 5, 6]);
+        const m = []; for (let i = 1; i <= cnt; i++) m.push(n * i);
+        return { expected: m, answer: listStr(m),
+          text: `請從小到大寫出 ${n} 的倍數，寫前 ${cnt} 個（數字之間用空格或逗號隔開）`, calc: `${n} 的倍數：${m.map((v, i) => `${n}×${i + 1}=${v}`).join('、')}` };
+      } },
+    relation: { unit: 'num', name: '因數還是倍數？', fixedOptions: true,
+      make() {
+        const kind = pick(['mul', 'mul', 'fac', 'fac', 'none']);
+        let a, b, ans;
+        if (kind === 'mul') { b = rnd(2, 12); a = b * rnd(2, 9); ans = '倍數'; }
+        else if (kind === 'fac') { a = rnd(2, 12); b = a * rnd(2, 9); ans = '因數'; }
+        else { do { a = rnd(2, 40); b = rnd(2, 40); } while (a === b || a % b === 0 || b % a === 0); ans = '都不是'; }
+        const why = ans === '倍數' ? `${a} ÷ ${b} = ${a / b}，${a} 可以被 ${b} 整除，所以 ${a} 是 ${b} 的倍數`
+          : ans === '因數' ? `${b} ÷ ${a} = ${b / a}，${b} 可以被 ${a} 整除，所以 ${a} 是 ${b} 的因數`
+          : `${a} ÷ ${b} 和 ${b} ÷ ${a} 都除不盡，所以 ${a} 和 ${b} 互相都不是因數或倍數`;
+        return { answer: ans, options: ['因數', '倍數', '都不是'],
+          text: `${a} 是 ${b} 的＿＿？請圈出來。`, calc: `想：誰可以被誰整除？\n${why}` };
       } }
   };
   const TYPE_KEYS = Object.keys(GEN);
   const keysOfUnit = (u) => TYPE_KEYS.filter(k => u === 'mix' || GEN[k].unit === u);
+  const DEFAULT_TYPES = TYPE_KEYS.filter(k => !GEN[k].advanced);
+  // 文字作答：把輸入拆成數字集合，和 expected 比較
+  const parseNums = (str) => [...new Set(String(str || '').split(/[^0-9]+/).filter(Boolean).map(Number))];
+  function checkText(q, str) {
+    const got = parseNums(str);
+    const missing = q.expected.filter(v => !got.includes(v));
+    const extra = got.filter(v => !q.expected.includes(v));
+    return { ok: !missing.length && !extra.length, missing, extra, got };
+  }
 
   function makeAngleOptions(answer, isTri, knownSum) {
     const cands = [answer + 10, answer - 10, answer + 20, answer - 20, answer + 5, answer - 5, answer + 30, answer - 30,
@@ -572,6 +633,8 @@
       let q, guard = 0;
       do { q = GEN[key].make(); } while (i > 0 && qs[i - 1].type === key && qs[i - 1].answer === q.answer && ++guard < 10);
       q.type = key; q.typeName = GEN[key].name; q.unit = GEN[key].unit;
+      q.input = GEN[key].input || 'choice';
+      if (q.input === 'text') { q.options = []; q.suffix = ''; q.correctIdx = -1; qs.push(q); continue; }
       if (q.angles) {
         const isTri = q.angles.length === 3;
         const knownSum = q.angles.reduce((s, a, idx) => q.unknownIdx.includes(idx) ? s : s + a, 0);
@@ -582,7 +645,7 @@
         q.suffix = '';
       }
       // 萬一干擾選項不夠（極少數），補到 4 個
-      let pad = 1; while (q.options.length < 4) { const v = q.answer + pad * (pad % 2 ? 1 : -1) * 3; if (v > 0 && !q.options.includes(v)) q.options.push(v); pad++; }
+      let pad = 1; while (!GEN[key].fixedOptions && q.options.length < 4) { const v = q.answer + pad * (pad % 2 ? 1 : -1) * 3; if (v > 0 && !q.options.includes(v)) q.options.push(v); pad++; }
       q.correctIdx = q.options.indexOf(q.answer);
       qs.push(q);
     }
@@ -656,8 +719,8 @@
   }
 
   /* ---------- 狀態 ---------- */
-  let state = { screen: 'start', student: '', qs: null, idx: 0, answers: [], attemptId: null, startedAt: null, unit: 'geo', total: 20, unitChosen: false, totalChosen: false };
-  let settings = { roster: [], defaultTotal: 20, enabledTypes: TYPE_KEYS.slice() };
+  let state = { screen: 'start', student: '', qs: null, idx: 0, answers: [], attemptId: null, startedAt: null, unit: 'geo', total: 20, unitChosen: false, totalChosen: false, streak: 0 };
+  let settings = { roster: [], defaultTotal: 20, enabledTypes: DEFAULT_TYPES.slice() };
   let attempts = [];
   let unsubAttempts = null;
   let currentUser = null;          // firebase user（匿名或老師）
@@ -714,7 +777,7 @@
     if (!name) { $('name-input').focus(); $('name-input').placeholder = '先輸入名字才能開始喔'; return; }
     state.student = name;
     state.qs = buildQuiz(state.total, keysOfUnit(state.unit).filter(k => settings.enabledTypes.includes(k)));
-    state.idx = 0; state.answers = []; state.startedAt = new Date().toISOString();
+    state.idx = 0; state.answers = []; state.streak = 0; state.startedAt = new Date().toISOString();
     state.attemptId = 'a_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
     showScreen('quiz');
     renderQuestion();
@@ -727,12 +790,17 @@
   function renderQuestion() {
     const q = state.qs[state.idx];
     $('q-counter').textContent = `${state.idx + 1} / ${state.total}`;
-    $('q-bar').style.width = `${(state.idx / state.total) * 100}%`;
     $('q-score').textContent = `✔ ${state.answers.filter(a => a.ok).length}`;
     $('q-type').textContent = (q.unit === 'num' ? '🔢 ' : '📐 ') + q.typeName;
     $('q-text').textContent = q.text;
     $('q-figure').hidden = !q.points;
     if (q.points) drawFigure($('q-svg'), q);
+    const isText = q.input === 'text';
+    $('q-options').hidden = isText;
+    $('q-textarea').hidden = !isText;
+    if (isText) { $('q-input').value = ''; $('q-input').disabled = false; $('btn-submit').disabled = false; setTimeout(() => $('q-input').focus(), 50); }
+    renderTrail();
+    $('q-streak').hidden = state.streak < 2; $('q-streak').textContent = `🔥 連續 ${state.streak} 題`;
     const box = $('q-options');
     box.innerHTML = '';
     q.options.forEach((opt, i) => {
@@ -749,15 +817,32 @@
     const q = state.qs[state.idx];
     if (state.answers[state.idx]) return;
     const ok = i === q.correctIdx;
-    state.answers[state.idx] = { n: state.idx + 1, type: q.type, typeName: q.typeName, text: q.text, picked: q.options[i], answer: q.answer, ok, calc: q.calc, suffix: q.suffix, unit: q.unit };
     document.querySelectorAll('#q-options .opt').forEach((b, j) => {
       b.disabled = true;
       if (j === q.correctIdx) b.classList.add('correct');
       else if (j === i) b.classList.add('wrong');
     });
+    await recordAnswer(q, ok, q.options[i], ok ? '答對了！' : `答錯了，正確答案是 ${q.answer}${q.suffix}。`);
+  }
+  async function answerText() {
+    const q = state.qs[state.idx];
+    if (state.answers[state.idx]) return;
+    const raw = $('q-input').value.trim();
+    if (!raw) { $('q-input').focus(); return; }
+    const r = checkText(q, raw);
+    $('q-input').disabled = true; $('btn-submit').disabled = true;
+    const parts = [];
+    if (r.missing.length) parts.push(`漏掉了 ${listStr(r.missing)}`);
+    if (r.extra.length) parts.push(`${listStr(r.extra)} 不對`);
+    await recordAnswer(q, r.ok, r.got.length ? listStr(r.got) : raw, r.ok ? '全部寫對了！' : '還差一點：' + parts.join('，') + '。');
+  }
+  async function recordAnswer(q, ok, picked, headline) {
+    state.answers[state.idx] = { n: state.idx + 1, type: q.type, typeName: q.typeName, text: q.text, picked, answer: q.answer, ok, calc: q.calc, suffix: q.suffix, unit: q.unit };
+    state.streak = ok ? state.streak + 1 : 0;
+    $('q-streak').hidden = state.streak < 2; $('q-streak').textContent = `🔥 連續 ${state.streak} 題`;
     const fb = $('q-feedback');
     fb.className = 'feedback ' + (ok ? 'good' : 'bad');
-    fb.innerHTML = `${ok ? '答對了！' : `答錯了，正確答案是 ${q.answer}${q.suffix}。`}<div class="calc">${q.calc}</div>`;
+    fb.innerHTML = `${headline}<div class="calc">${q.calc}</div>`;
     fb.hidden = false;
     $('q-score').textContent = `✔ ${state.answers.filter(a => a.ok).length}`;
     $('btn-next').hidden = false;
@@ -777,7 +862,12 @@
     const score = state.answers.filter(a => a.ok).length;
     const finishedAt = new Date().toISOString();
     showScreen('result');
-    $('r-score').textContent = score;
+    $('r-score').textContent = score; $('r-total').textContent = state.total;
+    const pct = score / state.total;
+    const stars = pct === 1 ? 3 : pct >= 0.8 ? 2 : pct >= 0.5 ? 1 : 0;
+    $('r-stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
+    $('r-badge').textContent = badgeFor(state.unit, pct);
+    if (pct >= 0.9) confetti();
     $('r-title').textContent = score === state.total ? `${state.student}，全部答對，太厲害了！` : score >= state.total * 0.75 ? `${state.student}，闖關成功！` : `${state.student}，闖關完成！`;
     const wrong = state.answers.filter(a => !a.ok);
     $('r-note').textContent = wrong.length ? `有 ${wrong.length} 題答錯，看看算式再練一次：` : '成績已經記錄到老師後台。';
@@ -798,7 +888,16 @@
   $('btn-start').addEventListener('click', startQuiz);
   $('btn-next').addEventListener('click', next);
   $('btn-again').addEventListener('click', startQuiz);
-  $('btn-home').addEventListener('click', () => { state.student = ''; $('name-input').value = ''; renderRoster(); showScreen('start'); });
+  function goHome() { state.student = ''; state.streak = 0; $('name-input').value = ''; renderRoster(); showScreen('start'); }
+  $('btn-home').addEventListener('click', goHome);
+  $('btn-leave').addEventListener('click', () => {
+    const b = $('btn-leave');
+    if (b.dataset.armed) { delete b.dataset.armed; b.textContent = '離開'; goHome(); return; }
+    b.dataset.armed = '1'; b.textContent = '確定離開？再按一次';
+    setTimeout(() => { delete b.dataset.armed; b.textContent = '離開'; }, 4000);
+  });
+  $('btn-submit').addEventListener('click', answerText);
+  $('q-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); answerText(); } });
 
   /* ---------- 登入 ---------- */
   function showBanner(msg, ok) {
@@ -956,6 +1055,39 @@
   });
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  /* ---------- 探險路線 / 星星 / 彩帶 ---------- */
+  function renderTrail() {
+    const el = $('q-trail'); if (!el) return;
+    const pct = state.idx / state.total * 100;
+    const marks = [[25, '🏕️'], [50, '⛰️'], [75, '🏰'], [100, '🏆']];
+    el.innerHTML = `<div class="trail-line"></div><div class="trail-done" style="width:${pct}%"></div>` +
+      marks.map(([p, e]) => `<span class="milestone${pct >= p ? ' reached' : ''}" style="left:${p}%">${e}</span>`).join('') +
+      `<span class="walker" style="left:${pct}%">🚶</span>`;
+  }
+  function badgeFor(unit, pct) {
+    const lv = pct === 1 ? 3 : pct >= 0.8 ? 2 : pct >= 0.5 ? 1 : 0;
+    const names = {
+      geo: ['角度探險新手', '角度學徒', '角度高手', '角度大師'],
+      num: ['因數倍數新手', '因數偵探', '倍數獵人', '因數倍數大師'],
+      mix: ['數學探險新手', '數學探險家', '數學探險高手', '數學探險大師']
+    };
+    return '今天的稱號：' + (names[unit] || names.mix)[lv];
+  }
+  function confetti() {
+    const c = $('confetti'); if (!c) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    c.hidden = false; c.width = window.innerWidth; c.height = window.innerHeight;
+    const ctx = c.getContext('2d');
+    const colors = ['#0e7c7b', '#d9712b', '#f0c042', '#4fc3b4', '#e05a7a'];
+    const ps = Array.from({ length: 120 }, () => ({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * 0.5, r: 4 + Math.random() * 5, vx: (Math.random() - 0.5) * 2, vy: 2 + Math.random() * 3, a: Math.random() * Math.PI, col: colors[Math.floor(Math.random() * colors.length)] }));
+    const t0 = performance.now();
+    (function frame(t) {
+      ctx.clearRect(0, 0, c.width, c.height);
+      ps.forEach(p => { p.x += p.vx; p.y += p.vy; p.a += 0.1; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.col; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 1.6); ctx.restore(); });
+      if (t - t0 < 2600) requestAnimationFrame(frame); else { ctx.clearRect(0, 0, c.width, c.height); c.hidden = true; }
+    })(t0);
+  }
+
   /* ---------- 單元 / 題數 / 題型設定 ---------- */
   function chips(el, items, current, onPick) {
     if (!el) return;
@@ -992,19 +1124,19 @@
         const lab = document.createElement('label'); lab.className = 'toggle';
         const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'tt-' + k; cb.checked = settings.enabledTypes.includes(k);
         cb.addEventListener('change', () => { settingsDirty = true; });
-        lab.appendChild(cb); lab.appendChild(document.createTextNode(' ' + GEN[k].name));
+        lab.appendChild(cb); lab.appendChild(document.createTextNode(' ' + GEN[k].name + (GEN[k].advanced ? '（進階）' : '')));
         box.appendChild(lab);
       });
     });
   }
   function readSettingsUI() {
     const enabledTypes = TYPE_KEYS.filter(k => { const cb = $('tt-' + k); return cb ? cb.checked : true; });
-    return { defaultTotal: pendingTotal, enabledTypes: enabledTypes.length ? enabledTypes : TYPE_KEYS.slice() };
+    return { defaultTotal: pendingTotal, enabledTypes: enabledTypes.length ? enabledTypes : DEFAULT_TYPES.slice() };
   }
   const parseSettings = (d) => ({
     roster: (Array.isArray(d.roster) ? d.roster : Object.values(d.roster || {})).filter(x => typeof x === 'string'),
     defaultTotal: TOTAL_CHOICES.includes(d.defaultTotal) ? d.defaultTotal : 20,
-    enabledTypes: Array.isArray(d.enabledTypes) ? d.enabledTypes.filter(k => TYPE_KEYS.includes(k)) : (d.enabledTypes ? Object.values(d.enabledTypes).filter(k => TYPE_KEYS.includes(k)) : TYPE_KEYS.slice())
+    enabledTypes: Array.isArray(d.enabledTypes) ? d.enabledTypes.filter(k => TYPE_KEYS.includes(k)) : (d.enabledTypes ? Object.values(d.enabledTypes).filter(k => TYPE_KEYS.includes(k)) : DEFAULT_TYPES.slice())
   });
 
   /* ---------- 啟動 ---------- */
