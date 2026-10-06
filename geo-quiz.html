@@ -199,6 +199,9 @@
   .formula { font-family: var(--font-num); font-weight: 800; font-size: 1.25rem; text-align: center; padding: 10px; border-radius: 10px; background: var(--surface-2); color: var(--heading); }
 
   /* teacher */
+  .classmode { border-radius: 10px; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; background: var(--surface-2); font-size: .9rem; }
+  .classmode.on { background: var(--rose-soft); border: 1px solid var(--rose); }
+  #t-filter button { font-size: .86rem; padding: 5px 12px; }
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
   .stat { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
   .stat .v { font-family: var(--font-num); font-size: 1.5rem; font-weight: 800; color: var(--heading); }
@@ -300,6 +303,7 @@
         <span class="avatar" id="q-avatar">🦊</span>
         <span class="who" id="q-who">探險家</span>
         <span class="qtype" id="q-island">平面圖形島</span>
+        <span class="qtype" id="q-mode" hidden>🏫 課堂練習</span>
         <span class="muted num" id="q-run">第 1 次探險</span>
         <span style="flex:1"></span>
         <span class="num gems" id="q-gems">💎 0</span>
@@ -403,6 +407,7 @@
           <h2 style="margin:0">班級總覽</h2>
           <span class="muted" style="display:inline-flex;gap:10px;align-items:center"><span id="t-who"></span><button class="btn secondary small" id="btn-logout">登出</button></span>
         </div>
+        <div class="classmode" id="t-classmode" style="margin-top:12px"></div>
         <div class="stats" id="t-stats" style="margin-top:12px"></div>
         <div class="tablewrap" style="margin-top:14px">
           <table id="t-students"><thead></thead><tbody></tbody></table>
@@ -423,7 +428,8 @@
 
       <div class="card">
         <h2>作答紀錄</h2>
-        <p class="muted">點一筆展開看每題選了什麼。綠色答對、紅色答錯。</p>
+        <p class="muted">點一筆展開看每題選了什麼。綠色答對、紅色答錯。🏠 回家作業、🏫 課堂練習。</p>
+        <div class="roster" id="t-filter" style="margin:0 0 10px"></div>
         <div id="t-attempts"></div>
       </div>
 
@@ -864,7 +870,10 @@
   const starStr = (n) => [0, 1, 2].map(i => `<span class="st${i < n ? ' on' : ''}">★</span>`).join('');
 
   let state = { screen: 'start', student: '', unit: 'geo', qs: null, idx: 0, answers: [], attemptId: null, startedAt: null, streak: 0, gems: 0, run: 1, pinHash: '', verified: false };
-  let settings = { roster: [], pin: '', enabledTypes: DEFAULT_TYPES.slice(), challenge: null, pinRequired: {} };
+  let settings = { roster: [], pin: '', enabledTypes: DEFAULT_TYPES.slice(), challenge: null, pinRequired: {}, classUntil: 0 };
+  // 課堂模式：老師在後台開啟後 3 小時內的作答標成「課堂練習」，不算回家作業
+  const isClassMode = () => !!settings.classUntil && Date.now() < settings.classUntil;
+  const modeOf = (a) => a.mode === 'class' ? 'class' : 'home';
   // 生日密碼：存的是 SHA-256(名字:密碼) 的十六進位，不存生日本身
   async function pinHashOf(name, pin) {
     const data = new TextEncoder().encode(`${String(name).trim()}:${String(pin).trim()}`);
@@ -981,6 +990,7 @@
       groups.appendChild(grid);
     });
     renderChallenge(s);
+    renderModeNote();
   }
   function renderChallenge(s) {
     const days = challengeDays();
@@ -1006,6 +1016,9 @@
     $('ch-progress').textContent = `完成 ${done} / ${days.length * ISLANDS.length}`;
     $('pp-homework').textContent = '📝 回家作業：假期每天每座島都要去探險一次！';
   }
+  function renderModeNote() {
+    if (isClassMode()) $('pp-homework').textContent = '🏫 現在是課堂練習，這次不算回家作業，放心玩！';
+  }
   on('btn-name-ok', 'click', () => chooseStudent($('name-input').value));
   on('name-input', 'keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); chooseStudent($('name-input').value); } });
   on('btn-switch', 'click', () => { state.student = ''; state.verified = false; state.pinHash = ''; student = null; $('name-input').value = ''; $('pin-box').hidden = true; renderRoster(); renderPassport(); });
@@ -1014,7 +1027,7 @@
   /* ---------- 探險（作答） ---------- */
   function attemptDoc(extra) {
     return Object.assign({
-      student: state.student, slug: slugOf(state.student), pinHash: state.pinHash || '', unit: state.unit, run: state.run, startedAt: state.startedAt, finishedAt: null, done: false,
+      student: state.student, slug: slugOf(state.student), pinHash: state.pinHash || '', unit: state.unit, run: state.run, mode: isClassMode() ? 'class' : 'home', startedAt: state.startedAt, finishedAt: null, done: false,
       score: state.answers.filter(a => a.ok).length, total: TOTAL, gems: state.gems, answers: state.answers.map(a => ({ ...a }))
     }, extra || {});
   }
@@ -1048,6 +1061,7 @@
     $('q-avatar').textContent = avatarFor(state.student);
     $('q-who').textContent = state.student;
     $('q-island').textContent = UNITS[state.unit];
+    $('q-mode').hidden = !isClassMode();
     $('q-run').textContent = `第 ${state.run} 次探險 · 第 ${state.idx + 1} 關`;
     $('q-gems').textContent = `💎 ${state.gems}`;
     $('q-streak').hidden = state.streak < 2; $('q-streak').textContent = `🔥 連續 ${state.streak} 題`;
@@ -1127,7 +1141,7 @@
     $('r-score').textContent = score;
     $('r-title').textContent = score === TOTAL ? `${state.student}，全部答對，太厲害了！` : score >= 8 ? `${state.student}，探險成功！` : `${state.student}，探險完成！`;
     $('r-badge').textContent = badgeFor(state.unit, score / TOTAL);
-    $('r-gems').textContent = `這次拿到 💎 ${state.gems}，護照蓋章 +1`;
+    $('r-gems').textContent = `這次拿到 💎 ${state.gems}，護照蓋章 +1${isClassMode() ? '（課堂練習，不算回家作業）' : ''}`;
     const wrong = state.answers.filter(a => !a.ok);
     $('r-note').textContent = wrong.length ? `有 ${wrong.length} 關沒過，看看算式再來一次：` : '';
     const ul = $('r-review'); ul.innerHTML = '';
@@ -1140,16 +1154,16 @@
     const nextIsl = ISLANDS[(ISLANDS.findIndex(i => i.id === state.unit) + 1) % ISLANDS.length];
     $('btn-other').textContent = `去${nextIsl.name} →`; $('btn-other').hidden = ISLANDS.length < 2;
     // 更新護照
-    const unit = state.unit, gems = state.gems, date = todayStr();
+    const unit = state.unit, gems = state.gems, date = todayStr(), classRun = isClassMode();
     try {
       student = await store.updateStudent(slugOf(state.student), (cur) => {
         const s = cur && cur.name ? cur : emptyStudent(state.student);
         s.name = state.student; s.pinHash = state.pinHash || '';
         s.gems = (s.gems || 0) + gems;
         const d = s[unit] || { count: 0, best: 0, bestScore: 0, lastDate: '' };
-        d.count = (d.count || 0) + 1; d.best = Math.max(d.best || 0, stars); d.bestScore = Math.max(d.bestScore || 0, score); d.lastDate = date;
+        d.count = (d.count || 0) + 1; d.best = Math.max(d.best || 0, stars); d.bestScore = Math.max(d.bestScore || 0, score);
+        if (!classRun) { d.lastDate = date; s.days = s.days || {}; s.days[date] = Object.assign({}, s.days[date] || {}, { [unit]: true }); }
         s[unit] = d;
-        s.days = s.days || {}; s.days[date] = Object.assign({}, s.days[date] || {}, { [unit]: true });
         return s;
       });
     } catch (e) { console.warn('updateStudent', e); if (!student) student = emptyStudent(state.student); student[unit].count++; }
@@ -1233,7 +1247,28 @@
   // 完成日期：優先用伺服器時間（serverAt），沒有才用裝置時間
   const finishDate = (a) => a.serverAt ? localDate(new Date(a.serverAt)) : (a.finishedAt ? localDate(a.finishedAt) : '');
   const localDate = (iso) => { const d = new Date(iso); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  let attemptFilter = 'all';
+  function renderClassMode() {
+    const box = $('t-classmode'); if (!box) return;
+    const active = isClassMode();
+    box.className = 'classmode' + (active ? ' on' : '');
+    if (active) {
+      const until = new Date(settings.classUntil);
+      box.innerHTML = `<b>🏫 課堂模式進行中</b><span>到 ${String(until.getHours()).padStart(2, '0')}:${String(until.getMinutes()).padStart(2, '0')} 自動結束，這段時間的作答不算回家作業</span><span style="flex:1"></span><button class="btn secondary small" type="button" id="btn-class-off">提前結束</button>`;
+      on('btn-class-off', 'click', () => setClassMode(0));
+    } else {
+      box.innerHTML = `<span>🏠 現在是回家作業模式</span><span style="flex:1"></span><button class="btn small" type="button" id="btn-class-on">🏫 開啟課堂模式（3 小時）</button>`;
+      on('btn-class-on', 'click', () => setClassMode(Date.now() + 3 * 60 * 60 * 1000));
+    }
+  }
+  async function setClassMode(until) {
+    settings.classUntil = until;
+    renderClassMode(); renderPassport();
+    if (!auth.canWrite) return;
+    try { await store.saveSettings({ classUntil: until }); } catch (e) { showBanner('切換失敗：' + (e && e.message ? e.message : e)); }
+  }
   function renderTeacherData() {
+    renderClassMode();
     const done = attempts.filter(a => a.done);
     const students = new Map();
     const today = todayStr();
@@ -1241,7 +1276,7 @@
       const s = students.get(a.student) || (() => { const o = { name: a.student }; ISLANDS.forEach(i => { o[i.id] = { count: 0, best: 0, today: false }; }); return o; })();
       const u = s[a.unit] || (s[a.unit] = { count: 0, best: 0, today: false });
       u.count++; u.best = Math.max(u.best, a.score / (a.total || TOTAL));
-      if (finishDate(a) === today) u.today = true;
+      if (modeOf(a) === 'home' && finishDate(a) === today) u.today = true;
       students.set(a.student, s);
     });
     // 裝置代碼：同一個匿名 uid = 同一台裝置
@@ -1276,15 +1311,19 @@
       const pct = list.length ? Math.round(wrong / list.length * 100) : 0;
       tbox.insertAdjacentHTML('beforeend', `<div class="row"><span>${islandOf(GEN[k].unit).icon} ${GEN[k].name}</span><div class="track"><div class="fill" style="width:${pct}%"></div></div><span class="num muted">${list.length ? `${wrong}/${list.length} 錯（${pct}%）` : '尚無作答'}</span></div>`);
     });
+    const fbox = $('t-filter');
+    if (fbox) { fbox.innerHTML = ''; [['all', '全部'], ['home', '🏠 回家作業'], ['class', '🏫 課堂練習']].forEach(([v, l]) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = l; b.setAttribute('aria-pressed', String(attemptFilter === v)); b.addEventListener('click', () => { attemptFilter = v; renderTeacherData(); }); fbox.appendChild(b); }); }
+    const shown = attempts.filter(a => attemptFilter === 'all' || modeOf(a) === attemptFilter);
     const abox = $('t-attempts'); abox.innerHTML = '';
-    if (!attempts.length) abox.innerHTML = `<p class="muted">${auth.canWrite ? '還沒有作答紀錄。學生完成探險後，這裡就會出現。' : '目前沒有登入老師帳號，看不到紀錄。'}</p>`;
-    attempts.forEach(a => {
+    if (!shown.length) abox.innerHTML = `<p class="muted">${auth.canWrite ? '還沒有作答紀錄。學生完成探險後，這裡就會出現。' : '目前沒有登入老師帳號，看不到紀錄。'}</p>`;
+    shown.forEach(a => {
       const ans = a.answers || [];
       const d = document.createElement('details'); d.className = 'attempt';
       const dur = a.finishedAt ? Math.round((new Date(a.finishedAt) - new Date(a.startedAt)) / 60000) : null;
       d.innerHTML = `<summary>
           <span class="who">${avatarFor(a.student)} ${esc(a.student)}</span>
           <span class="qtype">${UNITS[a.unit] || a.unit || ''}${a.run ? ` · 第 ${a.run} 次` : ''}</span>
+          <span>${modeOf(a) === 'class' ? '🏫' : '🏠'}</span>
           <span class="muted num">${fmtTime(a.startedAt)}</span>
           ${devOf(a) ? `<span class="muted num" title="裝置代碼">${devOf(a)}${sharedDev(a) ? ' ⚠️' : ''}</span>` : ''}
           ${a.done ? `<span class="pill ${pillClass(a.score, a.total || TOTAL)}">${a.score} / ${a.total || TOTAL}</span>` : `<span class="pill live">探險中 ${ans.length}/${a.total || TOTAL}</span>`}
@@ -1316,6 +1355,7 @@
     const byStudent = new Map();
     settings.roster.forEach(n => byStudent.set(n, {}));
     done.forEach(a => {
+      if (modeOf(a) !== 'home') return;
       const d = finishDate(a);
       if (!d) return;
       if (!days.includes(d)) return;
@@ -1354,6 +1394,7 @@
     roster: (Array.isArray(d.roster) ? d.roster : Object.values(d.roster || {})).filter(x => typeof x === 'string'),
     pin: typeof d.pin === 'string' ? d.pin : '',
     pinRequired: (d.pinRequired && typeof d.pinRequired === 'object') ? d.pinRequired : {},
+    classUntil: Number(d.classUntil) || 0,
     enabledTypes: Array.isArray(d.enabledTypes) ? d.enabledTypes.filter(k => TYPE_KEYS.includes(k)) : (d.enabledTypes ? Object.values(d.enabledTypes).filter(k => TYPE_KEYS.includes(k)) : DEFAULT_TYPES.slice()),
     challenge: d.challenge && typeof d.challenge.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.challenge.start) ? { start: d.challenge.start, days: Math.min(14, Math.max(1, Number(d.challenge.days) || 5)) } : null
   });
@@ -1380,7 +1421,7 @@
     const enabledTypes = picked.length ? picked : DEFAULT_TYPES.slice();
     const chStart = $('ch-start').value, chDays = Math.min(14, Math.max(1, Number($('ch-days').value) || 5));
     const challenge = /^\d{4}-\d{2}-\d{2}$/.test(chStart) ? { start: chStart, days: chDays } : null;
-    settings = { roster, pin, enabledTypes, challenge, pinRequired };
+    settings = { roster, pin, enabledTypes, challenge, pinRequired, classUntil: settings.classUntil || 0 };
     settingsDirty = false;
     $('roster-input').value = roster.map(n => pinRequired[slugOf(n)] ? `${n},****` : n).join('\n');
     renderRoster(); renderPassport(); renderSettingsUI(); renderTeacherData();
