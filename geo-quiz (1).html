@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>幾何探險家</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+  // classroom-helper 的 Firebase 專案（和 classroom-helper 的 index.html 同一個）
+  const firebaseConfig = {
+    apiKey: 'AIzaSyDTgvorWTr4jsIY5UL5zVrHjpuc2DL--vA',
+    authDomain: 'classroom-helper-88f09.firebaseapp.com',
+    databaseURL: 'https://classroom-helper-88f09-default-rtdb.asia-southeast1.firebasedatabase.app',
+    projectId: 'classroom-helper-88f09',
+    storageBucket: 'classroom-helper-88f09.firebasestorage.app',
+    messagingSenderId: '679142147221',
+    appId: '1:679142147221:web:a8b4ed5c26fe1b8b23479c'
+  };
+  // 老師的 Google 帳號（可以放多個），只有這些帳號能進後台；要和 database.rules.json 裡的一樣
+  const TEACHER_EMAILS = ['overpomelo@gmail.com'];
+
+  firebase.initializeApp(firebaseConfig);
+</script>
+<style>
+  /* Layout: one centered column (max 760px); student view is a single card per question, teacher view is a stacked dashboard. */
+  :root {
+    --bg: #f2f5f3;
+    --grid: rgba(24, 61, 58, 0.07);
+    --surface: #ffffff;
+    --surface-2: #e8eeec;
+    --fg: #16302e;
+    --muted: #5d7472;
+    --line: #cfdad7;
+    --accent: #0e7c7b;
+    --accent-ink: #ffffff;
+    --accent-soft: #d8efec;
+    --unknown: #d9712b;
+    --good: #2f8f5b;
+    --good-soft: #dcf1e4;
+    --bad: #c84b31;
+    --bad-soft: #f8e0da;
+    --font-zh: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    --font-num: 'Nunito', 'Noto Sans TC', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #142120; --grid: rgba(190, 230, 222, 0.07); --surface: #1d2c2b; --surface-2: #263836;
+      --fg: #e7efec; --muted: #9fb5b1; --line: #35494697; --accent: #4fc3b4; --accent-ink: #0f1f1e;
+      --accent-soft: #1f4442; --unknown: #f0a05a; --good: #5ccb8a; --good-soft: #1f3d2d;
+      --bad: #f08a72; --bad-soft: #4a2a23; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #142120; --grid: rgba(190, 230, 222, 0.07); --surface: #1d2c2b; --surface-2: #263836;
+    --fg: #e7efec; --muted: #9fb5b1; --line: #35494697; --accent: #4fc3b4; --accent-ink: #0f1f1e;
+    --accent-soft: #1f4442; --unknown: #f0a05a; --good: #5ccb8a; --good-soft: #1f3d2d;
+    --bad: #f08a72; --bad-soft: #4a2a23; color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg) ; color: var(--fg);
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+    font-family: var(--font-zh); font-size: 16px; line-height: 1.6;
+    min-height: 100%;
+  }
+  html, body { height: auto; }
+  .wrap { max-width: 760px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 48px; }
+
+  header.top {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    margin-bottom: 18px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand svg { width: 36px; height: 36px; flex: none; }
+  .brand h1 { font-size: 1.25rem; margin: 0; line-height: 1.2; text-wrap: balance; }
+  .brand p { margin: 2px 0 0; font-size: 0.8rem; color: var(--muted); }
+  nav.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  nav.tabs button {
+    font: inherit; font-size: 0.9rem; font-weight: 500; padding: 7px 12px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer;
+  }
+  nav.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  nav.tabs button:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--unknown); outline-offset: 2px; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .card + .card { margin-top: 14px; }
+  h2 { font-size: 1.1rem; margin: 0 0 10px; }
+  h3 { font-size: 1rem; margin: 0 0 8px; }
+  .muted { color: var(--muted); font-size: 0.9rem; }
+  .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+
+  .btn {
+    font: inherit; font-weight: 700; padding: 10px 18px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink);
+  }
+  .btn.secondary { background: var(--surface); color: var(--accent); }
+  .btn.danger { background: var(--surface); color: var(--bad); border-color: var(--bad); }
+  .btn.small { padding: 6px 12px; font-size: 0.85rem; border-radius: 8px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  input[type="text"], input[type="password"], textarea {
+    font: inherit; width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--fg);
+  }
+  textarea { min-height: 120px; resize: vertical; }
+  label.field { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 4px; }
+
+  .banner {
+    border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; margin-bottom: 14px;
+    background: var(--bad-soft); color: var(--fg); border: 1px solid var(--bad);
+  }
+  .banner.ok { background: var(--accent-soft); border-color: var(--accent); }
+
+  /* roster buttons */
+  .roster { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .roster button {
+    font: inherit; font-size: 1rem; font-weight: 500; padding: 10px 16px; border-radius: 12px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--fg);
+  }
+  .roster button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+  .choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  @media (max-width: 480px) { .choice-row { grid-template-columns: 1fr; } }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .chips button {
+    font: inherit; font-size: 0.9rem; font-weight: 600; padding: 6px 12px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--fg);
+  }
+  .chips button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .toggles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 4px 12px; margin-top: 4px; }
+  .toggle-head { grid-column: 1 / -1; font-weight: 700; font-size: 0.9rem; margin-top: 8px; }
+  .toggle { font-size: 0.9rem; display: flex; align-items: center; gap: 4px; }
+  span.field { display: block; font-size: 0.85rem; color: var(--muted); }
+
+  /* quiz */
+  .progress { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .bar { flex: 1; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+  @media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } }
+  .qtype { display: inline-block; font-size: 0.75rem; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--fg); }
+  .qtext { font-size: 1.05rem; margin: 10px 0; }
+  .figure { background: var(--surface-2); border-radius: 12px; padding: 8px; display: flex; justify-content: center; }
+  .figure svg { width: 100%; max-width: 420px; height: auto; display: block; }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  @media (max-width: 420px) { .options { grid-template-columns: 1fr; } }
+  .opt {
+    font: inherit; text-align: left; padding: 12px 14px; border-radius: 12px; cursor: pointer;
+    border: 2px solid var(--line); background: var(--surface); color: var(--fg);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .opt .letter { font-family: var(--font-num); font-weight: 800; color: var(--muted); }
+  .opt .val { font-family: var(--font-num); font-weight: 700; font-size: 1.15rem; }
+  .opt:hover:not(:disabled) { border-color: var(--accent); }
+  .opt:disabled { cursor: default; }
+  .opt.correct { border-color: var(--good); background: var(--good-soft); }
+  .opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+  .feedback { margin-top: 14px; padding: 12px 14px; border-radius: 12px; white-space: pre-line; font-weight: 500; }
+  .feedback.good { background: var(--good-soft); border: 1px solid var(--good); }
+  .feedback.bad { background: var(--bad-soft); border: 1px solid var(--bad); }
+  .feedback .calc { font-family: var(--font-num); font-weight: 700; font-size: 1.05rem; margin-top: 4px; }
+  .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+
+  /* result */
+  .score { font-family: var(--font-num); font-size: 3rem; font-weight: 800; line-height: 1; color: var(--accent); }
+  .review { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; }
+  .review li { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; }
+  .review li.bad { border-color: var(--bad); }
+  .review li .calc { font-family: var(--font-num); font-weight: 700; }
+
+  /* teacher */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .stat { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+  .stat .v { font-family: var(--font-num); font-size: 1.6rem; font-weight: 800; }
+  .stat .l { font-size: 0.8rem; color: var(--muted); }
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 700; color: var(--muted); font-size: 0.8rem; letter-spacing: 0.04em; }
+  td.num, th.num { text-align: right; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; font-family: var(--font-num); }
+  .pill.good { background: var(--good-soft); color: var(--fg); }
+  .pill.mid { background: var(--accent-soft); color: var(--fg); }
+  .pill.bad { background: var(--bad-soft); color: var(--fg); }
+  .pill.live { background: var(--unknown); color: #fff; }
+  details.attempt { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+  details.attempt + details.attempt { margin-top: 8px; }
+  details.attempt summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  details.attempt summary .who { font-weight: 700; }
+  .ans-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 6px; margin: 10px 0; }
+  .ans-grid span {
+    display: block; text-align: center; font-family: var(--font-num); font-weight: 800; font-size: 0.85rem;
+    border-radius: 8px; padding: 6px 0; background: var(--surface-2);
+  }
+  .ans-grid span.ok { background: var(--good-soft); color: var(--good); }
+  .ans-grid span.ng { background: var(--bad-soft); color: var(--bad); }
+  .typebar { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .typebar .row { display: grid; grid-template-columns: minmax(120px, 1.2fr) 3fr auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+  .typebar .track { height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .typebar .fill { height: 100%; background: var(--bad); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 560px) { .row2 { grid-template-columns: 1fr; } .typebar .row { grid-template-columns: 1fr; gap: 4px; } }
+  .inline-confirm { display: inline-flex; gap: 6px; align-items: center; }
+
+  /* concept */
+  .formula { font-family: var(--font-num); font-weight: 800; font-size: 1.3rem; text-align: center; padding: 10px; border-radius: 10px; background: var(--accent-soft); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 36 36" aria-hidden="true"><polygon points="4,30 18,6 32,30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 30 A 7 7 0 0 0 9.6 24.7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="6" r="2.6" fill="currentColor"/></svg>
+      <div>
+        <h1>幾何探險家</h1>
+        <p>三角形 180°、四邊形 360°．角度、因數與倍數．每次題目都不一樣</p>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="quiz" id="tab-quiz">🎯 闖關作答</button>
+      <button role="tab" aria-selected="false" data-tab="concept" id="tab-concept">💡 觀念口訣</button>
+      <button role="tab" aria-selected="false" data-tab="teacher" id="tab-teacher">🔒 老師後台</button>
+    </nav>
+  </header>
+
+  <div id="db-banner" class="banner" hidden></div>
+
+  <!-- ========== 闖關 ========== -->
+  <section id="sec-quiz">
+    <div id="screen-start" class="card">
+      <h2>你是誰？</h2>
+      <p class="muted">選自己的名字，或輸入名字，再按「開始闖關」。題目和數字每次都會換。</p>
+      <div id="roster" class="roster"></div>
+      <label class="field" for="name-input">沒有在名單上？自己輸入</label>
+      <input type="text" id="name-input" placeholder="輸入名字" autocomplete="off" maxlength="20">
+      <div class="choice-row">
+        <div><span class="field">單元</span><div class="chips" id="unit-chips"></div></div>
+        <div><span class="field">題數</span><div class="chips" id="total-chips"></div></div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="btn-start">開始闖關 →</button>
+      </div>
+    </div>
+
+    <div id="screen-quiz" class="card" hidden>
+      <div class="progress">
+        <span class="num" id="q-counter">1 / 20</span>
+        <div class="bar"><div id="q-bar"></div></div>
+        <span class="num" id="q-score">✔ 0</span>
+      </div>
+      <span class="qtype" id="q-type"></span>
+      <p class="qtext" id="q-text"></p>
+      <div class="figure" id="q-figure"><svg id="q-svg" viewBox="0 0 360 190" role="img" aria-label="題目圖形"></svg></div>
+      <div class="options" id="q-options"></div>
+      <div id="q-feedback" class="feedback" hidden></div>
+      <div class="actions">
+        <button class="btn" id="btn-next" hidden>下一題 →</button>
+      </div>
+    </div>
+
+    <div id="screen-result" class="card" hidden>
+      <h2 id="r-title">闖關完成！</h2>
+      <div class="score"><span id="r-score">0</span><span style="font-size:1.2rem;color:var(--muted)"> / 20</span></div>
+      <p class="muted" id="r-note"></p>
+      <ul class="review" id="r-review"></ul>
+      <div class="actions">
+        <button class="btn secondary" id="btn-again">再闖一次</button>
+        <button class="btn" id="btn-home">換人作答</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 觀念 ========== -->
+  <section id="sec-concept" hidden>
+    <div class="row2">
+      <div class="card">
+        <h3>🔺 三角形內角和</h3>
+        <div class="formula">∠A + ∠B + ∠C = 180°</div>
+        <p>把三個角剪下來、頂點併在一起，剛好排成一條直線（平角 180°）。</p>
+        <p class="muted">求未知角：<span class="num">180° − 已知角 − 已知角</span></p>
+      </div>
+      <div class="card">
+        <h3>🟩 四邊形內角和</h3>
+        <div class="formula">∠A + ∠B + ∠C + ∠D = 360°</div>
+        <p>沿對角線切一刀，四邊形變成 2 個三角形：<span class="num">180° × 2 = 360°</span>。</p>
+        <p class="muted">求未知角：<span class="num">360° − 三個已知角</span></p>
+      </div>
+      <div class="card">
+        <h3>📐 直角三角形</h3>
+        <p>有一個角是 90°，另外兩個銳角加起來一定是 90°。</p>
+        <p class="muted"><span class="num">90° − 已知銳角 = 另一個銳角</span></p>
+      </div>
+      <div class="card">
+        <h3>🔻 等腰三角形</h3>
+        <p>兩邊一樣長（圖上畫短線的邊），所以兩個底角一樣大。</p>
+        <p class="muted">已知頂角：<span class="num">(180° − 頂角) ÷ 2</span>　已知底角：<span class="num">180° − 底角 × 2</span></p>
+      </div>
+      <div class="card">
+        <h3>▱ 平行四邊形</h3>
+        <p>相對的角一樣大。知道一組對角，另一組就是 <span class="num">(360° − 對角 × 2) ÷ 2</span>。</p>
+      </div>
+      <div class="card">
+        <h3>⬜ 有直角的四邊形</h3>
+        <p>每個直角都是 90°，先扣掉直角，再扣其他已知角。</p>
+        <p class="muted"><span class="num">360° − 90° − 90° − 已知角</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 老師後台 ========== -->
+  <section id="sec-teacher" hidden>
+    <div id="t-lock" class="card">
+      <h2>老師後台</h2>
+      <p class="muted">用老師的 Google 帳號登入才能看作答紀錄。</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn" id="btn-login">用 Google 登入</button>
+        <button class="btn secondary" id="btn-logout-denied" hidden>登出</button>
+      </div>
+      <p class="muted" id="login-msg"></p>
+    </div>
+
+    <div id="t-panel" hidden>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+          <h2 style="margin:0">班級總覽</h2>
+          <span class="muted" style="display:inline-flex;gap:10px;align-items:center"><span id="t-who"></span><button class="btn secondary small" id="btn-logout">登出</button></span>
+        </div>
+        <div class="stats" id="t-stats" style="margin-top:12px"></div>
+        <div class="tablewrap" style="margin-top:14px">
+          <table id="t-students">
+            <thead><tr><th>學生</th><th class="num">闖關次數</th><th class="num">最新</th><th class="num">最佳</th><th class="num">平均</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>各題型錯誤率</h2>
+        <p class="muted">錯誤率高的題型，下次上課可以多練。</p>
+        <div class="typebar" id="t-types"></div>
+      </div>
+
+      <div class="card">
+        <h2>作答紀錄</h2>
+        <p class="muted">點一筆展開看每題選了什麼。綠色答對、紅色答錯。</p>
+        <div id="t-attempts"></div>
+      </div>
+
+      <div class="card">
+        <h2>設定</h2>
+        <div class="row2">
+          <div>
+            <label class="field" for="roster-input">學生名單（一行一個名字）</label>
+            <textarea id="roster-input" placeholder="小明&#10;小華"></textarea>
+          </div>
+          <div>
+            <p class="muted">學生用自己的裝置打開這個網址就能作答，不用登入；每一筆作答都會即時出現在這裡。</p>
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          <span class="field">預設題數（學生開始時會先選到這個）</span>
+          <div class="chips" id="set-total-chips"></div>
+        </div>
+        <div style="margin-top:14px">
+          <span class="field">開放的題型（沒勾的不會出題）</span>
+          <div class="toggles" id="type-toggles"></div>
+        </div>
+        <div class="actions">
+          <span class="muted" id="settings-msg"></span>
+          <button class="btn" id="btn-save-settings">儲存名單</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const TOTAL_CHOICES = [10, 20, 30, 50];
+  const UNITS = { geo: '📐 角度', num: '🔢 因數與倍數', mix: '🎲 混合' };
+
+  /* ---------- 工具 ---------- */
+  const rnd = (min, max, step = 1) => min + step * Math.floor(Math.random() * (Math.floor((max - min) / step) + 1));
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const factorsOf = (n) => { const f = []; for (let i = 1; i <= n; i++) if (n % i === 0) f.push(i); return f; };
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  const lcm = (a, b) => a * b / gcd(a, b);
+  const listStr = (arr) => arr.join('、');
+  // 從候選中挑 3 個干擾選項，和正解一起打亂
+  const withDistractors = (answer, cands) => {
+    const list = shuffle([...new Set(cands)].filter(v => v !== answer && v > 0)).slice(0, 3);
+    return shuffle([answer, ...list]);
+  };
+
+  /* ---------- 題型產生器 ----------
+     每個產生器回傳 { text, answer, calc, options?, angles?, labels?, unknownIdx?, eqSides? }
+     角度題：有 angles/labels，會畫圖；數字題：沒有圖，直接顯示題目 */
+  const GEN = {
+    /* ===== 角度 ===== */
+    tri2: { unit: 'geo', name: '三角形：已知兩角',
+      make() {
+        let a, b, c;
+        do { a = rnd(25, 110, 5); b = rnd(25, 110, 5); c = 180 - a - b; } while (c < 25 || c > 120);
+        return { angles: [c, a, b], labels: ['?', a + '°', b + '°'], unknownIdx: [0], answer: c,
+          text: `三角形有兩個角分別是 ${a}° 和 ${b}°，請問「?」是幾度？`, calc: `180° − ${a}° − ${b}° = ${c}°` };
+      } },
+    triRight: { unit: 'geo', name: '直角三角形',
+      make() {
+        const x = rnd(20, 70, 5), y = 90 - x;
+        return { angles: [y, 90, x], labels: ['?', '90°', x + '°'], unknownIdx: [0], answer: y,
+          text: `直角三角形有一個 90° 的直角，另一個角是 ${x}°，請問「?」是幾度？`, calc: `180° − 90° − ${x}° = ${y}°（或 90° − ${x}° = ${y}°）` };
+      } },
+    isoTop: { unit: 'geo', name: '等腰三角形：已知頂角',
+      make() {
+        const t = rnd(30, 100, 10), b = (180 - t) / 2;
+        return { angles: [b, b, t], labels: ['?', '?', t + '°'], unknownIdx: [0, 1], answer: b, eqSides: [[2, 0], [2, 1]],
+          text: `等腰三角形兩條腰一樣長（畫短線的邊），所以兩個底角一樣大。頂角是 ${t}°，請問一個底角「?」是幾度？`, calc: `(180° − ${t}°) ÷ 2 = ${b}°` };
+      } },
+    isoBase: { unit: 'geo', name: '等腰三角形：已知底角',
+      make() {
+        const b = rnd(30, 75, 5), t = 180 - 2 * b;
+        return { angles: [b, b, t], labels: [b + '°', b + '°', '?'], unknownIdx: [2], answer: t, eqSides: [[2, 0], [2, 1]],
+          text: `等腰三角形的兩個底角都是 ${b}°，請問頂角「?」是幾度？`, calc: `180° − ${b}° − ${b}° = ${t}°` };
+      } },
+    quad3: { unit: 'geo', name: '四邊形：已知三角',
+      make() {
+        let a, b, c, d;
+        do { a = rnd(60, 130, 5); b = rnd(60, 130, 5); c = rnd(60, 130, 5); d = 360 - a - b - c; } while (d < 55 || d > 135);
+        return { angles: [a, b, c, d], labels: [a + '°', b + '°', c + '°', '?'], unknownIdx: [3], answer: d,
+          text: `四邊形有三個角分別是 ${a}°、${b}°、${c}°，請問「?」是幾度？`, calc: `360° − ${a}° − ${b}° − ${c}° = ${d}°` };
+      } },
+    quadRight2: { unit: 'geo', name: '四邊形：兩個直角',
+      make() {
+        const x = rnd(50, 130, 5), y = 180 - x;
+        return { angles: [90, 90, x, y], labels: ['90°', '90°', x + '°', '?'], unknownIdx: [3], answer: y,
+          text: `這個四邊形有兩個直角，另一個角是 ${x}°，請問「?」是幾度？`, calc: `360° − 90° − 90° − ${x}° = ${y}°` };
+      } },
+    quadRight1: { unit: 'geo', name: '四邊形：一個直角',
+      make() {
+        let a, b, d;
+        do { a = rnd(60, 130, 5); b = rnd(60, 130, 5); d = 360 - 90 - a - b; } while (d < 50 || d > 135);
+        return { angles: [90, a, b, d], labels: ['90°', a + '°', b + '°', '?'], unknownIdx: [3], answer: d,
+          text: `四邊形有一個直角，另外兩個角是 ${a}° 和 ${b}°，請問「?」是幾度？`, calc: `360° − 90° − ${a}° − ${b}° = ${d}°` };
+      } },
+    para: { unit: 'geo', name: '平行四邊形',
+      make() {
+        const x = rnd(50, 130, 5), y = (360 - 2 * x) / 2;
+        return { angles: [x, y, x, y], labels: [x + '°', '?', x + '°', '?'], unknownIdx: [1, 3], answer: y,
+          text: `平行四邊形相對的角一樣大。已知兩個相對的角都是 ${x}°，另外兩個角也相等，請問「?」是幾度？`, calc: `(360° − ${x}° − ${x}°) ÷ 2 = ${y}°` };
+      } },
+    quadTwoEqual: { unit: 'geo', name: '四邊形：兩角相等',
+      make() {
+        let x, y, d;
+        do { x = rnd(60, 120, 5); y = rnd(60, 130, 5); d = 360 - 2 * x - y; } while (d < 50 || d > 135);
+        return { angles: [x, y, x, d], labels: [x + '°', y + '°', x + '°', '?'], unknownIdx: [3], answer: d,
+          text: `四邊形有兩個角都是 ${x}°，還有一個角是 ${y}°，請問「?」是幾度？`, calc: `360° − ${x}° − ${x}° − ${y}° = ${d}°` };
+      } },
+
+    /* ===== 因數與倍數 ===== */
+    facPick: { unit: 'num', name: '因數判斷',
+      make() {
+        const n = pick([12, 16, 18, 20, 24, 28, 30, 32, 36, 40, 42, 45, 48, 54, 56, 60, 72]);
+        const f = factorsOf(n);
+        const ans = pick(f.filter(x => x > 1 && x < n));
+        const non = []; for (let i = 2; i < n; i++) if (n % i !== 0) non.push(i);
+        return { answer: ans, options: withDistractors(ans, shuffle(non)),
+          text: `下面哪一個數是 ${n} 的因數？`, calc: `${n} 的因數：${listStr(f)}\n${n} ÷ ${ans} = ${n / ans}，剛好整除，所以 ${ans} 是 ${n} 的因數` };
+      } },
+    mulPick: { unit: 'num', name: '倍數判斷',
+      make() {
+        const n = rnd(3, 12);
+        const k = rnd(3, 12), ans = n * k;
+        const non = []; for (let i = n + 1; i < n * 13; i++) if (i % n !== 0) non.push(i);
+        return { answer: ans, options: withDistractors(ans, shuffle(non.filter(v => Math.abs(v - ans) <= n * 3))),
+          text: `下面哪一個數是 ${n} 的倍數？`, calc: `${n} × ${k} = ${ans}，所以 ${ans} 是 ${n} 的倍數\n（${n} 的倍數：${listStr([1, 2, 3, 4, 5].map(i => n * i))}…）` };
+      } },
+    facCount: { unit: 'num', name: '因數有幾個',
+      make() {
+        const n = pick([6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 24, 25, 27, 28, 30, 32, 36, 40, 45, 48, 49, 50]);
+        const f = factorsOf(n), ans = f.length;
+        return { answer: ans, options: withDistractors(ans, [ans - 1, ans + 1, ans - 2, ans + 2, ans + 3]),
+          text: `${n} 的因數一共有幾個？`, calc: `${n} 的因數：${listStr(f)}\n一共 ${ans} 個` };
+      } },
+    mul2510: { unit: 'num', name: '2、5、10 的倍數',
+      make() {
+        const n = pick([2, 5, 10]);
+        const base = rnd(11, 99);
+        const ans = base * n;
+        const non = []; for (let i = ans - 15; i <= ans + 15; i++) if (i > 10 && i % n !== 0) non.push(i);
+        const rule = n === 2 ? '個位是 0、2、4、6、8' : n === 5 ? '個位是 0 或 5' : '個位是 0';
+        return { answer: ans, options: withDistractors(ans, shuffle(non)),
+          text: `下面哪一個數是 ${n} 的倍數？（看個位數就知道）`, calc: `${n} 的倍數，${rule}\n${ans} 的個位是 ${ans % 10}，所以 ${ans} 是 ${n} 的倍數` };
+      } },
+    cfPick: { unit: 'num', name: '公因數',
+      make() {
+        let a, b, cf;
+        do { a = pick([8, 12, 16, 18, 20, 24, 30, 36, 40, 48]); b = pick([6, 8, 9, 10, 12, 15, 16, 18, 20, 24, 36]); cf = factorsOf(gcd(a, b)); } while (a === b || cf.length < 3);
+        const ans = pick(cf.filter(x => x > 1));
+        const non = []; for (let i = 2; i <= Math.max(a, b); i++) if (!(a % i === 0 && b % i === 0)) non.push(i);
+        return { answer: ans, options: withDistractors(ans, shuffle(non.filter(v => v <= Math.min(a, b) + 4))),
+          text: `下面哪一個數是 ${a} 和 ${b} 的公因數？`, calc: `${a} 的因數：${listStr(factorsOf(a))}\n${b} 的因數：${listStr(factorsOf(b))}\n公因數：${listStr(cf)}` };
+      } },
+    cmPick: { unit: 'num', name: '公倍數',
+      make() {
+        let a, b;
+        do { a = rnd(2, 9); b = rnd(2, 9); } while (a === b || a % b === 0 || b % a === 0);
+        const l = lcm(a, b), k = rnd(1, 3), ans = l * k;
+        const non = []; for (let i = 4; i <= l * 3 + 10; i++) if (i % l !== 0) non.push(i);
+        return { answer: ans, options: withDistractors(ans, shuffle(non.filter(v => Math.abs(v - ans) <= l + 6 && (v % a === 0 || v % b === 0)).concat(shuffle(non).slice(0, 4)))),
+          text: `下面哪一個數是 ${a} 和 ${b} 的公倍數？`, calc: `${a} 的倍數：${listStr([1, 2, 3, 4, 5, 6].map(i => a * i))}…\n${b} 的倍數：${listStr([1, 2, 3, 4, 5, 6].map(i => b * i))}…\n${ans} ÷ ${a} = ${ans / a}，${ans} ÷ ${b} = ${ans / b}，都整除` };
+      } },
+    gcf: { unit: 'num', name: '最大公因數',
+      make() {
+        let a, b, g;
+        do { a = pick([8, 12, 16, 18, 20, 24, 27, 30, 32, 36, 40, 45, 48]); b = pick([6, 8, 9, 10, 12, 15, 16, 18, 20, 24, 30, 36]); g = gcd(a, b); } while (a === b || g < 2);
+        const cf = factorsOf(g);
+        return { answer: g, options: withDistractors(g, [...cf.filter(x => x > 1 && x < g), g * 2, g + 1, g - 1, Math.min(a, b)]),
+          text: `${a} 和 ${b} 的最大公因數是多少？`, calc: `${a} 的因數：${listStr(factorsOf(a))}\n${b} 的因數：${listStr(factorsOf(b))}\n公因數：${listStr(cf)}，最大的是 ${g}` };
+      } },
+    lcmQ: { unit: 'num', name: '最小公倍數',
+      make() {
+        let a, b;
+        do { a = rnd(2, 10); b = rnd(2, 10); } while (a === b || a % b === 0 || b % a === 0);
+        const l = lcm(a, b);
+        return { answer: l, options: withDistractors(l, [a * b, l * 2, l + a, l - b, Math.max(a, b) * 2]),
+          text: `${a} 和 ${b} 的最小公倍數是多少？`, calc: `${a} 的倍數：${listStr([1, 2, 3, 4, 5, 6].map(i => a * i))}…\n${b} 的倍數：${listStr([1, 2, 3, 4, 5, 6].map(i => b * i))}…\n第一個一樣的是 ${l}` };
+      } },
+    facApp: { unit: 'num', name: '因數應用：平分',
+      make() {
+        const n = pick([12, 18, 20, 24, 28, 30, 36, 40, 42, 45, 48, 54, 60]);
+        const item = pick(['糖果', '貼紙', '彈珠', '餅乾', '卡片']);
+        const f = factorsOf(n).filter(x => x > 1 && x < n);
+        const ans = pick(f);
+        const non = []; for (let i = 2; i < n; i++) if (n % i !== 0) non.push(i);
+        return { answer: ans, options: withDistractors(ans, shuffle(non.filter(v => Math.abs(v - ans) <= 6))),
+          text: `有 ${n} 個${item}要平分給幾個人，每個人拿到一樣多、而且剛好分完。下面哪一個人數可以？`, calc: `人數要是 ${n} 的因數：${listStr(factorsOf(n))}\n${n} ÷ ${ans} = ${n / ans}，每人 ${n / ans} 個，剛好分完` };
+      } },
+    lcmApp: { unit: 'num', name: '公倍數應用：同一天',
+      make() {
+        let a, b;
+        do { a = rnd(2, 8); b = rnd(3, 9); } while (a === b || a % b === 0 || b % a === 0);
+        const l = lcm(a, b);
+        const who = pick([['哥哥', '妹妹'], ['小安', '小翰'], ['爸爸', '媽媽'], ['阿公', '阿嬤']]);
+        const act = pick(['去圖書館', '去運動', '去市場', '澆花']);
+        return { answer: l, options: withDistractors(l, [a * b, a + b, l * 2, l + a, Math.max(a, b) * 2]),
+          text: `${who[0]}每 ${a} 天${act}一次，${who[1]}每 ${b} 天${act}一次。今天兩個人都去了，最少再過幾天會再一起去？`, calc: `找 ${a} 和 ${b} 的最小公倍數\n${a} 的倍數：${listStr([1, 2, 3, 4, 5].map(i => a * i))}…\n${b} 的倍數：${listStr([1, 2, 3, 4, 5].map(i => b * i))}…\n最小公倍數是 ${l}，所以再過 ${l} 天` };
+      } }
+  };
+  const TYPE_KEYS = Object.keys(GEN);
+  const keysOfUnit = (u) => TYPE_KEYS.filter(k => u === 'mix' || GEN[k].unit === u);
+
+  function makeAngleOptions(answer, isTri, knownSum) {
+    const cands = [answer + 10, answer - 10, answer + 20, answer - 20, answer + 5, answer - 5, answer + 30, answer - 30,
+      isTri ? 360 - knownSum : 180 - knownSum, 180 - answer, 90].filter(v => v > 0 && v < 180);
+    return withDistractors(answer, cands);
+  }
+
+  function buildQuiz(total, keys) {
+    if (!keys.length) keys = TYPE_KEYS.slice();
+    let pool = [];
+    while (pool.length < total) pool = pool.concat(shuffle(keys));
+    pool = shuffle(pool.slice(0, total));
+    const qs = [];
+    for (let i = 0; i < total; i++) {
+      const key = pool[i];
+      let q, guard = 0;
+      do { q = GEN[key].make(); } while (i > 0 && qs[i - 1].type === key && qs[i - 1].answer === q.answer && ++guard < 10);
+      q.type = key; q.typeName = GEN[key].name; q.unit = GEN[key].unit;
+      if (q.angles) {
+        const isTri = q.angles.length === 3;
+        const knownSum = q.angles.reduce((s, a, idx) => q.unknownIdx.includes(idx) ? s : s + a, 0);
+        q.options = makeAngleOptions(q.answer, isTri, knownSum);
+        q.points = polygonFromAngles(q.angles);
+        q.suffix = '°';
+      } else {
+        q.suffix = '';
+      }
+      // 萬一干擾選項不夠（極少數），補到 4 個
+      let pad = 1; while (q.options.length < 4) { const v = q.answer + pad * (pad % 2 ? 1 : -1) * 3; if (v > 0 && !q.options.includes(v)) q.options.push(v); pad++; }
+      q.correctIdx = q.options.indexOf(q.answer);
+      qs.push(q);
+    }
+    return qs;
+  }
+
+  /* ---------- 幾何繪圖 ---------- */
+  const D2R = Math.PI / 180;
+  function solve2(ux, uy, vx, vy, rx, ry) {
+    const det = ux * vy - uy * vx;
+    if (Math.abs(det) < 1e-9) return null;
+    return [(rx * vy - ry * vx) / det, (ux * ry - uy * rx) / det];
+  }
+  function polygonFromAngles(angles) {
+    const n = angles.length;
+    const headings = [0];
+    for (let i = 1; i < n; i++) headings.push(headings[i - 1] + (180 - angles[i]));
+    const u = headings.map(h => [Math.cos(h * D2R), Math.sin(h * D2R)]);
+    let sides = null;
+    if (n === 3) {
+      const st = solve2(u[1][0], u[1][1], u[2][0], u[2][1], -u[0][0], -u[0][1]);
+      sides = [1, st[0], st[1]];
+    } else {
+      for (const s2 of [1, 0.8, 1.2, 0.65, 1.5, 0.5, 2]) {
+        const rx = -(u[0][0] + s2 * u[1][0]), ry = -(u[0][1] + s2 * u[1][1]);
+        const st = solve2(u[2][0], u[2][1], u[3][0], u[3][1], rx, ry);
+        if (st && st[0] > 0.2 && st[1] > 0.2) { sides = [1, s2, st[0], st[1]]; break; }
+      }
+      if (!sides) sides = [1, 1, 1, 1];
+    }
+    const pts = [[0, 0]];
+    for (let i = 0; i < n - 1; i++) pts.push([pts[i][0] + sides[i] * u[i][0], pts[i][1] + sides[i] * u[i][1]]);
+    const flipped = pts.map(p => [p[0], -p[1]]);
+    const xs = flipped.map(p => p[0]), ys = flipped.map(p => p[1]);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const W = 360, H = 190, pad = 34;
+    const sc = Math.min((W - 2 * pad) / (maxX - minX || 1), (H - 2 * pad) / (maxY - minY || 1));
+    const ox = (W - (maxX - minX) * sc) / 2, oy = (H - (maxY - minY) * sc) / 2;
+    return flipped.map(p => [ox + (p[0] - minX) * sc, oy + (p[1] - minY) * sc]);
+  }
+  const unit = (x, y) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
+  function drawFigure(svg, q) {
+    const P = q.points, n = P.length;
+    const isTri = n === 3;
+    const stroke = isTri ? 'var(--accent)' : 'var(--unknown)';
+    let out = `<polygon points="${P.map(p => p.join(',')).join(' ')}" fill="${stroke}" fill-opacity="0.08" stroke="${stroke}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    (q.eqSides || []).forEach(([i, j]) => {
+      const mx = (P[i][0] + P[j][0]) / 2, my = (P[i][1] + P[j][1]) / 2;
+      const [dx, dy] = unit(P[j][0] - P[i][0], P[j][1] - P[i][1]);
+      out += `<line x1="${mx - dy * 6}" y1="${my + dx * 6}" x2="${mx + dy * 6}" y2="${my - dx * 6}" stroke="${stroke}" stroke-width="2.5"/>`;
+    });
+    for (let i = 0; i < n; i++) {
+      const V = P[i], A = P[(i + n - 1) % n], B = P[(i + 1) % n];
+      const e1 = unit(A[0] - V[0], A[1] - V[1]), e2 = unit(B[0] - V[0], B[1] - V[1]);
+      const bis = unit(e1[0] + e2[0], e1[1] + e2[1]);
+      const ang = q.angles[i];
+      const isUnknown = q.unknownIdx.includes(i);
+      const color = isUnknown ? 'var(--unknown)' : 'var(--fg)';
+      if (ang === 90) {
+        const s = 11;
+        out += `<path d="M ${V[0] + e1[0] * s} ${V[1] + e1[1] * s} L ${V[0] + (e1[0] + e2[0]) * s} ${V[1] + (e1[1] + e2[1]) * s} L ${V[0] + e2[0] * s} ${V[1] + e2[1] * s}" fill="none" stroke="${color}" stroke-width="1.8"/>`;
+      } else {
+        const r = 14, cross = e1[0] * e2[1] - e1[1] * e2[0], sweep = cross > 0 ? 1 : 0;
+        out += `<path d="M ${V[0] + e1[0] * r} ${V[1] + e1[1] * r} A ${r} ${r} 0 0 ${sweep} ${V[0] + e2[0] * r} ${V[1] + e2[1] * r}" fill="none" stroke="${color}" stroke-width="1.8"/>`;
+      }
+      const off = ang < 45 ? 34 : 27;
+      const lx = V[0] + bis[0] * off, ly = V[1] + bis[1] * off + 5;
+      out += `<text x="${lx}" y="${ly}" text-anchor="middle" font-family="Nunito, 'Noto Sans TC', sans-serif" font-weight="800" font-size="${isUnknown ? 17 : 14}" fill="${color}">${q.labels[i]}</text>`;
+    }
+    svg.innerHTML = out;
+  }
+
+  /* ---------- 狀態 ---------- */
+  let state = { screen: 'start', student: '', qs: null, idx: 0, answers: [], attemptId: null, startedAt: null, unit: 'geo', total: 20, unitChosen: false, totalChosen: false };
+  let settings = { roster: [], defaultTotal: 20, enabledTypes: TYPE_KEYS.slice() };
+  let attempts = [];
+  let unsubAttempts = null;
+  let currentUser = null;          // firebase user（匿名或老師）
+  let isTeacher = false;
+
+  const auth = firebase.auth();
+  const rtdb = firebase.database();
+  const ATTEMPTS = 'geo/attempts';
+  const SETTINGS = 'geo/settings';
+
+  /* ---------- 分頁 ---------- */
+  function switchTab(tab) {
+    ['quiz', 'concept', 'teacher'].forEach(t => {
+      $('sec-' + t).hidden = t !== tab;
+      $('tab-' + t).setAttribute('aria-selected', String(t === tab));
+    });
+    if (tab === 'teacher') renderTeacher();
+  }
+  document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+  /* ---------- 作答畫面 ---------- */
+  function showScreen(name) {
+    state.screen = name;
+    ['start', 'quiz', 'result'].forEach(s => { $('screen-' + s).hidden = s !== name; });
+  }
+  function renderRoster() {
+    renderChoices();
+    const box = $('roster');
+    box.innerHTML = '';
+    if (!settings.roster.length) {
+      box.innerHTML = '<span class="muted">老師還沒建立名單，先在下面輸入名字。</span>';
+      return;
+    }
+    settings.roster.forEach(name => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = name;
+      b.setAttribute('aria-pressed', String(state.student === name));
+      b.addEventListener('click', () => { state.student = name; $('name-input').value = ''; renderRoster(); });
+      box.appendChild(b);
+    });
+  }
+  $('name-input').addEventListener('input', (e) => { state.student = e.target.value.trim(); renderRoster(); });
+
+  function attemptRef() { return rtdb.ref(ATTEMPTS + '/' + state.attemptId); }
+  // Realtime Database 每次整筆寫入（資料很小），規則比較好寫
+  function attemptDoc(extra) {
+    return Object.assign({
+      student: state.student, uid: currentUser.uid, startedAt: state.startedAt, finishedAt: null, done: false,
+      score: state.answers.filter(a => a.ok).length, total: state.total, unit: state.unit, answers: state.answers.map(a => ({ ...a }))
+    }, extra || {});
+  }
+  async function startQuiz() {
+    const name = ($('name-input').value.trim() || state.student || '').trim();
+    if (!name) { $('name-input').focus(); $('name-input').placeholder = '先輸入名字才能開始喔'; return; }
+    state.student = name;
+    state.qs = buildQuiz(state.total, keysOfUnit(state.unit).filter(k => settings.enabledTypes.includes(k)));
+    state.idx = 0; state.answers = []; state.startedAt = new Date().toISOString();
+    state.attemptId = 'a_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+    showScreen('quiz');
+    renderQuestion();
+    if (currentUser) {
+      try {
+        await attemptRef().set(attemptDoc());
+      } catch (e) { console.warn('set failed', e); showBanner('成績寫入失敗，請確認網路或資料庫規則。'); }
+    }
+  }
+  function renderQuestion() {
+    const q = state.qs[state.idx];
+    $('q-counter').textContent = `${state.idx + 1} / ${state.total}`;
+    $('q-bar').style.width = `${(state.idx / state.total) * 100}%`;
+    $('q-score').textContent = `✔ ${state.answers.filter(a => a.ok).length}`;
+    $('q-type').textContent = (q.unit === 'num' ? '🔢 ' : '📐 ') + q.typeName;
+    $('q-text').textContent = q.text;
+    $('q-figure').hidden = !q.points;
+    if (q.points) drawFigure($('q-svg'), q);
+    const box = $('q-options');
+    box.innerHTML = '';
+    q.options.forEach((opt, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt'; b.id = `opt-${state.idx}-${i}`;
+      b.innerHTML = `<span class="letter">${'ABCD'[i]}</span><span class="val">${opt}${q.suffix}</span>`;
+      b.addEventListener('click', () => answer(i));
+      box.appendChild(b);
+    });
+    $('q-feedback').hidden = true;
+    $('btn-next').hidden = true;
+  }
+  async function answer(i) {
+    const q = state.qs[state.idx];
+    if (state.answers[state.idx]) return;
+    const ok = i === q.correctIdx;
+    state.answers[state.idx] = { n: state.idx + 1, type: q.type, typeName: q.typeName, text: q.text, picked: q.options[i], answer: q.answer, ok, calc: q.calc, suffix: q.suffix, unit: q.unit };
+    document.querySelectorAll('#q-options .opt').forEach((b, j) => {
+      b.disabled = true;
+      if (j === q.correctIdx) b.classList.add('correct');
+      else if (j === i) b.classList.add('wrong');
+    });
+    const fb = $('q-feedback');
+    fb.className = 'feedback ' + (ok ? 'good' : 'bad');
+    fb.innerHTML = `${ok ? '答對了！' : `答錯了，正確答案是 ${q.answer}${q.suffix}。`}<div class="calc">${q.calc}</div>`;
+    fb.hidden = false;
+    $('q-score').textContent = `✔ ${state.answers.filter(a => a.ok).length}`;
+    $('btn-next').hidden = false;
+    $('btn-next').textContent = state.idx === state.total - 1 ? '看成績 →' : '下一題 →';
+    $('btn-next').focus();
+    if (currentUser) {
+      try {
+        await attemptRef().set(attemptDoc());
+      } catch (e) { console.warn('update failed', e); }
+    }
+  }
+  async function next() {
+    if (state.idx < state.total - 1) { state.idx++; renderQuestion(); return; }
+    await finish();
+  }
+  async function finish() {
+    const score = state.answers.filter(a => a.ok).length;
+    const finishedAt = new Date().toISOString();
+    showScreen('result');
+    $('r-score').textContent = score;
+    $('r-title').textContent = score === state.total ? `${state.student}，全部答對，太厲害了！` : score >= state.total * 0.75 ? `${state.student}，闖關成功！` : `${state.student}，闖關完成！`;
+    const wrong = state.answers.filter(a => !a.ok);
+    $('r-note').textContent = wrong.length ? `有 ${wrong.length} 題答錯，看看算式再練一次：` : '成績已經記錄到老師後台。';
+    const ul = $('r-review');
+    ul.innerHTML = '';
+    wrong.forEach(a => {
+      const li = document.createElement('li');
+      li.className = 'bad';
+      li.innerHTML = `<strong>第 ${a.n} 題</strong>（${a.typeName}）你選 ${a.picked}${a.suffix}，正確是 ${a.answer}${a.suffix}<br><span class="calc">${a.calc}</span>`;
+      ul.appendChild(li);
+    });
+    if (currentUser) {
+      try {
+        await attemptRef().set(attemptDoc({ done: true, finishedAt, score }));
+      } catch (e) { console.warn('finish failed', e); showBanner('成績寫入失敗，請確認網路或資料庫規則。'); }
+    }
+  }
+  $('btn-start').addEventListener('click', startQuiz);
+  $('btn-next').addEventListener('click', next);
+  $('btn-again').addEventListener('click', startQuiz);
+  $('btn-home').addEventListener('click', () => { state.student = ''; $('name-input').value = ''; renderRoster(); showScreen('start'); });
+
+  /* ---------- 登入 ---------- */
+  function showBanner(msg, ok) {
+    const b = $('db-banner');
+    b.className = 'banner' + (ok ? ' ok' : '');
+    b.textContent = msg; b.hidden = !msg;
+  }
+  async function teacherLogin() {
+    $('login-msg').textContent = '';
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      await auth.signInWithPopup(provider);
+    } catch (e) {
+      if (e && e.code === 'auth/popup-blocked') { await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); return; }
+      $('login-msg').textContent = '登入沒有成功：' + (e && e.message ? e.message : e);
+    }
+  }
+  async function logout() {
+    if (unsubAttempts) { unsubAttempts(); unsubAttempts = null; }
+    attempts = []; isTeacher = false;
+    await auth.signOut();           // onAuthStateChanged 會再自動匿名登入
+  }
+  $('btn-login').addEventListener('click', teacherLogin);
+  $('btn-logout').addEventListener('click', logout);
+  $('btn-logout-denied').addEventListener('click', logout);
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      try { await auth.signInAnonymously(); } catch (e) {
+        console.warn('anonymous sign-in failed', e);
+        showBanner('無法連上成績紀錄（請在 Firebase 主控台開啟「匿名」登入），目前可以練習但不會記錄。');
+      }
+      return;
+    }
+    currentUser = user;
+    isTeacher = !user.isAnonymous && !!user.email && TEACHER_EMAILS.includes(user.email.toLowerCase());
+    showBanner('');
+    subscribeSettings();
+    if (!$('sec-teacher').hidden) renderTeacher();
+  });
+
+  /* ---------- 老師後台 ---------- */
+  function renderTeacher() {
+    const signedInNonTeacher = currentUser && !currentUser.isAnonymous && !isTeacher;
+    $('t-lock').hidden = isTeacher;
+    $('t-panel').hidden = !isTeacher;
+    $('btn-logout-denied').hidden = !signedInNonTeacher;
+    $('login-msg').textContent = signedInNonTeacher ? `${currentUser.email} 不在老師名單裡。` : '';
+    if (!isTeacher) return;
+    $('t-who').textContent = currentUser.email;
+    subscribeAttempts();
+    renderTeacherData();
+    if (document.activeElement !== $('roster-input')) $('roster-input').value = settings.roster.join('\n');
+    renderSettingsUI();
+  }
+  function subscribeAttempts() {
+    if (unsubAttempts) return;
+    const q = rtdb.ref(ATTEMPTS).orderByChild('startedAt').limitToLast(300);
+    const handler = (snap) => {
+      const list = [];
+      snap.forEach(ch => { const v = ch.val() || {}; list.push({ id: ch.key, ...v, answers: Array.isArray(v.answers) ? v.answers : Object.values(v.answers || {}) }); });
+      attempts = list.sort((a, b) => (b.startedAt || '').localeCompare(a.startedAt || ''));
+      renderTeacherData();
+    };
+    const onErr = (err) => { console.warn('attempts subscription', err); showBanner('讀取紀錄失敗：' + err.message); unsubAttempts = null; };
+    q.on('value', handler, onErr);
+    unsubAttempts = () => q.off('value', handler);
+  }
+  const fmtTime = (iso) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+  const pillClass = (s, t) => s >= t * 0.8 ? 'good' : s >= t * 0.5 ? 'mid' : 'bad';
+  function renderTeacherData() {
+    const done = attempts.filter(a => a.done);
+    const students = new Map();
+    done.forEach(a => {
+      const s = students.get(a.student) || { name: a.student, scores: [], latest: null };
+      s.scores.push(a.score / (a.total || 20));
+      if (!s.latest || a.startedAt > s.latest.startedAt) s.latest = a;
+      students.set(a.student, s);
+    });
+    const allAns = done.flatMap(a => a.answers || []);
+    const avg = done.length ? (done.reduce((s, a) => s + a.score, 0) / done.length) : 0;
+    $('t-stats').innerHTML = `
+      <div class="stat"><div class="v">${students.size}</div><div class="l">作答過的學生</div></div>
+      <div class="stat"><div class="v">${done.length}</div><div class="l">完成的闖關</div></div>
+      <div class="stat"><div class="v">${allAns.length}</div><div class="l">作答總題數</div></div>
+      <div class="stat"><div class="v">${allAns.length ? Math.round(allAns.filter(a => a.ok).length / allAns.length * 100) + '%' : '—'}</div><div class="l">整體答對率</div></div>`;
+
+    const tb = $('t-students').querySelector('tbody');
+    tb.innerHTML = '';
+    if (!students.size) tb.innerHTML = '<tr><td colspan="5" class="muted">還沒有人完成闖關。</td></tr>';
+    [...students.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant')).forEach(s => {
+      const best = Math.max(...s.scores), mean = s.scores.reduce((x, y) => x + y, 0) / s.scores.length;
+      tb.insertAdjacentHTML('beforeend', `<tr><td>${esc(s.name)}</td><td class="num">${s.scores.length}</td>
+        <td class="num"><span class="pill ${pillClass(s.latest.score, s.latest.total || 20)}">${s.latest.score} / ${s.latest.total || 20}</span></td>
+        <td class="num"><span class="pill ${pillClass(best, 1)}">${Math.round(best * 100)}%</span></td>
+        <td class="num">${Math.round(mean * 100)}%</td></tr>`);
+    });
+
+    const tbox = $('t-types');
+    tbox.innerHTML = '';
+    TYPE_KEYS.forEach(k => {
+      const list = allAns.filter(a => a.type === k);
+      const wrong = list.filter(a => !a.ok).length;
+      const pct = list.length ? Math.round(wrong / list.length * 100) : 0;
+      tbox.insertAdjacentHTML('beforeend', `<div class="row"><span>${GEN[k].unit === 'num' ? '🔢' : '📐'} ${GEN[k].name}</span><div class="track"><div class="fill" style="width:${pct}%"></div></div><span class="num muted">${list.length ? `${wrong}/${list.length} 錯（${pct}%）` : '尚無作答'}</span></div>`);
+    });
+
+    const abox = $('t-attempts');
+    abox.innerHTML = '';
+    if (!attempts.length) abox.innerHTML = '<p class="muted">還沒有作答紀錄。學生在「闖關作答」完成後，這裡就會出現。</p>';
+    attempts.forEach(a => {
+      const ans = a.answers || [];
+      const d = document.createElement('details');
+      d.className = 'attempt';
+      const dur = a.finishedAt ? Math.round((new Date(a.finishedAt) - new Date(a.startedAt)) / 60000) : null;
+      d.innerHTML = `<summary>
+          <span class="who">${esc(a.student)}</span>
+          <span class="qtype">${UNITS[a.unit] || '📐 角度'}</span>
+          <span class="muted num">${fmtTime(a.startedAt)}</span>
+          ${a.done ? `<span class="pill ${pillClass(a.score, a.total || 20)}">${a.score} / ${a.total || 20}</span>` : `<span class="pill live">作答中 ${ans.length}/${a.total || 20}</span>`}
+          ${dur !== null ? `<span class="muted num">${dur < 1 ? '不到 1' : dur} 分鐘</span>` : ''}
+        </summary>
+        <div class="ans-grid">${ans.map(x => `<span class="${x.ok ? 'ok' : 'ng'}" title="${esc(x.typeName)}">${x.n}</span>`).join('')}</div>
+        <div class="tablewrap"><table><thead><tr><th>#</th><th>題型</th><th>題目</th><th class="num">選了</th><th class="num">正解</th></tr></thead><tbody>
+          ${ans.map(x => `<tr><td class="num">${x.n}</td><td>${esc(x.typeName)}</td><td>${esc(x.text)}</td><td class="num" style="color:${x.ok ? 'var(--good)' : 'var(--bad)'}">${x.picked}${x.suffix ?? '°'}</td><td class="num">${x.answer}${x.suffix ?? '°'}</td></tr>`).join('')}
+        </tbody></table></div>
+        <div class="actions"><span class="inline-confirm" data-del="${esc(a.id)}"><button class="btn danger small" type="button">刪除這筆</button></span></div>`;
+      abox.appendChild(d);
+    });
+    abox.querySelectorAll('.inline-confirm').forEach(span => {
+      const btn = span.querySelector('button');
+      btn.addEventListener('click', () => {
+        if (btn.dataset.armed) { deleteAttempt(span.dataset.del); return; }
+        btn.dataset.armed = '1'; btn.textContent = '確定刪除？再按一次';
+        setTimeout(() => { delete btn.dataset.armed; btn.textContent = '刪除這筆'; }, 4000);
+      });
+    });
+  }
+  async function deleteAttempt(id) {
+    try { await rtdb.ref(ATTEMPTS + '/' + id).remove(); } catch (e) { console.warn('delete failed', e); showBanner('刪除失敗：' + e.message); }
+  }
+  $('btn-save-settings').addEventListener('click', async () => {
+    const roster = $('roster-input').value.split('\n').map(s => s.trim()).filter(Boolean);
+    const extra = readSettingsUI();
+    try {
+      await rtdb.ref(SETTINGS).update({ roster, ...extra });
+      settingsDirty = false;
+      $('settings-msg').textContent = '已儲存 ✓';
+      setTimeout(() => { $('settings-msg').textContent = ''; }, 2500);
+    } catch (e) { $('settings-msg').textContent = '儲存失敗：' + e.message; console.warn(e); }
+  });
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  /* ---------- 單元 / 題數 / 題型設定 ---------- */
+  function chips(el, items, current, onPick) {
+    if (!el) return;
+    el.innerHTML = '';
+    items.forEach(([val, label]) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = label;
+      b.setAttribute('aria-pressed', String(val === current));
+      b.addEventListener('click', () => onPick(val));
+      el.appendChild(b);
+    });
+  }
+  function renderChoices() {
+    if (!state.totalChosen) state.total = settings.defaultTotal || 20;
+    const units = Object.entries(UNITS).filter(([u]) => u === 'mix' || keysOfUnit(u).some(k => settings.enabledTypes.includes(k)));
+    if (!units.some(([u]) => u === state.unit)) state.unit = units[0] ? units[0][0] : 'mix';
+    chips($('unit-chips'), units, state.unit, v => { state.unit = v; state.unitChosen = true; renderChoices(); });
+    chips($('total-chips'), TOTAL_CHOICES.map(n => [n, n + ' 題']), state.total, v => { state.total = v; state.totalChosen = true; renderChoices(); });
+  }
+  let settingsDirty = false, pendingTotal = 20;
+  function renderSettingsChips() {
+    chips($('set-total-chips'), TOTAL_CHOICES.map(n => [n, n + ' 題']), pendingTotal, v => { pendingTotal = v; settingsDirty = true; renderSettingsChips(); });
+  }
+  function renderSettingsUI() {
+    if (settingsDirty) return;
+    pendingTotal = settings.defaultTotal || 20;
+    renderSettingsChips();
+    const box = $('type-toggles');
+    if (!box) return;
+    box.innerHTML = '';
+    ['geo', 'num'].forEach(u => {
+      const h = document.createElement('div'); h.className = 'toggle-head'; h.textContent = UNITS[u]; box.appendChild(h);
+      keysOfUnit(u).forEach(k => {
+        const lab = document.createElement('label'); lab.className = 'toggle';
+        const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'tt-' + k; cb.checked = settings.enabledTypes.includes(k);
+        cb.addEventListener('change', () => { settingsDirty = true; });
+        lab.appendChild(cb); lab.appendChild(document.createTextNode(' ' + GEN[k].name));
+        box.appendChild(lab);
+      });
+    });
+  }
+  function readSettingsUI() {
+    const enabledTypes = TYPE_KEYS.filter(k => { const cb = $('tt-' + k); return cb ? cb.checked : true; });
+    return { defaultTotal: pendingTotal, enabledTypes: enabledTypes.length ? enabledTypes : TYPE_KEYS.slice() };
+  }
+  const parseSettings = (d) => ({
+    roster: (Array.isArray(d.roster) ? d.roster : Object.values(d.roster || {})).filter(x => typeof x === 'string'),
+    defaultTotal: TOTAL_CHOICES.includes(d.defaultTotal) ? d.defaultTotal : 20,
+    enabledTypes: Array.isArray(d.enabledTypes) ? d.enabledTypes.filter(k => TYPE_KEYS.includes(k)) : (d.enabledTypes ? Object.values(d.enabledTypes).filter(k => TYPE_KEYS.includes(k)) : TYPE_KEYS.slice())
+  });
+
+  /* ---------- 啟動 ---------- */
+  let settingsSubscribed = false;
+  function subscribeSettings() {
+    if (settingsSubscribed) return;
+    settingsSubscribed = true;
+    rtdb.ref(SETTINGS).on('value', (snap) => {
+      const d = snap.val() || {};
+      settings = parseSettings(d);
+      renderRoster();
+      if (isTeacher && !$('sec-teacher').hidden && document.activeElement !== $('roster-input')) $('roster-input').value = settings.roster.join('\n');
+    }, (err) => { console.warn('settings subscription', err); settingsSubscribed = false; });
+  }
+  showScreen('start');
+  renderRoster();
+})();
+</script>
+</body>
+</html>
