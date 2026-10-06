@@ -263,6 +263,16 @@
         </div>
       </div>
 
+      <div class="card" id="pin-box" hidden style="margin-top:14px">
+        <h2 id="pin-title">🔒 輸入你的生日 4 碼</h2>
+        <p class="muted">月月日日，例如 3 月 5 日就是 0305。</p>
+        <div class="textanswer" style="margin-top:4px">
+          <input type="password" id="pin-entry" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" autocomplete="off" style="max-width:160px;letter-spacing:.3em;font-size:1.3rem">
+          <button class="btn" type="button" id="btn-pin-ok">打開護照</button>
+        </div>
+        <p class="muted" id="pin-entry-msg" style="margin:8px 0 0"></p>
+      </div>
+
       <div id="passport" hidden>
         <div class="card" style="margin-top:14px">
           <div class="passport-head">
@@ -421,8 +431,9 @@
         <h2>設定</h2>
         <div class="row2">
           <div>
-            <label class="field" for="roster-input">學生名單（一行一個名字）</label>
-            <textarea id="roster-input" placeholder="小明&#10;小華"></textarea>
+            <label class="field" for="roster-input">學生名單（一行一個：名字,生日4碼）</label>
+            <textarea id="roster-input" placeholder="小明,0305&#10;小華,1122"></textarea>
+            <p class="muted" style="margin:6px 0 0;font-size:.8rem">已設定密碼的會顯示成「名字,****」，保留就不會動；要改就直接打新的 4 碼；不填逗號後面＝不用密碼。生日不會存進資料庫，存的是加密值。</p>
           </div>
           <div>
             <p class="muted">學生用自己的裝置打開這個網址就能探險，不用登入；每一筆作答都會即時出現在這裡。護照上的「今天完成」是看學生裝置的日期。</p>
@@ -844,8 +855,15 @@
   const starsOf = (score, total) => { const p = score / total; return p === 1 ? 3 : p >= 0.8 ? 2 : p >= 0.5 ? 1 : 0; };
   const starStr = (n) => [0, 1, 2].map(i => `<span class="st${i < n ? ' on' : ''}">★</span>`).join('');
 
-  let state = { screen: 'start', student: '', unit: 'geo', qs: null, idx: 0, answers: [], attemptId: null, startedAt: null, streak: 0, gems: 0, run: 1 };
-  let settings = { roster: [], pin: '', enabledTypes: DEFAULT_TYPES.slice(), challenge: null };
+  let state = { screen: 'start', student: '', unit: 'geo', qs: null, idx: 0, answers: [], attemptId: null, startedAt: null, streak: 0, gems: 0, run: 1, pinHash: '', verified: false };
+  let settings = { roster: [], pin: '', enabledTypes: DEFAULT_TYPES.slice(), challenge: null, pins: {} };
+  // 生日密碼：存的是 SHA-256(名字:密碼) 的十六進位，不存生日本身
+  async function pinHashOf(name, pin) {
+    const data = new TextEncoder().encode(`${String(name).trim()}:${String(pin).trim()}`);
+    if (window.crypto && crypto.subtle) { const buf = await crypto.subtle.digest('SHA-256', data); return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''); }
+    let h = 2166136261; for (const b of data) { h ^= b; h = Math.imul(h, 16777619) >>> 0; } return 'fnv-' + h.toString(16);
+  }
+  const needsPin = (name) => !!settings.pins[slugOf(name)];
   let student = null;          // 目前學生的護照資料
   let attempts = [];
   let auth = { canWrite: false, isTeacher: false, who: '' };
@@ -887,17 +905,42 @@
   async function chooseStudent(name) {
     name = String(name || '').trim();
     if (!name) { $('name-input').focus(); return; }
-    state.student = name;
+    state.student = name; state.verified = false; state.pinHash = '';
     renderRoster();
     student = null;
-    renderPassport();
-    try { student = await store.getStudent(slugOf(name)); } catch (e) { console.warn('getStudent', e); }
-    if (state.student === name) renderPassport();
+    const slug = slugOf(name);
+    if (needsPin(name)) {
+      let remembered = '';
+      try { remembered = sessionStorage.getItem('geo-pin-' + slug) || ''; } catch (e) {}
+      if (remembered && remembered === settings.pins[slug]) { state.pinHash = remembered; state.verified = true; }
+    } else { state.verified = true; }
+    $('pin-box').hidden = state.verified;
+    $('passport').hidden = true;
+    if (!state.verified) { $('pin-title').textContent = `🔒 ${name}，輸入你的生日 4 碼`; $('pin-entry').value = ''; $('pin-entry-msg').textContent = ''; setTimeout(() => $('pin-entry').focus(), 50); return; }
+    await openPassport();
   }
+  async function openPassport() {
+    renderPassport();
+    try { student = await store.getStudent(slugOf(state.student)); } catch (e) { console.warn('getStudent', e); }
+    if (state.verified) renderPassport();
+  }
+  async function verifyPin() {
+    const pin = $('pin-entry').value.trim();
+    if (!/^\d{4}$/.test(pin)) { $('pin-entry-msg').textContent = '要輸入 4 個數字喔。'; return; }
+    const slug = slugOf(state.student);
+    const h = await pinHashOf(state.student, pin);
+    if (h !== settings.pins[slug]) { $('pin-entry-msg').textContent = '不對喔，再想一下自己的生日。'; $('pin-entry').value = ''; $('pin-entry').focus(); return; }
+    state.pinHash = h; state.verified = true;
+    try { sessionStorage.setItem('geo-pin-' + slug, h); } catch (e) {}
+    $('pin-box').hidden = true;
+    await openPassport();
+  }
+  on('btn-pin-ok', 'click', verifyPin);
+  on('pin-entry', 'keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); verifyPin(); } });
   function emptyStudent(name) { const s = { name, gems: 0 }; ISLANDS.forEach(i => { s[i.id] = { count: 0, best: 0, bestScore: 0, lastDate: '' }; }); return s; }
   function renderPassport() {
     const pp = $('passport');
-    if (!state.student) { pp.hidden = true; return; }
+    if (!state.student || !state.verified) { pp.hidden = true; return; }
     pp.hidden = false;
     const s = student || emptyStudent(state.student);
     $('pp-avatar').textContent = avatarFor(state.student);
@@ -953,18 +996,19 @@
   }
   on('btn-name-ok', 'click', () => chooseStudent($('name-input').value));
   on('name-input', 'keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); chooseStudent($('name-input').value); } });
-  on('btn-switch', 'click', () => { state.student = ''; student = null; $('name-input').value = ''; renderRoster(); renderPassport(); });
+  on('btn-switch', 'click', () => { state.student = ''; state.verified = false; state.pinHash = ''; student = null; $('name-input').value = ''; $('pin-box').hidden = true; renderRoster(); renderPassport(); });
   on('island-groups', 'click', (e) => { const b = e.target.closest('.island-go'); if (b) startQuiz(b.dataset.unit); });
 
   /* ---------- 探險（作答） ---------- */
   function attemptDoc(extra) {
     return Object.assign({
-      student: state.student, unit: state.unit, run: state.run, startedAt: state.startedAt, finishedAt: null, done: false,
+      student: state.student, slug: slugOf(state.student), pinHash: state.pinHash || '', unit: state.unit, run: state.run, startedAt: state.startedAt, finishedAt: null, done: false,
       score: state.answers.filter(a => a.ok).length, total: TOTAL, gems: state.gems, answers: state.answers.map(a => ({ ...a }))
     }, extra || {});
   }
   async function startQuiz(unit) {
     if (!state.student) { $('name-input').focus(); return; }
+    if (!state.verified) { $('pin-box').hidden = false; $('pin-entry').focus(); return; }
     state.unit = unit;
     const keys = keysOfUnit(unit).filter(k => settings.enabledTypes.includes(k));
     state.qs = buildQuiz(TOTAL, keys.length ? keys : keysOfUnit(unit));
@@ -1088,7 +1132,7 @@
     try {
       student = await store.updateStudent(slugOf(state.student), (cur) => {
         const s = cur && cur.name ? cur : emptyStudent(state.student);
-        s.name = state.student;
+        s.name = state.student; s.pinHash = state.pinHash || '';
         s.gems = (s.gems || 0) + gems;
         const d = s[unit] || { count: 0, best: 0, bestScore: 0, lastDate: '' };
         d.count = (d.count || 0) + 1; d.best = Math.max(d.best || 0, stars); d.bestScore = Math.max(d.bestScore || 0, score); d.lastDate = date;
@@ -1163,7 +1207,7 @@
     if (!okay) return;
     subscribeAttempts();
     renderTeacherData();
-    if (document.activeElement !== $('roster-input')) $('roster-input').value = settings.roster.join('\n');
+    if (!settingsDirty && document.activeElement !== $('roster-input')) $('roster-input').value = settings.roster.map(n => settings.pins[slugOf(n)] ? `${n},****` : n).join('\n');
     const ps = $('pin-set'); if (ps && document.activeElement !== ps) ps.value = settings.pin || '';
     if (!settingsDirty) { $('ch-start').value = settings.challenge && settings.challenge.start ? settings.challenge.start : ''; $('ch-days').value = settings.challenge && settings.challenge.days ? settings.challenge.days : 5; }
     renderSettingsUI();
@@ -1188,6 +1232,13 @@
       if (finishDate(a) === today) u.today = true;
       students.set(a.student, s);
     });
+    // 裝置代碼：同一個匿名 uid = 同一台裝置
+    const devOf = (a) => a.uid ? '#' + String(a.uid).slice(-4).toUpperCase() : '';
+    const devNames = new Map();   // uid -> Set(names)
+    attempts.forEach(a => { if (!a.uid) return; const s = devNames.get(a.uid) || new Set(); s.add(a.student); devNames.set(a.uid, s); });
+    const sharedDev = (a) => a.uid && devNames.get(a.uid) && devNames.get(a.uid).size > 1;
+    const studentDevs = new Map(); attempts.forEach(a => { if (!a.uid) return; const s = studentDevs.get(a.student) || new Set(); s.add(a.uid); studentDevs.set(a.student, s); });
+    const hasDev = attempts.some(a => a.uid);
     const allAns = done.flatMap(a => a.answers || []);
     const bothToday = [...students.values()].filter(s => ISLANDS.every(i => s[i.id] && s[i.id].today)).length;
     $('t-stats').innerHTML = `
@@ -1195,13 +1246,15 @@
       <div class="stat"><div class="v">${done.length}</div><div class="l">完成的探險</div></div>
       <div class="stat"><div class="v">${bothToday}</div><div class="l">今天每座島都去過</div></div>
       <div class="stat"><div class="v">${allAns.length ? Math.round(allAns.filter(a => a.ok).length / allAns.length * 100) + '%' : '—'}</div><div class="l">整體答對率</div></div>`;
-    $('t-students').querySelector('thead').innerHTML = '<tr><th>學生</th>' + ISLANDS.map(i => `<th class="num">${i.icon} 次數</th><th class="num">${i.icon} 最佳</th>`).join('') + '<th>今天</th></tr>';
+    $('t-students').querySelector('thead').innerHTML = '<tr><th>學生</th>' + ISLANDS.map(i => `<th class="num">${i.icon} 次數</th><th class="num">${i.icon} 最佳</th>`).join('') + '<th>今天</th>' + (hasDev ? '<th>裝置</th>' : '') + '</tr>';
     const tb = $('t-students').querySelector('tbody');
     tb.innerHTML = '';
     if (!students.size) tb.innerHTML = `<tr><td colspan="${ISLANDS.length * 2 + 2}" class="muted">${auth.canWrite ? '還沒有人完成探險。' : '目前沒有登入老師帳號，看不到紀錄。'}</td></tr>`;
     [...students.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant')).forEach(s => {
       const cell = (u) => `<td class="num">${u.count}</td><td class="num">${u.count ? `<span class="pill ${pillClass(u.best, 1)}">${Math.round(u.best * TOTAL)} / ${TOTAL}</span>` : '—'}</td>`;
-      tb.insertAdjacentHTML('beforeend', `<tr><td>${avatarFor(s.name)} ${esc(s.name)}</td>${ISLANDS.map(i => cell(s[i.id] || { count: 0, best: 0 })).join('')}<td>${ISLANDS.map(i => i.icon + ((s[i.id] && s[i.id].today) ? '✅' : '⬜')).join(' ')}</td></tr>`);
+      const devs = [...(studentDevs.get(s.name) || [])];
+      const devCell = hasDev ? `<td class="num">${devs.map(u => { const others = [...devNames.get(u)].filter(n => n !== s.name); return `<span title="${esc(others.length ? '這台裝置也用過：' + others.join('、') : '')}">${'#' + u.slice(-4).toUpperCase()}${others.length ? '⚠️' : ''}</span>`; }).join(' ')}</td>` : '';
+      tb.insertAdjacentHTML('beforeend', `<tr><td>${avatarFor(s.name)} ${esc(s.name)}</td>${ISLANDS.map(i => cell(s[i.id] || { count: 0, best: 0 })).join('')}<td>${ISLANDS.map(i => i.icon + ((s[i.id] && s[i.id].today) ? '✅' : '⬜')).join(' ')}</td>${devCell}</tr>`);
     });
     renderTeacherChallenge(done);
     const tbox = $('t-types'); tbox.innerHTML = '';
@@ -1221,9 +1274,11 @@
           <span class="who">${avatarFor(a.student)} ${esc(a.student)}</span>
           <span class="qtype">${UNITS[a.unit] || a.unit || ''}${a.run ? ` · 第 ${a.run} 次` : ''}</span>
           <span class="muted num">${fmtTime(a.startedAt)}</span>
+          ${devOf(a) ? `<span class="muted num" title="裝置代碼">${devOf(a)}${sharedDev(a) ? ' ⚠️' : ''}</span>` : ''}
           ${a.done ? `<span class="pill ${pillClass(a.score, a.total || TOTAL)}">${a.score} / ${a.total || TOTAL}</span>` : `<span class="pill live">探險中 ${ans.length}/${a.total || TOTAL}</span>`}
           ${dur !== null ? `<span class="muted num">${dur < 1 ? '不到 1' : dur} 分鐘</span>` : ''}
         </summary>
+        ${sharedDev(a) ? `<p class="muted" style="margin:6px 0 0">⚠️ 這台裝置也用過：${[...devNames.get(a.uid)].filter(n => n !== a.student).map(esc).join('、')}</p>` : ''}
         <div class="ans-grid">${ans.map(x => `<span class="${x.ok ? 'ok' : 'ng'}" title="${esc(x.typeName)}">${x.n}</span>`).join('')}</div>
         <div class="tablewrap"><table><thead><tr><th>#</th><th>題型</th><th>題目</th><th class="num">作答</th><th class="num">正解</th></tr></thead><tbody>
           ${ans.map(x => `<tr><td class="num">${x.n}</td><td>${esc(x.typeName)}</td><td>${esc(x.text)}</td><td class="num" style="color:${x.ok ? 'var(--good)' : 'var(--bad)'}">${esc(x.picked)}${x.suffix ?? ''}</td><td class="num">${esc(x.answer)}${x.suffix ?? ''}</td></tr>`).join('')}
@@ -1286,25 +1341,38 @@
   const parseSettings = (d) => ({
     roster: (Array.isArray(d.roster) ? d.roster : Object.values(d.roster || {})).filter(x => typeof x === 'string'),
     pin: typeof d.pin === 'string' ? d.pin : '',
+    pins: (d.pins && typeof d.pins === 'object') ? d.pins : {},
     enabledTypes: Array.isArray(d.enabledTypes) ? d.enabledTypes.filter(k => TYPE_KEYS.includes(k)) : (d.enabledTypes ? Object.values(d.enabledTypes).filter(k => TYPE_KEYS.includes(k)) : DEFAULT_TYPES.slice()),
     challenge: d.challenge && typeof d.challenge.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.challenge.start) ? { start: d.challenge.start, days: Math.min(14, Math.max(1, Number(d.challenge.days) || 5)) } : null
   });
+  on('roster-input', 'input', () => { settingsDirty = true; });
   on('ch-start', 'input', () => { settingsDirty = true; });
   on('ch-days', 'input', () => { settingsDirty = true; });
   on('btn-save-settings', 'click', async () => {
-    const roster = $('roster-input').value.split('\n').map(s => s.trim()).filter(Boolean);
+    const pins = {}; const roster = [];
+    for (const line of $('roster-input').value.split('\n')) {
+      const parts = line.replace(/，/g, ',').split(/[,\s]+/).map(s => s.trim()).filter(Boolean);
+      if (!parts.length) continue;
+      const name = parts[0], pin = parts[1] || '';
+      roster.push(name);
+      const slug = slugOf(name);
+      if (pin === '****') { if (settings.pins[slug]) pins[slug] = settings.pins[slug]; }
+      else if (/^\d{4}$/.test(pin)) pins[slug] = await pinHashOf(name, pin);
+      else if (pin) { $('settings-msg').textContent = `「${name}」的密碼要是 4 個數字`; return; }
+    }
     const ps = $('pin-set');
     const pin = ps ? ps.value.trim() : settings.pin;
     const picked = TYPE_KEYS.filter(k => { const cb = $('tt-' + k); return cb ? cb.checked : true; });
     const enabledTypes = picked.length ? picked : DEFAULT_TYPES.slice();
     const chStart = $('ch-start').value, chDays = Math.min(14, Math.max(1, Number($('ch-days').value) || 5));
     const challenge = /^\d{4}-\d{2}-\d{2}$/.test(chStart) ? { start: chStart, days: chDays } : null;
-    settings = { roster, pin, enabledTypes, challenge };
+    settings = { roster, pin, enabledTypes, challenge, pins };
     settingsDirty = false;
+    $('roster-input').value = roster.map(n => pins[slugOf(n)] ? `${n},****` : n).join('\n');
     renderRoster(); renderPassport(); renderSettingsUI(); renderTeacherData();
     if (!auth.canWrite) { $('settings-msg').textContent = '沒有登入老師帳號，設定只在這個頁面有效。'; return; }
     try {
-      await store.saveSettings({ roster, pin, enabledTypes, challenge });
+      await store.saveSettings({ roster, pin, enabledTypes, challenge, pins });
       $('settings-msg').textContent = '已儲存 ✓';
       setTimeout(() => { $('settings-msg').textContent = ''; }, 2500);
     } catch (e) { $('settings-msg').textContent = '儲存失敗：' + (e && e.message ? e.message : e); console.warn(e); }
