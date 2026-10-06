@@ -155,6 +155,17 @@
   .stamps { display: flex; flex-wrap: wrap; gap: 2px; font-size: 1rem; min-height: 1.2em; }
   .stamps .more { font-size: 0.8rem; color: var(--muted); align-self: center; }
   .island .go { align-self: flex-end; }
+  .challenge { margin: 10px 0 12px; }
+  .ch-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .ch-grid { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
+  .ch-day { border: 1px solid var(--line); border-radius: 10px; padding: 6px 4px; text-align: center; background: var(--surface); min-width: 0; }
+  .ch-day.today { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .ch-day.past { opacity: .85; }
+  .ch-day .d { font-family: var(--font-num); font-weight: 700; font-size: .8rem; }
+  .ch-day .w { font-size: .7rem; color: var(--muted); }
+  .ch-day .cells { display: flex; justify-content: center; gap: 2px; margin-top: 4px; font-size: 1rem; }
+  .ch-day .cells span { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.1; }
+  .ch-day .cells small { font-size: .65rem; }
   .quiz-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
   .quiz-head .who { font-weight: 700; }
   .gems { font-weight: 800; }
@@ -294,7 +305,12 @@
             <div class="muted">探險護照 · <span class="num" id="pp-gems">💎 0</span></div>
           </div>
         </div>
-        <p class="homework">📝 回家作業：兩座島今天都要去探險一次！</p>
+        <p class="homework" id="pp-homework">📝 回家作業：兩座島今天都要去探險一次！</p>
+        <div class="challenge" id="pp-challenge" hidden>
+          <div class="ch-head"><b id="ch-title">🏖️ 假期挑戰</b><span class="muted num" id="ch-progress"></span></div>
+          <div class="ch-grid" id="ch-grid"></div>
+          <p class="muted" style="margin:6px 0 0;font-size:.8rem">當天做完才會打 ✅，過了那一天就補不回來囉！</p>
+        </div>
         <div class="islands">
           <div class="island geo" id="island-geo">
             <div class="island-art">📐</div>
@@ -442,6 +458,12 @@
         </div>
       </div>
 
+      <div class="card" id="t-challenge-card" hidden>
+        <h2 id="t-challenge-title">🏖️ 假期挑戰</h2>
+        <p class="muted">每天兩座島：左邊 📐、右邊 🔢。✅ 當天完成、❌ 沒做、⬜ 今天還沒、· 還沒到。</p>
+        <div class="tablewrap"><table id="t-challenge"><thead></thead><tbody></tbody></table></div>
+      </div>
+
       <div class="card">
         <h2>各題型錯誤率</h2>
         <p class="muted">錯誤率高的題型，下次上課可以多練。</p>
@@ -463,6 +485,16 @@
           </div>
           <div>
             <p class="muted">學生用自己的裝置打開這個網址就能探險，不用登入；每一筆作答都會即時出現在這裡。護照上的「今天完成」是看學生裝置的日期。</p>
+          </div>
+        </div>
+        <div class="row2" style="margin-top:14px">
+          <div>
+            <label class="field" for="ch-start">假期挑戰：開始日期（留空＝不辦）</label>
+            <input type="date" id="ch-start">
+          </div>
+          <div>
+            <label class="field" for="ch-days">天數</label>
+            <input type="number" id="ch-days" min="1" max="14" value="5" inputmode="numeric">
           </div>
         </div>
         <div style="margin-top:14px">
@@ -816,7 +848,8 @@
         onAuth({ canWrite: true, isTeacher: !!email && TEACHER_EMAILS.includes(email.toLowerCase()), who: email });
       });
     },
-    async saveAttempt(id, doc) { const u = fbAuth.currentUser; await rtdb.ref(P_ATTEMPTS + '/' + id).set({ ...doc, uid: u ? u.uid : null }); },
+    // serverAt 由 Firebase 伺服器填時間，學生改裝置日期也沒用；最後一次寫入（交卷）的 serverAt 就是真正的完成時間
+    async saveAttempt(id, doc) { const u = fbAuth.currentUser; await rtdb.ref(P_ATTEMPTS + '/' + id).set({ ...doc, uid: u ? u.uid : null, serverAt: firebase.database.ServerValue.TIMESTAMP }); },
     async deleteAttempt(id) { await rtdb.ref(P_ATTEMPTS + '/' + id).remove(); },
     subscribeAttempts(cb, onErr) {
       const q = rtdb.ref(P_ATTEMPTS).orderByChild('startedAt').limitToLast(300);
@@ -845,14 +878,25 @@
   /* ---------- 狀態 ---------- */
   const TOTAL = 10;
   const AVATARS = ['🦊', '🐻', '🐼', '🐯', '🦁', '🐨', '🐸', '🦉', '🐰', '🐧', '🐙', '🦄'];
-  const avatarFor = (name) => { let h = 0; for (const ch of String(name)) h = (h * 31 + ch.codePointAt(0)) % 9973; return AVATARS[h % AVATARS.length]; };
+  // 名單上的學生依順序拿不同動物；不在名單上的才用名字算
+  const avatarFor = (name) => {
+    const idx = settings.roster.indexOf(String(name).trim());
+    if (idx >= 0) return AVATARS[idx % AVATARS.length];
+    let h = 0; for (const ch of String(name)) h = (h * 31 + ch.codePointAt(0)) % 9973;
+    const used = settings.roster.length;
+    return AVATARS[(used + h % Math.max(1, AVATARS.length - used)) % AVATARS.length];
+  };
   const slugOf = (name) => Array.from(String(name).trim()).map(c => c.codePointAt(0).toString(36)).join('-');
   const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const addDays = (ymd, n) => { const [y, m, d] = ymd.split('-').map(Number); const dt = new Date(y, m - 1, d + n); return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`; };
+  const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
+  const dayLabel = (ymd) => { const [y, m, d] = ymd.split('-').map(Number); return { md: `${m}/${d}`, w: WEEK[new Date(y, m - 1, d).getDay()] }; };
+  const challengeDays = () => { const c = settings.challenge; if (!c || !c.start) return []; return Array.from({ length: c.days || 5 }, (_, i) => addDays(c.start, i)); };
   const starsOf = (score, total) => { const p = score / total; return p === 1 ? 3 : p >= 0.8 ? 2 : p >= 0.5 ? 1 : 0; };
   const starStr = (n) => [0, 1, 2].map(i => `<span class="st${i < n ? ' on' : ''}">★</span>`).join('');
 
   let state = { screen: 'start', student: '', unit: 'geo', qs: null, idx: 0, answers: [], attemptId: null, startedAt: null, streak: 0, gems: 0, run: 1 };
-  let settings = { roster: [], pin: '', enabledTypes: DEFAULT_TYPES.slice() };
+  let settings = { roster: [], pin: '', enabledTypes: DEFAULT_TYPES.slice(), challenge: null };
   let student = null;          // 目前學生的護照資料
   let attempts = [];
   let auth = { canWrite: false, isTeacher: false, who: '' };
@@ -922,6 +966,31 @@
       for (let i = 0; i < n; i++) { const sp = document.createElement('span'); sp.textContent = u === 'geo' ? '📐' : '🔢'; st.appendChild(sp); }
       if ((d.count || 0) > 12) { const sp = document.createElement('span'); sp.className = 'more'; sp.textContent = `+${d.count - 12}`; st.appendChild(sp); }
     });
+    renderChallenge(s);
+  }
+  function renderChallenge(s) {
+    const days = challengeDays();
+    const box = $('pp-challenge');
+    box.hidden = !days.length;
+    if (!days.length) return;
+    const today = todayStr();
+    const recs = (s && s.days) || {};
+    let done = 0;
+    const lbl = dayLabel(days[0]), lbl2 = dayLabel(days[days.length - 1]);
+    $('ch-title').textContent = `🏖️ 假期挑戰 ${lbl.md}～${lbl2.md}`;
+    $('ch-grid').innerHTML = days.map(d => {
+      const r = recs[d] || {};
+      const cls = d === today ? 'today' : d < today ? 'past' : 'future';
+      const cell = (u, icon) => {
+        const ok = !!r[u]; if (ok) done++;
+        const mark = ok ? '✅' : d < today ? '❌' : d === today ? '⬜' : '·';
+        return `<span><small>${icon}</small>${mark}</span>`;
+      };
+      const l = dayLabel(d);
+      return `<div class="ch-day ${cls}"><div class="d">${l.md}</div><div class="w">${l.w}</div><div class="cells">${cell('geo', '📐')}${cell('num', '🔢')}</div></div>`;
+    }).join('');
+    $('ch-progress').textContent = `完成 ${done} / ${days.length * 2}`;
+    $('pp-homework').textContent = '📝 回家作業：假期每天兩座島都要去探險一次！';
   }
   on('btn-name-ok', 'click', () => chooseStudent($('name-input').value));
   on('name-input', 'keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); chooseStudent($('name-input').value); } });
@@ -1064,6 +1133,7 @@
         const d = s[unit] || { count: 0, best: 0, bestScore: 0, lastDate: '' };
         d.count = (d.count || 0) + 1; d.best = Math.max(d.best || 0, stars); d.bestScore = Math.max(d.bestScore || 0, score); d.lastDate = date;
         s[unit] = d;
+        s.days = s.days || {}; s.days[date] = Object.assign({}, s.days[date] || {}, { [unit]: true });
         return s;
       });
     } catch (e) { console.warn('updateStudent', e); if (!student) student = emptyStudent(state.student); student[unit].count++; }
@@ -1133,6 +1203,7 @@
     renderTeacherData();
     if (document.activeElement !== $('roster-input')) $('roster-input').value = settings.roster.join('\n');
     const ps = $('pin-set'); if (ps && document.activeElement !== ps) ps.value = settings.pin || '';
+    if (!settingsDirty) { $('ch-start').value = settings.challenge && settings.challenge.start ? settings.challenge.start : ''; $('ch-days').value = settings.challenge && settings.challenge.days ? settings.challenge.days : 5; }
     renderSettingsUI();
   }
   function subscribeAttempts() {
@@ -1141,6 +1212,8 @@
   }
   const fmtTime = (iso) => { if (!iso) return '—'; const d = new Date(iso); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
   const pillClass = (s, t) => s >= t * 0.8 ? 'good' : s >= t * 0.5 ? 'mid' : 'bad';
+  // 完成日期：優先用伺服器時間（serverAt），沒有才用裝置時間
+  const finishDate = (a) => a.serverAt ? localDate(new Date(a.serverAt)) : (a.finishedAt ? localDate(a.finishedAt) : '');
   const localDate = (iso) => { const d = new Date(iso); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
   function renderTeacherData() {
     const done = attempts.filter(a => a.done);
@@ -1150,7 +1223,7 @@
       const s = students.get(a.student) || { name: a.student, geo: { count: 0, best: 0, today: false }, num: { count: 0, best: 0, today: false } };
       const u = s[a.unit] || s.geo;
       u.count++; u.best = Math.max(u.best, a.score / (a.total || TOTAL));
-      if (a.finishedAt && localDate(a.finishedAt) === today) u.today = true;
+      if (finishDate(a) === today) u.today = true;
       students.set(a.student, s);
     });
     const allAns = done.flatMap(a => a.answers || []);
@@ -1167,6 +1240,7 @@
       const cell = (u) => `<td class="num">${u.count}</td><td class="num">${u.count ? `<span class="pill ${pillClass(u.best, 1)}">${Math.round(u.best * TOTAL)} / ${TOTAL}</span>` : '—'}</td>`;
       tb.insertAdjacentHTML('beforeend', `<tr><td>${avatarFor(s.name)} ${esc(s.name)}</td>${cell(s.geo)}${cell(s.num)}<td>${s.geo.today ? '📐✅' : '📐⬜'} ${s.num.today ? '🔢✅' : '🔢⬜'}</td></tr>`);
     });
+    renderTeacherChallenge(done);
     const tbox = $('t-types'); tbox.innerHTML = '';
     TYPE_KEYS.forEach(k => {
       const list = allAns.filter(a => a.type === k);
@@ -1203,6 +1277,31 @@
       });
     });
   }
+  function renderTeacherChallenge(done) {
+    const days = challengeDays();
+    const card = $('t-challenge-card'); if (!card) return;
+    card.hidden = !days.length;
+    if (!days.length) return;
+    const today = todayStr();
+    const byStudent = new Map();
+    settings.roster.forEach(n => byStudent.set(n, {}));
+    done.forEach(a => {
+      const d = finishDate(a);
+      if (!d) return;
+      if (!days.includes(d)) return;
+      const rec = byStudent.get(a.student) || {}; rec[d] = rec[d] || {}; rec[d][a.unit] = true; byStudent.set(a.student, rec);
+    });
+    const l0 = dayLabel(days[0]), l1 = dayLabel(days[days.length - 1]);
+    $('t-challenge-title').textContent = `🏖️ 假期挑戰 ${l0.md}～${l1.md}`;
+    const t = $('t-challenge');
+    t.querySelector('thead').innerHTML = '<tr><th>學生</th>' + days.map(d => { const l = dayLabel(d); return `<th class="num">${l.md}<br><span class="muted">${l.w}</span></th>`; }).join('') + '<th class="num">完成</th></tr>';
+    const mark = (ok, d) => ok ? '✅' : d < today ? '❌' : d === today ? '⬜' : '·';
+    t.querySelector('tbody').innerHTML = [...byStudent.entries()].sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant')).map(([name, rec]) => {
+      let n = 0;
+      const cells = days.map(d => { const r = rec[d] || {}; if (r.geo) n++; if (r.num) n++; return `<td class="num">${mark(r.geo, d)}${mark(r.num, d)}</td>`; }).join('');
+      return `<tr><td>${avatarFor(name)} ${esc(name)}</td>${cells}<td class="num"><span class="pill ${pillClass(n, days.length * 2)}">${n} / ${days.length * 2}</span></td></tr>`;
+    }).join('') || '<tr><td colspan="99" class="muted">名單是空的。</td></tr>';
+  }
   let settingsDirty = false;
   function renderSettingsUI() {
     if (settingsDirty) return;
@@ -1222,20 +1321,25 @@
   const parseSettings = (d) => ({
     roster: (Array.isArray(d.roster) ? d.roster : Object.values(d.roster || {})).filter(x => typeof x === 'string'),
     pin: typeof d.pin === 'string' ? d.pin : '',
-    enabledTypes: Array.isArray(d.enabledTypes) ? d.enabledTypes.filter(k => TYPE_KEYS.includes(k)) : (d.enabledTypes ? Object.values(d.enabledTypes).filter(k => TYPE_KEYS.includes(k)) : DEFAULT_TYPES.slice())
+    enabledTypes: Array.isArray(d.enabledTypes) ? d.enabledTypes.filter(k => TYPE_KEYS.includes(k)) : (d.enabledTypes ? Object.values(d.enabledTypes).filter(k => TYPE_KEYS.includes(k)) : DEFAULT_TYPES.slice()),
+    challenge: d.challenge && typeof d.challenge.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.challenge.start) ? { start: d.challenge.start, days: Math.min(14, Math.max(1, Number(d.challenge.days) || 5)) } : null
   });
+  on('ch-start', 'input', () => { settingsDirty = true; });
+  on('ch-days', 'input', () => { settingsDirty = true; });
   on('btn-save-settings', 'click', async () => {
     const roster = $('roster-input').value.split('\n').map(s => s.trim()).filter(Boolean);
     const ps = $('pin-set');
     const pin = ps ? ps.value.trim() : settings.pin;
     const picked = TYPE_KEYS.filter(k => { const cb = $('tt-' + k); return cb ? cb.checked : true; });
     const enabledTypes = picked.length ? picked : DEFAULT_TYPES.slice();
-    settings = { roster, pin, enabledTypes };
+    const chStart = $('ch-start').value, chDays = Math.min(14, Math.max(1, Number($('ch-days').value) || 5));
+    const challenge = /^\d{4}-\d{2}-\d{2}$/.test(chStart) ? { start: chStart, days: chDays } : null;
+    settings = { roster, pin, enabledTypes, challenge };
     settingsDirty = false;
-    renderRoster(); renderSettingsUI();
+    renderRoster(); renderPassport(); renderSettingsUI(); renderTeacherData();
     if (!auth.canWrite) { $('settings-msg').textContent = '沒有登入老師帳號，設定只在這個頁面有效。'; return; }
     try {
-      await store.saveSettings({ roster, pin, enabledTypes });
+      await store.saveSettings({ roster, pin, enabledTypes, challenge });
       $('settings-msg').textContent = '已儲存 ✓';
       setTimeout(() => { $('settings-msg').textContent = ''; }, 2500);
     } catch (e) { $('settings-msg').textContent = '儲存失敗：' + (e && e.message ? e.message : e); console.warn(e); }
