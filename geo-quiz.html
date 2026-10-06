@@ -821,7 +821,7 @@
       q.on('value', handler, onErr);
       return () => q.off('value', handler);
     },
-    async saveSettings(obj) { await rtdb.ref(P_SETTINGS).update(obj); },
+    async saveSettings(obj) { await rtdb.ref(P_SETTINGS).update({ ...obj, pins: null }); },   // pins: null 順便清掉舊版放在 settings 裡的雜湊
     // 密碼雜湊只寫不讀（規則不開放任何人讀）；null = 刪除
     async savePins(changes) { await rtdb.ref(P_PINS).update(changes); },
     // 驗證：試著寫一筆到 geo/pincheck/<uid>，規則會拿 geo/pins 比對，對了才寫得進去
