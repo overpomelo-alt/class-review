@@ -134,6 +134,17 @@
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .island.t-indigo { --t-text: #1E1E30; } :root:not([data-theme="light"]) .island.t-rose { --t-text: #30201F; } }
   :root[data-theme="dark"] .island.t-indigo { --t-text: #1E1E30; } :root[data-theme="dark"] .island.t-rose { --t-text: #30201F; }
 
+  .shelf { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--t-soft); margin-bottom: 14px; }
+  .shelf .icon { font-size: 2rem; line-height: 1; }
+  .shelf-body { flex: 1; min-width: 0; }
+  .shelf-body h3 { margin: 0; font-size: 1.1rem; color: var(--t-ink); }
+  .shelf-body p { margin: 2px 0 0; font-size: .84rem; color: var(--t-ink); opacity: .8; }
+  .shelf-go { background: var(--t-ink); border-color: var(--t-ink); color: var(--t-text); white-space: nowrap; }
+  .shelf.t-sage { --t-soft: var(--accent-soft); --t-ink: var(--accent); --t-text: var(--accent-ink); }
+  .shelf.t-indigo { --t-soft: var(--indigo-soft); --t-ink: var(--indigo); --t-text: #EEEEF4; }
+  .shelf.t-rose { --t-soft: var(--rose-soft); --t-ink: var(--rose); --t-text: #F4EEEE; }
+  @media (max-width: 420px) { .shelf { flex-wrap: wrap; } .shelf-go { width: 100%; } }
+
   /* challenge grid */
   .challenge { margin-top: 14px; }
   .ch-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; }
@@ -1159,15 +1170,16 @@
     const subjects = [...new Set(ISLANDS.map(i => i.subject))];
     subjects.forEach(sub => {
       groups.insertAdjacentHTML('beforeend', `<div class="label"><span>${esc(sub)}</span></div>`);
+      // 複習（課本）放在最上面一條，不算闖關
+      ISLANDS.filter(i => i.subject === sub && i.kind === 'read').forEach(isl => {
+        groups.insertAdjacentHTML('beforeend', `<div class="shelf ${isl.theme}">
+          <div class="icon">${isl.icon}</div>
+          <div class="shelf-body"><h3>${esc(isl.name)}</h3><p>${esc(isl.desc)}</p></div>
+          <button class="btn island-go shelf-go" type="button" data-read="1">翻開課本 →</button>
+        </div>`);
+      });
       const grid = document.createElement('div'); grid.className = 'islands';
-      ISLANDS.filter(i => i.subject === sub).forEach(isl => {
-        if (isl.kind === 'read') {
-          grid.insertAdjacentHTML('beforeend', `<div class="island ${isl.theme}">
-            <div class="island-top"><div class="icon">${isl.icon}</div><h3>${esc(isl.name)}</h3><p>${esc(isl.desc)}</p></div>
-            <button class="island-go" type="button" data-read="1">翻開課本 →</button>
-          </div>`);
-          return;
-        }
+      ISLANDS.filter(i => i.subject === sub && !i.kind).forEach(isl => {
         const d = s[isl.id] || { count: 0, best: 0, lastDate: '' };
         const today = d.lastDate === todayStr();
         const n = Math.min(d.count || 0, 12);
