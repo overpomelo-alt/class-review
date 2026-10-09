@@ -163,7 +163,7 @@
   .node .pin { position: absolute; top: -28px; font-size: 22px; line-height: 1; animation: bob 1s ease-in-out infinite alternate; }
   @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
   @media (prefers-reduced-motion: reduce) { .node .pin { animation: none; } }
-  .qtext { font-size: 1.05rem; margin: 10px 0; color: var(--heading); }
+  .qtext { font-size: 1.05rem; margin: 10px 0; color: var(--heading); white-space: pre-line; }
   .figure { background: var(--surface-2); border-radius: 12px; padding: 8px; display: flex; justify-content: center; }
   .figure svg { width: 100%; max-width: 420px; height: auto; display: block; }
   .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
@@ -179,6 +179,32 @@
   .feedback.good { background: var(--good-soft); border: 1px solid var(--good); }
   .feedback.bad { background: var(--bad-soft); border: 1px solid var(--bad); }
   .feedback .calc { font-family: var(--font-num); font-weight: 700; font-size: 1.02rem; margin-top: 4px; }
+
+  /* reading */
+  .lesson-list { display: grid; gap: 10px; margin-top: 10px; }
+  .lesson-btn { font: inherit; text-align: left; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--rose-soft); color: var(--rose); cursor: pointer; display: flex; align-items: center; gap: 12px; }
+  .lesson-btn .no { font-size: .8rem; font-weight: 700; opacity: .8; }
+  .lesson-btn .ti { font-size: 1.15rem; font-weight: 700; }
+  .read-nav { display: flex; gap: 6px; }
+  .read-title { margin: 14px 0 2px; font-size: 1.5rem; color: var(--heading); }
+  .read-author { color: var(--muted); font-size: .9rem; margin-bottom: 12px; }
+  .read-box { background: var(--surface-2); border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: .95rem; }
+  .read-box b { color: var(--heading); }
+  .wordchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .wordchips span { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; font-size: .95rem; }
+  .para { display: grid; grid-template-columns: 28px 1fr; gap: 8px; margin-top: 18px; }
+  .para .pno { font-family: var(--font-num); font-weight: 800; color: var(--rose); background: var(--rose-soft); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: .85rem; margin-top: 4px; }
+  .para p { margin: 0; font-size: 1.15rem; line-height: 1.95; color: var(--heading); white-space: pre-line; letter-spacing: .02em; }
+  .para.poem p { font-size: 1.2rem; line-height: 2; }
+  .para mark { background: #F6E7B8; color: inherit; border-radius: 4px; padding: 0 2px; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .para mark { background: #5A4A1E; } }
+  :root[data-theme="dark"] .para mark { background: #5A4A1E; }
+  .para details { margin-top: 6px; }
+  .para summary { cursor: pointer; font-size: .85rem; color: var(--muted); font-weight: 700; }
+  .para details p { font-size: .95rem; color: var(--fg); margin-top: 4px; line-height: 1.7; background: var(--surface-2); border-radius: 8px; padding: 6px 10px; white-space: normal; }
+  .read-extra { margin-top: 22px; border-top: 1px dashed var(--line); padding-top: 12px; }
+  .read-extra h4 { margin: 0 0 6px; color: var(--heading); }
+  .read-extra p { white-space: pre-line; line-height: 1.85; margin: 0; }
 
   /* result */
   .chest { font-size: 3rem; line-height: 1; transition: transform .4s; transform-origin: left bottom; display: inline-block; }
@@ -295,6 +321,26 @@
           </div>
         </div>
         <div id="island-groups"></div>
+      </div>
+    </div>
+
+    <div id="screen-read" hidden>
+      <div id="read-list">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <h2 style="margin:0">📚 課文複習</h2>
+            <button class="btn secondary small" type="button" id="btn-read-home">回護照</button>
+          </div>
+          <p class="muted">點一課打開全文。每一段下面可以按「段落大意」，要會寫的字會用底色標起來。</p>
+          <div class="lesson-list" id="lesson-list"></div>
+        </div>
+      </div>
+      <div id="read-lesson" class="card" hidden>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <button class="btn secondary small" type="button" id="btn-read-back">← 課文列表</button>
+          <div class="read-nav"><button class="btn secondary small" type="button" id="btn-read-prev">上一課</button><button class="btn secondary small" type="button" id="btn-read-next">下一課</button></div>
+        </div>
+        <div id="read-body"></div>
       </div>
     </div>
 
@@ -477,8 +523,11 @@
   // ===== 島嶼設定：要加新科目／新單元，在這裡加一行，再加對應的題型（unit 用同一個 id）=====
   const ISLANDS = [
     { id: 'geo', subject: '數學', name: '平面圖形島', icon: '📐', desc: '三角形 180°・四邊形 360°', theme: 't-sage' },
-    { id: 'num', subject: '數學', name: '因數與倍數島', icon: '🔢', desc: '因數・倍數・寫出來、圈出來', theme: 't-indigo' }
+    { id: 'num', subject: '數學', name: '因數與倍數島', icon: '🔢', desc: '因數・倍數・寫出來、圈出來', theme: 't-indigo' },
+    { id: 'read', subject: '國語', name: '課文複習', icon: '📚', desc: '第一～五課課文，沒帶課本也能讀', theme: 't-rose', kind: 'read' },
+    { id: 'ch', subject: '國語', name: '課文島', icon: '📖', desc: '圈出正確的字・段落大意・課文問答', theme: 't-rose' }
   ];
+  const QUIZ_ISLANDS = ISLANDS.filter(i => !i.kind);
   const UNITS = Object.fromEntries(ISLANDS.map(i => [i.id, i.icon + ' ' + i.name]));
   const islandOf = (id) => ISLANDS.find(i => i.id === id) || ISLANDS[0];
 
@@ -675,6 +724,31 @@
           : `${a} ÷ ${b} 和 ${b} ÷ ${a} 都除不盡，所以 ${a} 和 ${b} 互相都不是因數或倍數`;
         return { answer: ans, options: ['因數', '倍數', '都不是'],
           text: `${a} 是 ${b} 的＿＿？請圈出來。`, calc: `想：誰可以被誰整除？\n${why}` };
+      } },
+    /* ===== 國語：課文島 ===== */
+    chWord: { unit: 'ch', name: '圈出正確的字', fixedOptions: true,
+      make() {
+        const L = pick(LESSONS); const [word, right, wrong] = pick(L.words);
+        const idx = word.indexOf(right);
+        const shown = word.slice(0, idx) + '（　）' + word.slice(idx + 1);
+        return { answer: right, options: shuffle([right, wrong]),
+          text: `《${L.title}》的語詞「${shown}」，空格裡是哪一個字？`, calc: `正確是「${word}」` };
+      } },
+    chPara: { unit: 'ch', name: '段落大意', fixedOptions: true,
+      make() {
+        const L = pick(LESSONS); const i = Math.floor(Math.random() * L.paras.length);
+        const p = L.paras[i];
+        const plain = p.t.replace(/\n/g, '／');
+        const excerpt = plain.length > 42 ? plain.slice(0, 42) + '……' : plain;
+        const others = shuffle(L.paras.filter((_, j) => j !== i).map(x => x.s)).slice(0, 3);
+        return { answer: p.s, options: shuffle([p.s, ...others]),
+          text: `《${L.title}》這一段：「${excerpt}」\n它的段落大意是哪一個？`, calc: `這是第${['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'][i]}段：${p.s}` };
+      } },
+    chQA: { unit: 'ch', name: '課文問答', fixedOptions: true,
+      make() {
+        const L = pick(LESSONS); const q = pick(L.qa);
+        return { answer: q[1], options: shuffle(q.slice(1)),
+          text: `《${L.title}》：${q[0]}`, calc: `答案：${q[1]}` };
       } }
   };
   const TYPE_KEYS = Object.keys(GEN);
@@ -791,6 +865,120 @@
     svg.innerHTML = out;
   }
 
+  /* ===== 國語課文（五上 第一～五課）===== */
+  const LESSONS = [
+    { id: 'L1', no: '第一課', title: '蚊帳大使', author: '陳麗雲',
+      words: [['瘧疾', '疾', '急'], ['募集', '募', '幕'], ['贈送', '贈', '增'], ['獎狀', '狀', '壯'], ['雜誌', '誌', '志'], ['潛水', '潛', '替']],
+      pattern: { name: '雖然……，但是……', ex: '雖然凱瑟琳只有五歲，但是她決定把買點心的錢拿去買蚊帳。' },
+      paras: [
+        { t: '西元二○一八年六月，被封為「蚊帳大使」的美國女孩——凱瑟琳，來到臺灣發表演講，讓我們看見她努力實現夢想，以小小的手幫助了許多受苦的孩子。', s: '蚊帳大使凱瑟琳來臺灣演講，讓我們看見她努力實現夢想的故事。' },
+        { t: '西元二○○六年，五歲的凱瑟琳得知在非洲平均每三十秒，就有一個小孩因為感染瘧疾而去世時，不禁想到家中三歲的弟弟。面對任何一個小孩死去，她都覺得很難過。她一臉驚慌失措的對媽媽說：「我們需要做點什麼！」', s: '凱瑟琳得知非洲孩子因瘧疾而死亡，想幫助他們。' },
+        { t: '媽媽告訴凱瑟琳，非洲的蚊子很多，而瘧疾是經由蚊子傳染的，有一種用除蟲藥水處理過的蚊帳，可以保護人類不被蚊子叮，但這種蚊帳對當地居民來說太貴了，他們買不起。凱瑟琳一聽，決定將學校的點心費和買玩具的錢存下來買蚊帳，媽媽也非常認同她的想法，鼓勵她付出行動。', s: '媽媽告訴凱瑟琳，蚊帳可以保護人類不被蚊子叮，凱瑟琳決定存錢買蚊帳。' },
+        { t: '凱瑟琳和媽媽買了一頂大蚊帳，找到只要蚊帳協會——專門為非洲孩子募集蚊帳的團體，把蚊帳寄過去。不久，凱瑟琳收到協會寄來的信，感謝她的付出，同時也提到她是目前年紀最小的捐贈人。讀著這封回信，凱瑟琳沒有露出笑容，她說：「我們只捐了一頂蚊帳，雖然這個三十秒，沒有孩子死去，可是下一個三十秒，還是有人會死。」', s: '凱瑟琳買蚊帳寄給非洲孩子後，收到感謝的來信，但她並不開心。' },
+        { t: '凱瑟琳知道還有很多人需要蚊帳，她和媽媽在二手市場義賣，希望能存更多的錢買蚊帳。她還自己設計獎狀，人們只要捐贈一頂蚊帳的錢，就可以得到一張獎狀。每張獎狀都是由她聚精會神、一筆一畫的寫下：「以你的名義，我們買下一頂蚊帳，送給非洲的孩子。」', s: '為了募集更多的蚊帳，凱瑟琳和媽媽在二手市場義賣、自己設計獎狀給捐贈的人。' },
+        { t: '人們被她的真誠打動，帶著孩子加入買蚊帳或做獎狀的行列。社區的教堂也請她去演講，她讓大家明白蚊帳是保護傘，守護了非洲孩子的生命，許多人紛紛響應。她喜不自禁，開始到各地演講，四處募捐。', s: '人們被凱瑟琳感動，加入她的行列，她也開始演講募款。' },
+        { t: '有一天，凱瑟琳看見足球明星貝克漢為只要蚊帳協會拍的廣告，她立刻寄一封信和獎狀給他，表示感謝。貝克漢不但收藏這張珍貴的獎狀，還把獎狀的圖片貼到個人網站，引起世人的關注。', s: '凱瑟琳寄信和獎狀給貝克漢，感謝他為只要蚊帳協會拍廣告。' },
+        { t: '西元二○○七年六月，凱瑟琳收到一封來自非洲的信，信裡寫著：「謝謝你送的蚊帳，我們看了你的照片，都覺得你很美！」這封信給了凱瑟琳極大的鼓舞，於是，她和同伴精心製作了一百張獎狀並附上信件，寄給富比士雜誌中所列的全球富豪，其中一張信寫著：\n親愛的比爾．蓋茲先生：\n如果沒有蚊帳，非洲的小孩會因為瘧疾而死掉。他們沒有錢買蚊帳，可是我聽說錢都在你那裡……。', s: '凱瑟琳收到來自非洲的感謝信，受到鼓舞，因此寫信向全球富豪比爾．蓋茲募款。' },
+        { t: '比爾．蓋茲深受感動，幾個月後，蓋茲基金會宣布捐助三百萬美元給只要蚊帳協會，響應「捐一頂蚊帳，救一條生命」的活動。', s: '蓋茲基金會捐三百萬美元給只要蚊帳協會，響應捐蚊帳活動。' },
+        { t: '凱瑟琳一步步讓夢想成真，這股夢想的力量如雪球般愈滾愈大，不僅讓孩子救了孩子，把不可能化為可能，更使成千上萬的非洲兒童遠離瘧疾。凱瑟琳相信年紀小也能做善事，只要全力以赴，就能擁夢飛翔，改變世界。', s: '凱瑟琳以行動讓夢想成真，幫助非洲兒童遠離瘧疾，改變了世界。' }
+      ],
+      qa: [
+        ['凱瑟琳幾歲的時候，知道非洲的小孩因為瘧疾而死？', '五歲', '三歲', '八歲', '十歲'],
+        ['瘧疾是經由什麼傳染的？', '蚊子', '老鼠', '髒水', '空氣'],
+        ['她買第一頂蚊帳的錢是從哪裡來的？', '省下學校的點心費和買玩具的錢', '媽媽給的紅包', '義賣賺來的', '比爾．蓋茲捐的'],
+        ['為了募集更多蚊帳，她和媽媽做了什麼？', '在二手市場義賣、自己設計獎狀', '開店賣蚊帳', '到非洲發蚊帳', '請貝克漢拍廣告'],
+        ['貝克漢收到獎狀後做了什麼？', '把獎狀的圖片貼到個人網站', '寄錢給凱瑟琳', '來臺灣演講', '把獎狀丟掉'],
+        ['凱瑟琳寫信向哪一位富豪募款？', '比爾．蓋茲', '貝克漢', '吳念真', '米勒'],
+        ['蓋茲基金會後來宣布捐多少錢給只要蚊帳協會？', '三百萬美元', '三十萬美元', '一百萬美元', '三千萬美元'],
+        ['「孩子救了孩子」是什麼意思？', '凱瑟琳用行動幫助非洲孩子遠離瘧疾', '非洲的孩子救了凱瑟琳', '孩子們一起去非洲玩', '凱瑟琳救了弟弟']
+      ] },
+    { id: 'L2', no: '第二課', title: '從空中看臺灣', author: '齊柏林',
+      words: [['攝影', '攝', '懾'], ['颱風', '颱', '抬'], ['哀愁', '哀', '衰'], ['山巒', '巒', '戀'], ['縱谷', '縱', '蹤'], ['殘破', '殘', '淺'], ['檳榔', '檳', '賓'], ['鏟土', '鏟', '產']],
+      pattern: { name: '原本……，但……', ex: '這裡原本是一片綠色的山，但現在被鏟平了。' },
+      paras: [
+        { t: '德國以前有一種飛船，叫做「齊柏林」。我的名字也叫做齊柏林，似乎是血液裡帶有天生的因子，所以從小就嚮往飛行，經常想像從雲上探出頭會看到什麼。當我第一次搭直升機飛上雲端，看到自己生活的土地，讓我更愛飛行。', s: '作者因為自己叫做齊柏林，和德國飛船同名，並且可以看到生活的土地而愛上飛行。' },
+        { t: '二十多年來，我常在空中拍攝臺灣的各個角落，這也讓我心裡產生一個更大的夢想，就是拍一部空拍影片。原本打算等退休後才做，但我的體力和眼力已不如從前，莫拉克颱風所造成的變化，也催我趕緊去記錄。於是在四十七歲那年，我向安定的工作告別，專心做這件事。這是個昂貴而困難的計畫，拍攝長達三年才完成，我想讓觀看影片的人，透過我的眼睛和我的心，看見臺灣這塊土地的美麗與哀愁。', s: '莫拉克颱風造成的變化，讓作者下定決心完成空拍影片，透過自己的眼睛與心，讓人們看見臺灣的美麗與哀愁。' },
+        { t: '臺灣很美！山巒青青，如同翠玉。縱谷又深又長，河流像臍帶似的連接了土地和海洋。海浪拍打著海岸，響著從遠古以來就不曾停過的潮水聲。陽光在海水中閃耀、移動，無聲無息，卻又那麼明亮。在鄉村，農婦走過田間小路，稻浪隨風擺動。繁華的城市，高樓林立，路上的車子一如甲蟲。每次從空中看到這些景象，我總在心中喊著：「這就是我的家！」', s: '臺灣的山巒、縱谷、河流、海洋、鄉村和城市很美，作者說：「這就是我的家！」' },
+        { t: '臺灣真的很美，但也有不少哀愁！我的家由於天災與人禍，也出現了殘破的一面。為了種植檳榔樹和高山作物，人們砍掉原本種在山坡地的樹木，降低水土保持的功能。怪手一鏟一鏟的挖山，只為了製造水泥，換取經濟上的好處。河流被汙水染黑，像得了難治的病。西部海岸更由於超抽地下水，地層不斷的下陷。種種的現象，都讓人感到深深的哀愁。', s: '因為天災人禍，造成臺灣殘破的一面，讓人感到深深的哀愁。' },
+        { t: '多麼期待我們看見的臺灣，多點美麗，少點哀愁。天災難以躲過，人禍卻能避免。正如吳念真先生在影片裡的旁白：「呵護我們的土地，土地才會呵護我們的子子孫孫。」從現在開始，我們都要學會怎麼善待這塊土地。', s: '作者呼籲大家善待我們的土地，讓臺灣多點美麗，少點哀愁。' },
+        { t: '在影片中有九個大腳印的圖形，是為了表達「腳踏實地愛臺灣」的意念。沿著這些大腳印，我也將走入你的心裡，對你說：「讓我們一起努力，把家園變得更美好！」只有為家園的美好一起努力，我們才能在看見臺灣的同時，也看見幸福！', s: '作者期待大家腳踏實地愛臺灣，為家園的美好一起努力。' }
+      ],
+      qa: [
+        ['作者用什麼方式拍攝臺灣？', '搭直升機從空中拍攝', '爬到山頂拍', '坐船在海上拍', '站在高樓上拍'],
+        ['作者在空中拍攝臺灣的各個角落，有多少年？', '二十多年', '三年', '十年', '四十七年'],
+        ['作者的名字和什麼東西同名？', '德國的一種飛船', '一種鳥', '一座山', '一條河'],
+        ['什麼事催作者趕緊去記錄臺灣？', '莫拉克颱風造成的變化', '他退休了', '他得獎了', '朋友邀請他'],
+        ['下面哪一個「不是」課文裡寫到的臺灣美景？', '一望無際的沙漠', '山巒青青，如同翠玉', '河流像臍帶連接土地和海洋', '路上的車子一如甲蟲'],
+        ['下面哪一個是讓作者感到哀愁的景象？', '山坡地的樹木被砍掉種檳榔', '稻浪隨風擺動', '農婦走過田間小路', '陽光在海水中閃耀'],
+        ['作者希望大家怎麼對待這片土地？', '善待、呵護土地', '多蓋高樓', '多種檳榔', '多抽地下水'],
+        ['影片裡九個大腳印的圖形想表達什麼？', '腳踏實地愛臺灣', '走路走很遠', '巨人來過臺灣', '要多運動']
+      ] },
+    { id: 'L3', no: '第三課', title: '攀岩高手', author: '牧也',
+      words: [['陡峭', '陡', '徒'], ['高聳', '聳', '從'], ['充飢', '飢', '肌'], ['隱形', '形', '型'], ['尖銳', '銳', '稅'], ['堅韌', '韌', '忍'], ['繁茂', '茂', '貿'], ['挫折', '挫', '錯']],
+      pattern: { name: '無論……，都……', ex: '無論風吹雨打，爬牆虎都不停地往上爬。' },
+      poem: true,
+      paras: [
+        { t: '攀爬\n在陡峭的岩壁上\n不斷向上\n向上', s: '攀岩高手在岩壁上不斷向上攀爬。' },
+        { t: '強勁的吸盤\n是我精密的裝備\n高聳的雲端\n是我唯一的目標', s: '強勁的吸盤是他的裝備，高聳的雲端是他的目標。' },
+        { t: '向上攀爬\n口渴了\n有黑夜冰鎮的露珠涼水解渴\n肚子餓了\n有陽光炒熟的金色麵條充飢', s: '他口渴時喝露珠涼水解渴，肚子餓時吃陽光麵條充飢。' },
+        { t: '攀爬向上\n風來了\n它們用隱形的繩索\n反覆扯我的後腿\n雨來了\n它們用尖銳的冷箭\n一再刺我的全身', s: '風用隱形的繩索扯他的後腿，雨滴用尖銳的冷箭刺痛他的全身。' },
+        { t: '我盡心伸長堅韌的虯鬚\n我盡力展開繁茂的綠葉\n勇敢迎向\n永不休止的光明與盼望', s: '他伸長虯鬚，展開綠葉，勇敢迎向光明與盼望。' },
+        { t: '我是\n不斷往上蔓生的\n爬牆虎', s: '他是往上蔓生的爬牆虎。' }
+      ],
+      extra: { title: '賞析', text: '這首詩的詩名——攀岩高手，讓人腦中浮現身手靈活的攀岩者。不過，這是真正的答案嗎？\n詩中先寫攀岩高手向上攀爬的動作，再介紹他的裝備和目標，保持神祕感，讓讀者猜測他是誰。接著，寫到他用露珠和陽光解渴充飢，提升體力。就算面對狂風暴雨，他也展現出堅定不移的勇氣。詩中透過虯鬚和綠葉暗示他是誰，最後公布這位攀岩高手的真正身分——爬牆虎。\n詩人藉由豐富的想像力和獨特視角，巧妙連結植物與人類的生存法則。當我們追求夢想時，遇到挫折也應該像爬牆虎一樣，擁有堅強的生命力，一步步朝目標邁進。' },
+      qa: [
+        ['這首詩裡的「攀岩高手」其實是誰？', '爬牆虎', '登山客', '壁虎', '蜘蛛'],
+        ['攀岩高手的「精密的裝備」是什麼？', '強勁的吸盤', '繩索', '安全帽', '登山鞋'],
+        ['攀岩高手口渴了，用什麼解渴？', '黑夜冰鎮的露珠', '雨水', '河水', '汽水'],
+        ['「陽光炒熟的金色麵條」是把什麼比喻成麵條？', '陽光', '稻草', '金子', '麵店的麵'],
+        ['詩裡把雨比喻成什麼？', '尖銳的冷箭', '隱形的繩索', '金色麵條', '冰鎮的露珠'],
+        ['「隱形的繩索」是指什麼？', '風', '雨', '藤蔓', '蜘蛛絲'],
+        ['這首詩想告訴我們什麼？', '遇到挫折也要堅強，一步步朝目標前進', '爬牆很危險', '植物不用喝水', '風雨很可怕']
+      ] },
+    { id: 'L4', no: '第四課', title: '恆久的美', author: '蔣勳',
+      words: [['恆久', '恆', '桓'], ['稻穗', '穗', '惠'], ['樸素', '樸', '僕'], ['撿拾', '撿', '檢'], ['腰痠背痛', '痠', '酸'], ['尊嚴', '嚴', '言'], ['慷慨', '慷', '康'], ['滋潤', '滋', '茲']],
+      pattern: { name: '只要……，就……', ex: '只要看到米勒的《拾穗》，就會想到農民的辛苦。' },
+      paras: [
+        { t: '前幾天，我坐火車行經臺灣南部的平原，看到一片黃澄澄的稻田，把大地染成金黃色。那一串串飽滿的稻穗，是農民辛勤工作的成果，將帶給他們豐收的喜悅。', s: '作者坐火車經過臺灣南部的平原，看到一片黃澄澄的稻田。' },
+        { t: '這片農田，使我想起一個古老的故事：有一年，收割大麥的時候，來了一位外地的婦女——路得。路得為了要養活婆婆，只好到別人田裡，跟在收割的人身後拾取麥穗。一個大地主看到這番景象，便跟路得說：「我的僕人在哪塊田收割，你就跟在他們後面拾穗。要是你口渴了，那麼他們會給你水喝。」', s: '稻田使作者想起路得拾穗的故事。' },
+        { t: '這段故事，是法國畫家米勒創作《拾穗》的來源。米勒生長在法國鄉下的農家，童年時家中窮困，他常幫著家人在田間工作。他成為藝術家後，原本只想留在城市中畫畫，但在西元一八四九年移居到農村後，童年的農家記憶被喚醒了。當許多畫家在田園中，被夕陽和森林的美景吸引時，米勒的畫筆卻不停的在刻畫農民樸實的生活。', s: '作者藉故事介紹畫家米勒的生平與創作《拾穗》的來源。' },
+        { t: '《拾穗》是米勒的代表作之一。在畫作中，可以看到地平線遠方有很多人在繁忙的工作，他們把收割的麥草堆得高高的，放在車上準備運走。前面有三名婦人彎腰在地上撿拾麥穗。第一個綁著藍色頭巾的婦人腰彎得很低，左手壓著腰背後部，似乎是一次又一次重複撿拾的動作，使她腰痠背痛。第二個婦人綁著紅頭巾，右手撿麥穗，左手正把麥穗放進圍裙的口袋中，口袋裡似乎裝滿了麥穗，顯得有些沉重。第三個綁黃色頭巾的婦人，則半彎著腰，左手拿著一束麥子，正掃視著麥田，尋找掉落在地上的麥穗。', s: '在畫作中，遠方有堆高的麥草和運送麥草的人，前面有三名婦人彎腰在撿拾麥穗。' },
+        { t: '米勒將內心的感動，透過樸素的筆法，描繪出人物與土地的緊密連結。聖經上有句話說：「富有的人哪！在收割麥田之後，不要帶走掉在地上的麥穗，請留給更窮的人去撿。」這三個婦人雖然很窮，卻在米勒的畫中展現生命的尊嚴。米勒畫出的，正是人們「樂於分享」以及「任勞任怨」的生活態度。', s: '米勒用樸素的筆法畫出人們「樂於分享」以及「任勞任怨」的生活態度。' },
+        { t: '《拾穗》很美，美在土地的寬闊深遠，美在困苦生活中堅強存活的意志，美在慷慨分享生活物質的高貴情操。這幅畫滋潤人們日漸乾枯的心靈，讓美的感動得以恆久不斷。', s: '《拾穗》很美，滋潤人們的心靈，讓美的感動恆久不斷。' }
+      ],
+      qa: [
+        ['作者在火車上看到什麼，才想起《拾穗》這幅畫？', '黃澄澄的稻田', '一片森林', '大海', '城市的高樓'],
+        ['古老故事裡，外地的婦人路得在田裡做什麼？', '跟在收割的人後面拾取麥穗', '種麥子', '放牛', '賣水'],
+        ['地主怎麼對待路得？', '讓她跟著拾穗，口渴時給她水喝', '把她趕走', '要她付錢', '請她當僕人'],
+        ['米勒為什麼會畫農民的生活？', '他生長在農家，熟悉農民的生活', '農民付錢請他畫', '他沒去過城市', '老師規定他畫'],
+        ['畫裡的三位婦人在做什麼？', '彎腰撿拾麥穗', '收割麥子', '運送麥草', '坐著休息'],
+        ['畫裡遠處的人在做什麼？', '把收割的麥草堆高，放到車上準備運走', '在跳舞', '在撿麥穗', '在蓋房子'],
+        ['米勒畫出人們什麼樣的生活態度？', '樂於分享、任勞任怨', '好吃懶做', '斤斤計較', '愛炫耀'],
+        ['作者說這幅畫的美是「恆久」的，為什麼？', '樸素畫面中的人情與尊嚴，能長久感動人心', '因為畫很大', '因為顏色很鮮豔', '因為畫很貴']
+      ] },
+    { id: 'L5', no: '第五課', title: '它抓得住你——商標的故事', author: '',
+      words: [['申請', '申', '伸'], ['核准', '核', '該'], ['黑松', '松', '訟'], ['註冊', '註', '駐'], ['銷售', '銷', '消'], ['歷經', '歷', '曆'], ['項目', '項', '頂'], ['勝利', '勝', '生']],
+      pattern: { name: '因為……，所以……', ex: '因為這個商標很醒目，所以我一下就認出這家公司。' },
+      paras: [
+        { t: '每一個商品都有商標。商標與商品、商譽、服務等有緊密的關聯，你以為這是現代人的玩意兒嗎？那可不是。北宋時有家賣針的商鋪，用最上等的材料，精心製作好用的縫衣針。商家在門前掛著白兔的圖案，並且在傳單上用醒目的大字——「認門前白兔兒為記」提醒顧客。圖案明顯的商標，能夠讓顧客對商品留下深刻的印象。', s: '商標與商品、商譽、服務等有緊密的關聯。' },
+        { t: '臺灣最早核准的商標是林森美髮霜，由盛香堂在民國四十年提出的申請，從智慧財產局保存的資料中，可以看到這個商標的樣式：圓形外圍有十二個小半圓，裡面寫著「林森」和「Ｓ」的字樣，Ｓ中間有個正在梳頭且微笑的男士。直到現在，人們都還可以買得到這件商品呢！另外，還有一家飲料公司——黑松，也是在同一年申請商標註冊。黑松從日治時代就很有名氣，以黑松為名，就是期許企業能「永恆長青」，像松樹般堅毅不拔。為了迎接不同的產品世代，黑松也曾更換商標樣式，雖然歷經多次的微調，但那斗大的「黑松」字樣，一直都保留在商標上。像這樣重視商標並且申請註冊，代表商家願意給消費者更優質的保障。', s: '重視商標並且向智慧財產局申請註冊，代表商家願意給消費者更優質的保障。' },
+        { t: '商標同時傳達企業想帶給消費者的印象。例如：著名的網路商店亞馬遜，商標就是公司的六個英文字母。字母「Ａ」和字母「Ｚ」之間，有一個微笑的箭頭。「Ａ」和「Ｚ」正好是英文第一個和最後一個字母，就像代表這家公司，可以為消費者尋找世界各地的商品，並且幫他們送到家門口。同樣以公司名稱當商標的還有速食名店——麥當勞，它的商標就是一個金黃色的「Ｍ」，巨大的「Ｍ」有圓弧狀的柔和線條，好像兩扇打開的大門，正在對顧客招手：來吧！請走進來吧！請走進這座美食城堡吧！', s: '商標傳達企業想留給消費者的印象。' },
+        { t: '商標會不會影響商品的銷售呢？著名運動用品公司「Nike」的前身，是代理體育用品的藍帶體育用品公司，當他們決定把公司更名為「Nike」時，舉辦了商標設計活動。最後是由一位大學生勝出，他從勝利女神的神話故事中得到靈感，以女神翅膀的形象，設計出大家戲稱為「一個勾勾」的商標。這個標誌樣式簡潔、充滿動感，讓人一看就印象深刻，完全呼應商品想給消費者的想像，也讓公司成為體育用品的一方霸主。', s: '商標會影響商品的銷售，Nike 前身藍帶體育用品公司，更改商標後成為體育用品的一方霸主。' },
+        { t: '商標傳達了公司的企業歷史、發展願景、服務項目及產品特色，每個商標都有一個特別的故事。下次，當你走進商店時，可以試著放慢腳步，看看這些商標，聽一聽它們想對你說的故事。', s: '商標傳達了公司的企業歷史、發展願景、服務項目及產品特色，每個商標都有一個特別的故事。' }
+      ],
+      qa: [
+        ['課文裡最早的商標故事發生在哪個朝代？', '北宋', '唐朝', '清朝', '日治時代'],
+        ['北宋那家商鋪賣什麼？用什麼圖案當商標？', '賣針，用白兔', '賣酒，用黑松', '賣鞋，用翅膀', '賣布，用老虎'],
+        ['臺灣最早核准的商標是哪一個？', '林森美髮霜', '黑松汽水', '麥當勞', 'Nike'],
+        ['黑松的商標改過很多次，什麼東西一直沒有改？', '「黑松」的字樣', '顏色', '松樹的圖案', '外框的形狀'],
+        ['亞馬遜商標裡從「Ａ」到「Ｚ」的箭頭想表達什麼？', '什麼商品都找得到，種類齊全', '公司在美國', '箭頭跑得很快', '老闆很會笑'],
+        ['麥當勞的金色「Ｍ」看起來像什麼？', '兩扇打開的大門', '兩座山', '兩隻手', '一座橋'],
+        ['Nike 以前叫什麼名字？', '藍帶體育用品公司', '勝利女神公司', '勾勾公司', '白兔商鋪'],
+        ['Nike 商標的靈感來自什麼？', '勝利女神的翅膀', '一條河', '一座山', '一隻鳥'],
+        ['題目「它抓得住你」的「它」是指什麼？', '商標', '商店', '老闆', '顧客']
+      ] }
+  ];
+  const lessonOf = (id) => LESSONS.find(l => l.id === id);
   /* ---------- 資料層：Firebase Realtime Database（classroom-helper 專案） ---------- */
   const fbAuth = firebase.auth();
   const rtdb = firebase.database();
@@ -904,7 +1092,7 @@
   /* ---------- 首頁：選探險家 + 護照 ---------- */
   function showScreen(name) {
     state.screen = name;
-    ['start', 'quiz', 'result'].forEach(s => { $('screen-' + s).hidden = s !== name; });
+    ['start', 'quiz', 'result', 'read'].forEach(s => { $('screen-' + s).hidden = s !== name; });
   }
   function renderRoster() {
     const box = $('roster');
@@ -973,6 +1161,13 @@
       groups.insertAdjacentHTML('beforeend', `<div class="label"><span>${esc(sub)}</span></div>`);
       const grid = document.createElement('div'); grid.className = 'islands';
       ISLANDS.filter(i => i.subject === sub).forEach(isl => {
+        if (isl.kind === 'read') {
+          grid.insertAdjacentHTML('beforeend', `<div class="island ${isl.theme}">
+            <div class="island-top"><div class="icon">${isl.icon}</div><h3>${esc(isl.name)}</h3><p>${esc(isl.desc)}</p></div>
+            <button class="island-go" type="button" data-read="1">翻開課本 →</button>
+          </div>`);
+          return;
+        }
         const d = s[isl.id] || { count: 0, best: 0, lastDate: '' };
         const today = d.lastDate === todayStr();
         const n = Math.min(d.count || 0, 12);
@@ -1011,9 +1206,9 @@
         return `<span><small>${icon}</small>${mark}</span>`;
       };
       const l = dayLabel(d);
-      return `<div class="ch-day ${cls}"><div class="d">${l.md}</div><div class="w">${l.w}</div><div class="cells">${ISLANDS.map(i => cell(i.id, i.icon)).join('')}</div></div>`;
+      return `<div class="ch-day ${cls}"><div class="d">${l.md}</div><div class="w">${l.w}</div><div class="cells">${QUIZ_ISLANDS.map(i => cell(i.id, i.icon)).join('')}</div></div>`;
     }).join('');
-    $('ch-progress').textContent = `完成 ${done} / ${days.length * ISLANDS.length}`;
+    $('ch-progress').textContent = `完成 ${done} / ${days.length * QUIZ_ISLANDS.length}`;
     $('pp-homework').textContent = '📝 回家作業：假期每天每座島都要去探險一次！';
   }
   function renderModeNote() {
@@ -1022,7 +1217,48 @@
   on('btn-name-ok', 'click', () => chooseStudent($('name-input').value));
   on('name-input', 'keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); chooseStudent($('name-input').value); } });
   on('btn-switch', 'click', () => { state.student = ''; state.verified = false; state.pinHash = ''; student = null; $('name-input').value = ''; $('pin-box').hidden = true; renderRoster(); renderPassport(); });
-  on('island-groups', 'click', (e) => { const b = e.target.closest('.island-go'); if (b) startQuiz(b.dataset.unit); });
+  on('island-groups', 'click', (e) => { const b = e.target.closest('.island-go'); if (!b) return; if (b.dataset.read) showReading(); else startQuiz(b.dataset.unit); });
+
+  /* ---------- 課文複習 ---------- */
+  const CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
+  let readIdx = 0;
+  function showReading() {
+    if (!state.student || !state.verified) { $('name-input').focus(); return; }
+    showScreen('read');
+    $('read-list').hidden = false; $('read-lesson').hidden = true;
+    const box = $('lesson-list'); box.innerHTML = '';
+    LESSONS.forEach((L, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'lesson-btn';
+      b.innerHTML = `<span class="no">${esc(L.no)}</span><span class="ti">${esc(L.title)}</span>`;
+      b.addEventListener('click', () => openLesson(i));
+      box.appendChild(b);
+    });
+    window.scrollTo({ top: 0 });
+  }
+  function markWords(text, words) {
+    let html = esc(text);
+    words.forEach(([w]) => { html = html.split(esc(w)).join(`<mark>${esc(w)}</mark>`); });
+    return html;
+  }
+  function openLesson(i) {
+    readIdx = Math.max(0, Math.min(LESSONS.length - 1, i));
+    const L = LESSONS[readIdx];
+    $('read-list').hidden = true; $('read-lesson').hidden = false;
+    $('btn-read-prev').disabled = readIdx === 0; $('btn-read-next').disabled = readIdx === LESSONS.length - 1;
+    let html = `<h2 class="read-title">${esc(L.no)}　${esc(L.title)}</h2><div class="read-author">${L.author ? esc(L.author) : ''}</div>`;
+    html += `<div class="read-box"><b>句型：</b>${esc(L.pattern.name)}<br><span class="muted">例：${esc(L.pattern.ex)}</span></div>`;
+    html += `<div class="read-box"><b>要會寫的字：</b><div class="wordchips">${L.words.map(([w]) => `<span>${esc(w)}</span>`).join('')}</div></div>`;
+    L.paras.forEach((p, k) => {
+      html += `<div class="para${L.poem ? ' poem' : ''}"><span class="pno">${CN[k]}</span><div><p>${markWords(p.t, L.words)}</p><details><summary>段落大意</summary><p>${esc(p.s)}</p></details></div></div>`;
+    });
+    if (L.extra) html += `<div class="read-extra"><h4>${esc(L.extra.title)}</h4><p>${markWords(L.extra.text, L.words)}</p></div>`;
+    $('read-body').innerHTML = html;
+    window.scrollTo({ top: 0 });
+  }
+  on('btn-read-home', 'click', goHome);
+  on('btn-read-back', 'click', showReading);
+  on('btn-read-prev', 'click', () => openLesson(readIdx - 1));
+  on('btn-read-next', 'click', () => openLesson(readIdx + 1));
 
   /* ---------- 探險（作答） ---------- */
   function attemptDoc(extra) {
@@ -1151,8 +1387,8 @@
       ul.appendChild(li);
     });
     if (stars >= 2) confetti();
-    const nextIsl = ISLANDS[(ISLANDS.findIndex(i => i.id === state.unit) + 1) % ISLANDS.length];
-    $('btn-other').textContent = `去${nextIsl.name} →`; $('btn-other').hidden = ISLANDS.length < 2;
+    const nextIsl = QUIZ_ISLANDS[(QUIZ_ISLANDS.findIndex(i => i.id === state.unit) + 1) % QUIZ_ISLANDS.length];
+    $('btn-other').textContent = `去${nextIsl.name} →`; $('btn-other').hidden = QUIZ_ISLANDS.length < 2;
     // 更新護照
     const unit = state.unit, gems = state.gems, date = todayStr(), classRun = isClassMode();
     try {
@@ -1172,7 +1408,7 @@
   function goHome() { state.streak = 0; renderRoster(); renderPassport(); showScreen('start'); }
   on('btn-next', 'click', next);
   on('btn-again', 'click', () => startQuiz(state.unit));
-  on('btn-other', 'click', () => startQuiz(ISLANDS[(ISLANDS.findIndex(i => i.id === state.unit) + 1) % ISLANDS.length].id));
+  on('btn-other', 'click', () => startQuiz(QUIZ_ISLANDS[(QUIZ_ISLANDS.findIndex(i => i.id === state.unit) + 1) % QUIZ_ISLANDS.length].id));
   on('btn-passport', 'click', goHome);
   on('btn-leave', 'click', () => {
     const b = $('btn-leave');
@@ -1185,7 +1421,7 @@
 
   function badgeFor(unit, pct) {
     const lv = pct === 1 ? 3 : pct >= 0.8 ? 2 : pct >= 0.5 ? 1 : 0;
-    const names = { geo: ['圖形探險新手', '角度學徒', '角度高手', '平面圖形大師'], num: ['因數倍數新手', '因數偵探', '倍數獵人', '因數倍數大師'] };
+    const names = { geo: ['圖形探險新手', '角度學徒', '角度高手', '平面圖形大師'], num: ['因數倍數新手', '因數偵探', '倍數獵人', '因數倍數大師'], ch: ['課文新手', '閱讀學徒', '閱讀高手', '課文大師'] };
     const isl = islandOf(unit);
     const generic = [`${isl.name}新手`, `${isl.name}學徒`, `${isl.name}高手`, `${isl.name}大師`];
     return '今天的稱號：' + (names[unit] || generic)[lv];
@@ -1273,7 +1509,7 @@
     const students = new Map();
     const today = todayStr();
     done.forEach(a => {
-      const s = students.get(a.student) || (() => { const o = { name: a.student }; ISLANDS.forEach(i => { o[i.id] = { count: 0, best: 0, today: false }; }); return o; })();
+      const s = students.get(a.student) || (() => { const o = { name: a.student }; QUIZ_ISLANDS.forEach(i => { o[i.id] = { count: 0, best: 0, today: false }; }); return o; })();
       const u = s[a.unit] || (s[a.unit] = { count: 0, best: 0, today: false });
       u.count++; u.best = Math.max(u.best, a.score / (a.total || TOTAL));
       if (modeOf(a) === 'home' && finishDate(a) === today) u.today = true;
@@ -1287,21 +1523,21 @@
     const studentDevs = new Map(); attempts.forEach(a => { if (!a.uid) return; const s = studentDevs.get(a.student) || new Set(); s.add(a.uid); studentDevs.set(a.student, s); });
     const hasDev = attempts.some(a => a.uid);
     const allAns = done.flatMap(a => a.answers || []);
-    const bothToday = [...students.values()].filter(s => ISLANDS.every(i => s[i.id] && s[i.id].today)).length;
+    const bothToday = [...students.values()].filter(s => QUIZ_ISLANDS.every(i => s[i.id] && s[i.id].today)).length;
     $('t-stats').innerHTML = `
       <div class="stat"><div class="v">${students.size}</div><div class="l">探險過的學生</div></div>
       <div class="stat"><div class="v">${done.length}</div><div class="l">完成的探險</div></div>
       <div class="stat"><div class="v">${bothToday}</div><div class="l">今天每座島都去過</div></div>
       <div class="stat"><div class="v">${allAns.length ? Math.round(allAns.filter(a => a.ok).length / allAns.length * 100) + '%' : '—'}</div><div class="l">整體答對率</div></div>`;
-    $('t-students').querySelector('thead').innerHTML = '<tr><th>學生</th>' + ISLANDS.map(i => `<th class="num">${i.icon} 次數</th><th class="num">${i.icon} 最佳</th>`).join('') + '<th>今天</th>' + (hasDev ? '<th>裝置</th>' : '') + '</tr>';
+    $('t-students').querySelector('thead').innerHTML = '<tr><th>學生</th>' + QUIZ_ISLANDS.map(i => `<th class="num">${i.icon} 次數</th><th class="num">${i.icon} 最佳</th>`).join('') + '<th>今天</th>' + (hasDev ? '<th>裝置</th>' : '') + '</tr>';
     const tb = $('t-students').querySelector('tbody');
     tb.innerHTML = '';
-    if (!students.size) tb.innerHTML = `<tr><td colspan="${ISLANDS.length * 2 + 2}" class="muted">${auth.canWrite ? '還沒有人完成探險。' : '目前沒有登入老師帳號，看不到紀錄。'}</td></tr>`;
+    if (!students.size) tb.innerHTML = `<tr><td colspan="${QUIZ_ISLANDS.length * 2 + 3}" class="muted">${auth.canWrite ? '還沒有人完成探險。' : '目前沒有登入老師帳號，看不到紀錄。'}</td></tr>`;
     [...students.values()].sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant')).forEach(s => {
       const cell = (u) => `<td class="num">${u.count}</td><td class="num">${u.count ? `<span class="pill ${pillClass(u.best, 1)}">${Math.round(u.best * TOTAL)} / ${TOTAL}</span>` : '—'}</td>`;
       const devs = [...(studentDevs.get(s.name) || [])];
       const devCell = hasDev ? `<td>${devs.map(u => { const others = [...devNames.get(u)].filter(n => n !== s.name); return `<div class="num" style="white-space:nowrap">${'#' + u.slice(-4).toUpperCase()}${others.length ? ` ⚠️ <span class="muted">也用過：${esc(others.join('、'))}</span>` : ''}</div>`; }).join('')}</td>` : '';
-      tb.insertAdjacentHTML('beforeend', `<tr><td>${avatarFor(s.name)} ${esc(s.name)}</td>${ISLANDS.map(i => cell(s[i.id] || { count: 0, best: 0 })).join('')}<td>${ISLANDS.map(i => i.icon + ((s[i.id] && s[i.id].today) ? '✅' : '⬜')).join(' ')}</td>${devCell}</tr>`);
+      tb.insertAdjacentHTML('beforeend', `<tr><td>${avatarFor(s.name)} ${esc(s.name)}</td>${QUIZ_ISLANDS.map(i => cell(s[i.id] || { count: 0, best: 0 })).join('')}<td>${QUIZ_ISLANDS.map(i => i.icon + ((s[i.id] && s[i.id].today) ? '✅' : '⬜')).join(' ')}</td>${devCell}</tr>`);
     });
     renderTeacherChallenge(done);
     const tbox = $('t-types'); tbox.innerHTML = '';
@@ -1363,14 +1599,14 @@
     });
     const l0 = dayLabel(days[0]), l1 = dayLabel(days[days.length - 1]);
     $('t-challenge-title').textContent = `🏖️ 假期挑戰 ${l0.md}～${l1.md}`;
-    $('t-challenge-note').textContent = `每格依序是 ${ISLANDS.map(i => i.icon + i.name).join('、')}。✅ 當天完成、❌ 沒做、⬜ 今天還沒、· 還沒到。`;
+    $('t-challenge-note').textContent = `每格依序是 ${QUIZ_ISLANDS.map(i => i.icon + i.name).join('、')}。✅ 當天完成、❌ 沒做、⬜ 今天還沒、· 還沒到。`;
     const t = $('t-challenge');
     t.querySelector('thead').innerHTML = '<tr><th>學生</th>' + days.map(d => { const l = dayLabel(d); return `<th class="num">${l.md}<br><span class="muted">${l.w}</span></th>`; }).join('') + '<th class="num">完成</th></tr>';
     const mark = (ok, d) => ok ? '✅' : d < today ? '❌' : d === today ? '⬜' : '·';
     t.querySelector('tbody').innerHTML = [...byStudent.entries()].sort((a, b) => a[0].localeCompare(b[0], 'zh-Hant')).map(([name, rec]) => {
       let n = 0;
-      const cells = days.map(d => { const r = rec[d] || {}; ISLANDS.forEach(i => { if (r[i.id]) n++; }); return `<td class="num">${ISLANDS.map(i => mark(r[i.id], d)).join('')}</td>`; }).join('');
-      const max = days.length * ISLANDS.length;
+      const cells = days.map(d => { const r = rec[d] || {}; QUIZ_ISLANDS.forEach(i => { if (r[i.id]) n++; }); return `<td class="num">${QUIZ_ISLANDS.map(i => mark(r[i.id], d)).join('')}</td>`; }).join('');
+      const max = days.length * QUIZ_ISLANDS.length;
       return `<tr><td>${avatarFor(name)} ${esc(name)}</td>${cells}<td class="num"><span class="pill ${pillClass(n, max)}">${n} / ${max}</span></td></tr>`;
     }).join('') || '<tr><td colspan="99" class="muted">名單是空的。</td></tr>';
   }
@@ -1379,7 +1615,7 @@
     if (settingsDirty) return;
     const box = $('type-toggles'); if (!box) return;
     box.innerHTML = '';
-    ISLANDS.map(i => i.id).forEach(u => {
+    QUIZ_ISLANDS.map(i => i.id).forEach(u => {
       const h = document.createElement('div'); h.className = 'toggle-head'; h.textContent = UNITS[u]; box.appendChild(h);
       keysOfUnit(u).forEach(k => {
         const lab = document.createElement('label'); lab.className = 'toggle';
