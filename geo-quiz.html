@@ -134,17 +134,6 @@
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .island.t-indigo { --t-text: #1E1E30; } :root:not([data-theme="light"]) .island.t-rose { --t-text: #30201F; } }
   :root[data-theme="dark"] .island.t-indigo { --t-text: #1E1E30; } :root[data-theme="dark"] .island.t-rose { --t-text: #30201F; }
 
-  .shelf { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--t-soft); margin-bottom: 14px; }
-  .shelf .icon { font-size: 2rem; line-height: 1; }
-  .shelf-body { flex: 1; min-width: 0; }
-  .shelf-body h3 { margin: 0; font-size: 1.1rem; color: var(--t-ink); }
-  .shelf-body p { margin: 2px 0 0; font-size: .84rem; color: var(--t-ink); opacity: .8; }
-  .shelf-go { background: var(--t-ink); border-color: var(--t-ink); color: var(--t-text); white-space: nowrap; }
-  .shelf.t-sage { --t-soft: var(--accent-soft); --t-ink: var(--accent); --t-text: var(--accent-ink); }
-  .shelf.t-indigo { --t-soft: var(--indigo-soft); --t-ink: var(--indigo); --t-text: #EEEEF4; }
-  .shelf.t-rose { --t-soft: var(--rose-soft); --t-ink: var(--rose); --t-text: #F4EEEE; }
-  @media (max-width: 420px) { .shelf { flex-wrap: wrap; } .shelf-go { width: 100%; } }
-
   /* challenge grid */
   .challenge { margin-top: 14px; }
   .ch-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; }
@@ -283,6 +272,7 @@
     <p>每天挑一座島出發，10 關，每次題目都不一樣</p>
     <nav class="tabs" role="tablist">
       <button role="tab" aria-selected="true" data-tab="quiz" id="tab-quiz">探險</button>
+      <button role="tab" aria-selected="false" data-tab="review" id="tab-review">複習</button>
       <button role="tab" aria-selected="false" data-tab="concept" id="tab-concept">觀念口訣</button>
       <button role="tab" aria-selected="false" data-tab="teacher" id="tab-teacher">老師後台</button>
     </nav>
@@ -335,26 +325,6 @@
       </div>
     </div>
 
-    <div id="screen-read" hidden>
-      <div id="read-list">
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-            <h2 style="margin:0">📚 課文複習</h2>
-            <button class="btn secondary small" type="button" id="btn-read-home">回護照</button>
-          </div>
-          <p class="muted">點一課打開全文。每一段下面可以按「段落大意」，要會寫的字會用底色標起來。</p>
-          <div class="lesson-list" id="lesson-list"></div>
-        </div>
-      </div>
-      <div id="read-lesson" class="card" hidden>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-          <button class="btn secondary small" type="button" id="btn-read-back">← 課文列表</button>
-          <div class="read-nav"><button class="btn secondary small" type="button" id="btn-read-prev">上一課</button><button class="btn secondary small" type="button" id="btn-read-next">下一課</button></div>
-        </div>
-        <div id="read-body"></div>
-      </div>
-    </div>
-
     <div id="screen-quiz" class="card" hidden>
       <div class="quiz-head">
         <span class="avatar" id="q-avatar">🦊</span>
@@ -397,6 +367,34 @@
         <button class="btn" id="btn-again">再探險一次</button>
       </div>
     </div>
+  </section>
+
+  <!-- ========== 複習（課文） ========== -->
+  <section id="sec-review" hidden>
+    <div id="review-gate" class="card" hidden>
+      <h2>📚 課文複習</h2>
+      <p class="muted">要先選自己的名字（有設定的話要輸入生日），才看得到課文。</p>
+      <div class="actions"><button class="btn" type="button" id="btn-review-go">去選名字 →</button></div>
+    </div>
+    <div id="screen-read" hidden>
+      <div id="read-list">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <h2 style="margin:0">📚 課文複習</h2>
+          </div>
+          <p class="muted">點一課打開全文。每一段下面可以按「段落大意」，要會寫的字會用底色標起來。</p>
+          <div class="lesson-list" id="lesson-list"></div>
+        </div>
+      </div>
+      <div id="read-lesson" class="card" hidden>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <button class="btn secondary small" type="button" id="btn-read-back">← 課文列表</button>
+          <div class="read-nav"><button class="btn secondary small" type="button" id="btn-read-prev">上一課</button><button class="btn secondary small" type="button" id="btn-read-next">下一課</button></div>
+        </div>
+        <div id="read-body"></div>
+      </div>
+    </div>
+
   </section>
 
   <!-- ========== 觀念 ========== -->
@@ -535,7 +533,6 @@
   const ISLANDS = [
     { id: 'geo', subject: '數學', name: '平面圖形島', icon: '📐', desc: '三角形 180°・四邊形 360°', theme: 't-sage' },
     { id: 'num', subject: '數學', name: '因數與倍數島', icon: '🔢', desc: '因數・倍數・寫出來、圈出來', theme: 't-indigo' },
-    { id: 'read', subject: '國語', name: '課文複習', icon: '📚', desc: '第一～五課課文，沒帶課本也能讀', theme: 't-rose', kind: 'read' },
     { id: 'ch', subject: '國語', name: '課文島', icon: '📖', desc: '圈出正確的字・段落大意・課文問答', theme: 't-rose' }
   ];
   const QUIZ_ISLANDS = ISLANDS.filter(i => !i.kind);
@@ -1092,18 +1089,19 @@
 
   /* ---------- 分頁 ---------- */
   function switchTab(tab) {
-    ['quiz', 'concept', 'teacher'].forEach(t => {
+    ['quiz', 'review', 'concept', 'teacher'].forEach(t => {
       $('sec-' + t).hidden = t !== tab;
       $('tab-' + t).setAttribute('aria-selected', String(t === tab));
     });
     if (tab === 'teacher') renderTeacher();
+    if (tab === 'review') renderReview();
   }
   document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
   /* ---------- 首頁：選探險家 + 護照 ---------- */
   function showScreen(name) {
     state.screen = name;
-    ['start', 'quiz', 'result', 'read'].forEach(s => { $('screen-' + s).hidden = s !== name; });
+    ['start', 'quiz', 'result'].forEach(s => { $('screen-' + s).hidden = s !== name; });
   }
   function renderRoster() {
     const box = $('roster');
@@ -1170,14 +1168,6 @@
     const subjects = [...new Set(ISLANDS.map(i => i.subject))];
     subjects.forEach(sub => {
       groups.insertAdjacentHTML('beforeend', `<div class="label"><span>${esc(sub)}</span></div>`);
-      // 複習（課本）放在最上面一條，不算闖關
-      ISLANDS.filter(i => i.subject === sub && i.kind === 'read').forEach(isl => {
-        groups.insertAdjacentHTML('beforeend', `<div class="shelf ${isl.theme}">
-          <div class="icon">${isl.icon}</div>
-          <div class="shelf-body"><h3>${esc(isl.name)}</h3><p>${esc(isl.desc)}</p></div>
-          <button class="btn island-go shelf-go" type="button" data-read="1">翻開課本 →</button>
-        </div>`);
-      });
       const grid = document.createElement('div'); grid.className = 'islands';
       ISLANDS.filter(i => i.subject === sub && !i.kind).forEach(isl => {
         const d = s[isl.id] || { count: 0, best: 0, lastDate: '' };
@@ -1229,14 +1219,18 @@
   on('btn-name-ok', 'click', () => chooseStudent($('name-input').value));
   on('name-input', 'keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); chooseStudent($('name-input').value); } });
   on('btn-switch', 'click', () => { state.student = ''; state.verified = false; state.pinHash = ''; student = null; $('name-input').value = ''; $('pin-box').hidden = true; renderRoster(); renderPassport(); });
-  on('island-groups', 'click', (e) => { const b = e.target.closest('.island-go'); if (!b) return; if (b.dataset.read) showReading(); else startQuiz(b.dataset.unit); });
+  on('island-groups', 'click', (e) => { const b = e.target.closest('.island-go'); if (b) startQuiz(b.dataset.unit); });
 
   /* ---------- 課文複習 ---------- */
   const CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
   let readIdx = 0;
+  function renderReview() {
+    const ok = !!(state.student && state.verified);
+    $('review-gate').hidden = ok;
+    $('screen-read').hidden = !ok;
+    if (ok && $('read-lesson').hidden) showReading();
+  }
   function showReading() {
-    if (!state.student || !state.verified) { $('name-input').focus(); return; }
-    showScreen('read');
     $('read-list').hidden = false; $('read-lesson').hidden = true;
     const box = $('lesson-list'); box.innerHTML = '';
     LESSONS.forEach((L, i) => {
@@ -1267,7 +1261,7 @@
     $('read-body').innerHTML = html;
     window.scrollTo({ top: 0 });
   }
-  on('btn-read-home', 'click', goHome);
+  on('btn-review-go', 'click', () => { switchTab('quiz'); $('name-input').focus(); });
   on('btn-read-back', 'click', showReading);
   on('btn-read-prev', 'click', () => openLesson(readIdx - 1));
   on('btn-read-next', 'click', () => openLesson(readIdx + 1));
