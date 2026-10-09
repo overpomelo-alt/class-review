@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>五年級探險護照</title>
+<title>五年級考前複習</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -77,6 +77,26 @@
   nav.tabs button { font: inherit; font-size: .88rem; font-weight: 700; padding: 6px 16px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
   nav.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  /* hub */
+  .subhead { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .subhead-title { font-size: 1.2rem; font-weight: 700; color: var(--heading); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+  .hubcard { font: inherit; text-align: center; padding: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); cursor: pointer; display: flex; flex-direction: column; transition: transform .18s, box-shadow .18s; color: inherit; }
+  .hubcard:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(80,76,70,.12); }
+  .hubcard.wide { grid-column: 1 / -1; }
+  .hub-top { padding: 26px 24px 20px; background: var(--t-soft); flex: 1; }
+  .hub-top .icon { font-size: 2.6rem; line-height: 1; margin-bottom: 12px; }
+  .hub-top h2 { font-size: 1.25rem; margin: 0 0 6px; color: var(--t-ink); }
+  .hub-top p { margin: 0; font-size: .84rem; line-height: 1.65; color: var(--t-ink); opacity: .85; }
+  .hub-foot { padding: 11px 24px; font-size: .82rem; font-weight: 700; letter-spacing: .03em; background: var(--t-ink); color: var(--t-text); }
+  .hubcard.t-sage { --t-soft: var(--accent-soft); --t-ink: var(--accent); --t-text: var(--accent-ink); }
+  .hubcard.t-indigo { --t-soft: var(--indigo-soft); --t-ink: var(--indigo); --t-text: #EEEEF4; }
+  .hubcard.t-rose { --t-soft: var(--rose-soft); --t-ink: var(--rose); --t-text: #F4EEEE; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hubcard.t-indigo { --t-text: #1E1E30; } :root:not([data-theme="light"]) .hubcard.t-rose { --t-text: #30201F; } }
+  :root[data-theme="dark"] .hubcard.t-indigo { --t-text: #1E1E30; } :root[data-theme="dark"] .hubcard.t-rose { --t-text: #30201F; }
+  .card.soon { color: var(--muted); text-align: center; border-style: dashed; background: transparent; }
+  .linkbtn { font: inherit; font-size: .78rem; color: var(--muted); background: none; border: 0; text-decoration: underline; cursor: pointer; padding: 4px; }
 
   /* section label with side rules, like .exam-label */
   .label { display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 900; color: var(--fg); margin: 22px 4px 12px; }
@@ -266,22 +286,121 @@
 <body>
 <canvas id="confetti" class="confetti" hidden></canvas>
 <div class="wrap">
-  <header class="top">
-    <div class="emoji">🧭</div>
-    <h1>五年級探險護照</h1>
-    <p>每天挑一座島出發，10 關，每次題目都不一樣</p>
-    <nav class="tabs" role="tablist">
-      <button role="tab" aria-selected="true" data-tab="quiz" id="tab-quiz">探險</button>
-      <button role="tab" aria-selected="false" data-tab="review" id="tab-review">複習</button>
-      <button role="tab" aria-selected="false" data-tab="concept" id="tab-concept">觀念口訣</button>
-      <button role="tab" aria-selected="false" data-tab="teacher" id="tab-teacher">老師後台</button>
-    </nav>
+  <header class="top" id="home-head">
+    <div class="emoji">📚</div>
+    <h1>五年級考前複習</h1>
+    <p>選擇科目開始複習，或到島嶼探險闖關！</p>
   </header>
+  <div class="subhead" id="sub-head" hidden>
+    <button class="btn secondary small" type="button" id="btn-back">← 回首頁</button>
+    <span class="subhead-title" id="sub-title"></span>
+  </div>
 
   <div id="db-banner" class="banner" hidden></div>
 
+  <!-- ========== 首頁 ========== -->
+  <section id="sec-home">
+    <div class="label"><span>📖 複習</span></div>
+    <div class="cards" id="home-subjects"></div>
+    <div class="label"><span>🧭 島嶼探險</span></div>
+    <div class="cards">
+      <button class="hubcard t-rose wide" type="button" id="btn-home-quiz">
+        <div class="hub-top">
+          <div class="icon">🧭</div>
+          <h2>探險護照</h2>
+          <p>平面圖形島・因數與倍數島・課文島<br>每天 10 關，每次題目都不一樣</p>
+        </div>
+        <div class="hub-foot">開始探險 →</div>
+      </button>
+    </div>
+    <div class="footer-note">複習不用登入；探險要選自己的名字<br>每天一點點，探險家就是這樣練成的 🌿<br><button class="linkbtn" type="button" id="btn-home-teacher">老師後台</button></div>
+  </section>
+
+  <!-- ========== 科目頁（複習） ========== -->
+  <section id="sec-subject" hidden>
+    <div id="subj-exams"></div>
+    <div id="subj-content" hidden>
+      <div class="actions" style="justify-content:flex-start;margin:0 0 10px"><button class="btn secondary small" type="button" id="btn-content-back">← 回科目</button></div>
+      <div id="content-lessons" hidden>
+        <div id="read-list">
+          <div class="card">
+            <h2 style="margin:0">📖 第一～五課 課文</h2>
+            <p class="muted">點一課打開全文。每一段下面可以按「段落大意」，要會寫的字會用底色標起來。</p>
+            <div class="lesson-list" id="lesson-list"></div>
+          </div>
+        </div>
+        <div id="read-lesson" class="card" hidden>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <button class="btn secondary small" type="button" id="btn-read-back">← 課文列表</button>
+            <div class="read-nav"><button class="btn secondary small" type="button" id="btn-read-prev">上一課</button><button class="btn secondary small" type="button" id="btn-read-next">下一課</button></div>
+          </div>
+          <div id="read-body"></div>
+        </div>
+      </div>
+      <div id="content-geo" hidden>
+        <div class="row2">
+          <div class="card">
+            <h3>🔺 三角形內角和</h3>
+            <div class="formula">∠A + ∠B + ∠C = 180°</div>
+            <p>把三個角剪下來、頂點併在一起，剛好排成一條直線（平角 180°）。</p>
+            <p class="muted">求未知角：<span class="num">180° − 已知角 − 已知角</span></p>
+          </div>
+          <div class="card">
+            <h3>🟩 四邊形內角和</h3>
+            <div class="formula">∠A + ∠B + ∠C + ∠D = 360°</div>
+            <p>沿對角線切一刀，四邊形變成 2 個三角形：<span class="num">180° × 2 = 360°</span>。</p>
+            <p class="muted">求未知角：<span class="num">360° − 三個已知角</span></p>
+          </div>
+          <div class="card">
+            <h3>📐 直角三角形</h3>
+            <p>有一個角是 90°，另外兩個銳角加起來一定是 90°。</p>
+            <p class="muted"><span class="num">90° − 已知銳角 = 另一個銳角</span></p>
+          </div>
+          <div class="card">
+            <h3>🔻 等腰三角形</h3>
+            <p>兩邊一樣長（圖上畫短線的邊），所以兩個底角一樣大。</p>
+            <p class="muted">已知頂角：<span class="num">(180° − 頂角) ÷ 2</span>　已知底角：<span class="num">180° − 底角 × 2</span></p>
+          </div>
+          <div class="card">
+            <h3>▱ 平行四邊形</h3>
+            <p>相對的角一樣大。知道一組對角，另一組就是 <span class="num">(360° − 對角 × 2) ÷ 2</span>。</p>
+          </div>
+          <div class="card">
+            <h3>⬜ 有直角的四邊形</h3>
+            <p>每個直角都是 90°，先扣掉直角，再扣其他已知角。</p>
+            <p class="muted"><span class="num">360° − 90° − 90° − 已知角</span></p>
+          </div>
+        </div>
+      </div>
+      <div id="content-num" hidden>
+        <div class="row2">
+          <div class="card">
+            <h3>因數</h3>
+            <p>能把一個數<b>整除</b>的數，就是它的因數。12 的因數：1、2、3、4、6、12。</p>
+            <p class="muted">找因數小技巧：兩個一組找（1 和 12、2 和 6、3 和 4），就不會漏掉。</p>
+          </div>
+          <div class="card">
+            <h3>倍數</h3>
+            <p>一個數乘以 1、2、3、4…得到的數，都是它的倍數。6 的倍數：6、12、18、24…</p>
+            <p class="muted">2 的倍數個位是 0、2、4、6、8；5 的倍數個位是 0 或 5；10 的倍數個位是 0。</p>
+          </div>
+          <div class="card">
+            <h3>因數還是倍數？</h3>
+            <p>想：<b>誰可以被誰整除？</b>　15 ÷ 3 = 5 整除 → 15 是 3 的倍數，3 是 15 的因數。</p>
+            <p class="muted">大的數是小的數的倍數，小的數是大的數的因數（前提是要整除）。</p>
+          </div>
+          <div class="card">
+            <h3>公因數・公倍數</h3>
+            <p>兩個數<b>都有</b>的因數叫公因數；兩個數<b>都有</b>的倍數叫公倍數。</p>
+            <p class="muted">12 和 18 的公因數：1、2、3、6　　4 和 6 的公倍數：12、24、36…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ========== 探險 ========== -->
-  <section id="sec-quiz">
+  <section id="sec-quiz" hidden>
     <div id="screen-start">
       <div class="card">
         <h2>你是哪一位探險家？</h2>
@@ -369,81 +488,6 @@
     </div>
   </section>
 
-  <!-- ========== 複習（課文） ========== -->
-  <section id="sec-review" hidden>
-    <div id="review-gate" class="card" hidden>
-      <h2>📚 課文複習</h2>
-      <p class="muted">要先選自己的名字（有設定的話要輸入生日），才看得到課文。</p>
-      <div class="actions"><button class="btn" type="button" id="btn-review-go">去選名字 →</button></div>
-    </div>
-    <div id="screen-read" hidden>
-      <div id="read-list">
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-            <h2 style="margin:0">📚 課文複習</h2>
-          </div>
-          <p class="muted">點一課打開全文。每一段下面可以按「段落大意」，要會寫的字會用底色標起來。</p>
-          <div class="lesson-list" id="lesson-list"></div>
-        </div>
-      </div>
-      <div id="read-lesson" class="card" hidden>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-          <button class="btn secondary small" type="button" id="btn-read-back">← 課文列表</button>
-          <div class="read-nav"><button class="btn secondary small" type="button" id="btn-read-prev">上一課</button><button class="btn secondary small" type="button" id="btn-read-next">下一課</button></div>
-        </div>
-        <div id="read-body"></div>
-      </div>
-    </div>
-
-  </section>
-
-  <!-- ========== 觀念 ========== -->
-  <section id="sec-concept" hidden>
-    <div class="label"><span>📐 平面圖形</span></div>
-    <div class="row2">
-      <div class="card">
-        <h3>🔺 三角形內角和</h3>
-        <div class="formula">∠A + ∠B + ∠C = 180°</div>
-        <p>把三個角剪下來、頂點併在一起，剛好排成一條直線（平角 180°）。</p>
-        <p class="muted">求未知角：<span class="num">180° − 已知角 − 已知角</span></p>
-      </div>
-      <div class="card">
-        <h3>🟩 四邊形內角和</h3>
-        <div class="formula">∠A + ∠B + ∠C + ∠D = 360°</div>
-        <p>沿對角線切一刀，四邊形變成 2 個三角形：<span class="num">180° × 2 = 360°</span>。</p>
-        <p class="muted">求未知角：<span class="num">360° − 三個已知角</span></p>
-      </div>
-      <div class="card">
-        <h3>📐 直角三角形</h3>
-        <p>有一個角是 90°，另外兩個銳角加起來一定是 90°。</p>
-        <p class="muted"><span class="num">90° − 已知銳角 = 另一個銳角</span></p>
-      </div>
-      <div class="card">
-        <h3>🔻 等腰三角形</h3>
-        <p>兩邊一樣長（圖上畫短線的邊），所以兩個底角一樣大。</p>
-        <p class="muted">已知頂角：<span class="num">(180° − 頂角) ÷ 2</span>　已知底角：<span class="num">180° − 底角 × 2</span></p>
-      </div>
-    </div>
-    <div class="label"><span>🔢 因數與倍數</span></div>
-    <div class="row2">
-      <div class="card">
-        <h3>因數</h3>
-        <p>能把一個數<b>整除</b>的數，就是它的因數。12 的因數：1、2、3、4、6、12。</p>
-        <p class="muted">找因數小技巧：兩個一組找（1 和 12、2 和 6、3 和 4），就不會漏掉。</p>
-      </div>
-      <div class="card">
-        <h3>倍數</h3>
-        <p>一個數乘以 1、2、3、4…得到的數，都是它的倍數。6 的倍數：6、12、18、24…</p>
-        <p class="muted">2 的倍數個位是 0、2、4、6、8；5 的倍數個位是 0 或 5；10 的倍數個位是 0。</p>
-      </div>
-      <div class="card">
-        <h3>因數還是倍數？</h3>
-        <p>想：<b>誰可以被誰整除？</b>　15 ÷ 3 = 5 整除 → 15 是 3 的倍數，3 是 15 的因數。</p>
-        <p class="muted">大的數是小的數的倍數，小的數是大的數的因數（前提是要整除）。</p>
-      </div>
-    </div>
-  </section>
-
   <!-- ========== 老師後台 ========== -->
   <section id="sec-teacher" hidden>
     <div id="t-lock" class="card">
@@ -521,8 +565,6 @@
       </div>
     </div>
   </section>
-
-  <div class="footer-note">每天一點點，探險家就是這樣練成的 🌿</div>
 </div>
 
 <script>
@@ -1085,18 +1127,73 @@
 
   const on = (id, evt, fn) => { const el = $(id); if (el) el.addEventListener(evt, fn); };
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  function showBanner(msg, ok) { const b = $('db-banner'); b.className = 'banner' + (ok ? ' ok' : ''); b.textContent = msg || ''; b.hidden = !msg; }
+  let bannerMsg = '';
+  // 連線提示只在探險／後台顯示，複習頁不需要
+  function showBanner(msg, ok) { bannerMsg = msg || ''; const b = $('db-banner'); b.className = 'banner' + (ok ? ' ok' : ''); b.textContent = bannerMsg; b.hidden = !bannerMsg || !['quiz', 'teacher'].includes(section); }
 
-  /* ---------- 分頁 ---------- */
-  function switchTab(tab) {
-    ['quiz', 'review', 'concept', 'teacher'].forEach(t => {
-      $('sec-' + t).hidden = t !== tab;
-      $('tab-' + t).setAttribute('aria-selected', String(t === tab));
-    });
-    if (tab === 'teacher') renderTeacher();
-    if (tab === 'review') renderReview();
+  /* ---------- 首頁 / 科目 / 探險 / 後台 ---------- */
+  const SUBJECTS = [
+    { id: 'ch', name: '國語科', icon: '📖', theme: 't-sage', desc: '第一～五課課文',
+      exams: [
+        { name: '第一次定期評量', icon: '📝', items: [{ key: 'lessons', icon: '📖', title: '第一～五課 課文', desc: '全文・段落大意・要會寫的字・句型' }] },
+        { name: '第二次定期評量', icon: '📒', items: [] }
+      ] },
+    { id: 'math', name: '數學科', icon: '📐', theme: 't-indigo', desc: '平面圖形・因數與倍數',
+      exams: [
+        { name: '第一次定期評量', icon: '📝', items: [{ key: 'geo', icon: '📐', title: '平面圖形', desc: '三角形 180°・四邊形 360°・觀念口訣' }, { key: 'num', icon: '🔢', title: '因數與倍數', desc: '因數・倍數・公因數公倍數' }] },
+        { name: '第二次定期評量', icon: '📒', items: [] }
+      ] }
+  ];
+  let section = 'home', curSubject = null;
+  function go(name, title) {
+    section = name;
+    ['home', 'subject', 'quiz', 'teacher'].forEach(s => { $('sec-' + s).hidden = s !== name; });
+    $('home-head').hidden = name !== 'home';
+    $('sub-head').hidden = name === 'home';
+    $('sub-title').textContent = title || '';
+    $('db-banner').hidden = !bannerMsg || !['quiz', 'teacher'].includes(name);
+    if (name === 'teacher') renderTeacher();
+    if (name === 'home') renderHome();
+    window.scrollTo({ top: 0 });
   }
-  document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+  const switchTab = (t) => go(t, t === 'quiz' ? '🧭 探險護照' : t === 'teacher' ? '老師後台' : '');
+  function renderHome() {
+    const box = $('home-subjects'); box.innerHTML = '';
+    SUBJECTS.forEach(sub => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'hubcard ' + sub.theme;
+      b.innerHTML = `<div class="hub-top"><div class="icon">${sub.icon}</div><h2>${esc(sub.name)}</h2><p>${esc(sub.desc)}</p></div><div class="hub-foot">進入複習 →</div>`;
+      b.addEventListener('click', () => openSubject(sub.id));
+      box.appendChild(b);
+    });
+  }
+  function openSubject(id) {
+    curSubject = SUBJECTS.find(s => s.id === id);
+    go('subject', `${curSubject.icon} ${curSubject.name}`);
+    $('subj-content').hidden = true;
+    const ex = $('subj-exams'); ex.hidden = false; ex.innerHTML = '';
+    curSubject.exams.forEach(e => {
+      ex.insertAdjacentHTML('beforeend', `<div class="label"><span>${e.icon} ${esc(e.name)}</span></div>`);
+      if (!e.items.length) { ex.insertAdjacentHTML('beforeend', `<div class="card soon">還沒有內容，考前會放上來 🌱</div>`); return; }
+      const grid = document.createElement('div'); grid.className = 'cards';
+      e.items.forEach(it => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'hubcard ' + curSubject.theme;
+        b.innerHTML = `<div class="hub-top"><div class="icon">${it.icon}</div><h2>${esc(it.title)}</h2><p>${esc(it.desc)}</p></div><div class="hub-foot">進入複習 →</div>`;
+        b.addEventListener('click', () => openContent(it.key));
+        grid.appendChild(b);
+      });
+      ex.appendChild(grid);
+    });
+  }
+  function openContent(key) {
+    $('subj-exams').hidden = true; $('subj-content').hidden = false;
+    ['lessons', 'geo', 'num'].forEach(k => { $('content-' + k).hidden = k !== key; });
+    if (key === 'lessons') showReading();
+    window.scrollTo({ top: 0 });
+  }
+  on('btn-back', 'click', () => go('home'));
+  on('btn-content-back', 'click', () => openSubject(curSubject.id));
+  on('btn-home-quiz', 'click', () => switchTab('quiz'));
+  on('btn-home-teacher', 'click', () => switchTab('teacher'));
 
   /* ---------- 首頁：選探險家 + 護照 ---------- */
   function showScreen(name) {
@@ -1224,12 +1321,6 @@
   /* ---------- 課文複習 ---------- */
   const CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
   let readIdx = 0;
-  function renderReview() {
-    const ok = !!(state.student && state.verified);
-    $('review-gate').hidden = ok;
-    $('screen-read').hidden = !ok;
-    if (ok && $('read-lesson').hidden) showReading();
-  }
   function showReading() {
     $('read-list').hidden = false; $('read-lesson').hidden = true;
     const box = $('lesson-list'); box.innerHTML = '';
@@ -1261,7 +1352,6 @@
     $('read-body').innerHTML = html;
     window.scrollTo({ top: 0 });
   }
-  on('btn-review-go', 'click', () => { switchTab('quiz'); $('name-input').focus(); });
   on('btn-read-back', 'click', showReading);
   on('btn-read-prev', 'click', () => openLesson(readIdx - 1));
   on('btn-read-next', 'click', () => openLesson(readIdx + 1));
@@ -1687,6 +1777,7 @@
         if (a) { const q = state.qs[state.idx]; document.querySelectorAll('#q-options .opt').forEach((b, j) => { b.disabled = true; if (j === q.correctIdx) b.classList.add('correct'); else if (q.options[j] === a.picked) b.classList.add('wrong'); }); $('q-feedback').className = 'feedback ' + (a.ok ? 'good' : 'bad'); $('q-feedback').innerHTML = `${a.ok ? '答對了！' : `答錯了，正確答案是 ${q.answer}${q.suffix}。`}<div class="calc">${q.calc}</div>`; $('q-feedback').hidden = false; $('btn-next').hidden = false; }
       }
     } else { showScreen('start'); }
+    if (saved && saved.qs && saved.screen === 'quiz') switchTab('quiz'); else go('home');
     try { if (sessionStorage.getItem('geo-unlocked') === '1') unlocked = true; } catch (e) {}
     renderRoster(); renderPassport(); renderTeacherData();
     store.init({
