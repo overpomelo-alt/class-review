@@ -285,6 +285,21 @@
   .toggle { font-size: .9rem; display: flex; align-items: center; gap: 4px; }
   .inline-confirm { display: inline-flex; gap: 6px; align-items: center; }
   .footer-note { margin-top: 20px; font-size: .78rem; color: var(--muted); text-align: center; line-height: 1.7; }
+  /* ===== 數學重點（課本） ===== */
+  .unit { display: grid; gap: 14px; }
+  .unit .card h3 { margin: 0 0 6px; font-size: 1.2rem; color: var(--indigo); }
+  .goal { margin: 0 0 10px; font-size: .88rem; color: var(--muted); }
+  .kp { margin: 10px 0; padding: 12px 14px; border: 2px solid var(--rose); border-radius: 12px; background: var(--rose-soft); font-size: 1.06rem; line-height: 1.8; color: var(--heading); }
+  .kp .ex { margin-top: 6px; font-size: .95rem; font-weight: 400; color: var(--fg); }
+  .kp .ex b { color: var(--rose); margin-right: 4px; }
+  .kp-t { margin: 14px 0 6px; font-weight: 700; color: var(--heading); }
+  .talk { margin: 8px 0; padding: 10px 14px; border-radius: 12px; background: var(--surface-2); line-height: 1.8; }
+  .steps { margin: 6px 0 10px; padding-left: 1.4em; line-height: 1.8; }
+  .steps li { margin: 2px 0; }
+  .apps { margin: 6px 0 10px; padding-left: 1.2em; line-height: 1.8; }
+  .apps li { margin: 6px 0; }
+  .apps .list { display: inline-block; margin-top: 2px; padding: 2px 8px; border-radius: 8px; background: var(--indigo-soft); color: var(--indigo); font-family: var(--font-num); }
+  .unit .row2 { margin: 6px 0; }
 </style>
 
 </head>
@@ -342,62 +357,126 @@
           <div id="read-body"></div>
         </div>
       </div>
-      <div id="content-geo" hidden>
-        <div class="row2">
+      <div id="content-chart" hidden>
+        <div class="unit">
           <div class="card">
-            <h3>🔺 三角形內角和</h3>
-            <div class="formula">∠A + ∠B + ∠C = 180°</div>
-            <p>把三個角剪下來、頂點併在一起，剛好排成一條直線（平角 180°）。</p>
-            <p class="muted">求未知角：<span class="num">180° − 已知角 − 已知角</span></p>
+            <h3>1-1 生活中的統計圖</h3>
+            <p class="goal">理解同一筆有序資料以長條圖與折線圖呈現的差異・解讀含有省略符號的複雜折線圖・從統計圖表中察覺兩筆資料的關聯性</p>
+            <div class="kp">出生人數與死亡人數不會剛好是幾千人，折線圖中的人數是取概數到千位來表示，所以縱軸的單位是「千人」。</div>
+            <div class="kp">出生人數和死亡人數都超過 140 千人，我們把 140 千人以下的部分用省略符號「〰」表示。</div>
           </div>
           <div class="card">
-            <h3>🟩 四邊形內角和</h3>
-            <div class="formula">∠A + ∠B + ∠C + ∠D = 360°</div>
-            <p>沿對角線切一刀，四邊形變成 2 個三角形：<span class="num">180° × 2 = 360°</span>。</p>
-            <p class="muted">求未知角：<span class="num">360° − 三個已知角</span></p>
-          </div>
-          <div class="card">
-            <h3>📐 直角三角形</h3>
-            <p>有一個角是 90°，另外兩個銳角加起來一定是 90°。</p>
-            <p class="muted"><span class="num">90° − 已知銳角 = 另一個銳角</span></p>
-          </div>
-          <div class="card">
-            <h3>🔻 等腰三角形</h3>
-            <p>兩邊一樣長（圖上畫短線的邊），所以兩個底角一樣大。</p>
-            <p class="muted">已知頂角：<span class="num">(180° − 頂角) ÷ 2</span>　已知底角：<span class="num">180° − 底角 × 2</span></p>
-          </div>
-          <div class="card">
-            <h3>▱ 平行四邊形</h3>
-            <p>相對的角一樣大。知道一組對角，另一組就是 <span class="num">(360° − 對角 × 2) ÷ 2</span>。</p>
-          </div>
-          <div class="card">
-            <h3>⬜ 有直角的四邊形</h3>
-            <p>每個直角都是 90°，先扣掉直角，再扣其他已知角。</p>
-            <p class="muted"><span class="num">360° − 90° − 90° − 已知角</span></p>
+            <h3>1-2 製作折線圖</h3>
+            <p class="goal">依據表格資料，繪製無省略符號的簡單折線圖・繪製資料中含有 0 的複雜折線圖・將資料排序、整理成表格並繪製成含有省略符號的簡單折線圖</p>
+            <div class="kp">製作一個折線圖要寫上哪些資訊？<br>要寫標題、橫軸名稱、縱軸名稱……</div>
+            <p class="kp-t">製作折線圖的步驟（旺旺的體重折線圖）</p>
+            <ol class="steps">
+              <li>在折線圖的下方寫上標題。</li>
+              <li>寫出橫軸的各項目。</li>
+              <li>寫出橫軸的名稱和單位。</li>
+              <li>在縱軸取適當的間隔標出數量的刻度。</li>
+              <li>寫出縱軸的名稱和單位。</li>
+              <li>依月齡和體重的兩組數字來標示連接點，再依序用直線連起來。</li>
+            </ol>
+            <div class="kp">為了區分基隆和澎湖兩地的資料，可以用不同顏色的線條和圖示來表示。</div>
+            <div class="kp">日數是 0 日也要標出來，再依序連線。</div>
+            <div class="kp">用電量都在 400 度以上，400 度以下用省略符號表示。<br>用電量最高是多少度？一大格表示幾度比較合適？</div>
           </div>
         </div>
       </div>
       <div id="content-num" hidden>
-        <div class="row2">
+        <div class="unit">
           <div class="card">
-            <h3>因數</h3>
-            <p>能把一個數<b>整除</b>的數，就是它的因數。12 的因數：1、2、3、4、6、12。</p>
-            <p class="muted">找因數小技巧：兩個一組找（1 和 12、2 和 6、3 和 4），就不會漏掉。</p>
+            <h3>2-1 認識倍數</h3>
+            <div class="kp">當被乘數與乘數都是整數，我們說積是被乘數的倍數。<div class="ex"><b>例</b> 12×5＝60，60 是 12 的倍數；12×6＝72，72 是 12 的倍數。</div></div>
+            <div class="kp">整數的乘法算式中，積是被乘數的倍數，也是乘數的倍數。<div class="ex"><b>例</b> 8×20＝160，8 的 20 倍是 160，所以 160 是 8 的倍數。8×20＝20×8，20 的 8 倍是 160，所以……</div></div>
+            <p class="kp-t">用乘法或除法判別倍數：84 是 4 的倍數嗎？</p>
+            <div class="talk">我從 4 的 20 倍開始估。4×20＝80，4×21＝84，21 是整數，所以 84 是 4 的倍數。</div>
+            <div class="talk">如果 84 是 4 的倍數，那麼 4×（　）＝84，（　）裡是一個整數，可以用除法來算出（　）裡的數。84÷4＝21，餘數是 0，所以 4×21＝84，84 是……</div>
+            <div class="kp">個位數字是 2、4、6、8、0 的整數，是 2 的倍數；<br>個位數字是 0 或 5 的整數，是 5 的倍數；<br>個位數字是 0 的整數，是 10 的倍數。</div>
           </div>
           <div class="card">
-            <h3>倍數</h3>
-            <p>一個數乘以 1、2、3、4…得到的數，都是它的倍數。6 的倍數：6、12、18、24…</p>
-            <p class="muted">2 的倍數個位是 0、2、4、6、8；5 的倍數個位是 0 或 5；10 的倍數個位是 0。</p>
+            <h3>2-2 認識因數</h3>
+            <div class="kp"><b>餘數是 0 的算式中</b>：20÷5＝4…0，20、5 和 4 都是整數，我們說 5 可以整除 20。<br><b>餘數不是 0 的算式中</b>：14÷4＝3…2，餘數不是 0，4 不可以整除 14。</div>
+            <div class="talk">9 除以一個整數，商是整數且餘數是 0，表示這個數可以整除 9。想一想，1 可以整除任何數嗎？</div>
+            <div class="kp">「8÷4＝2…0」，4 可以整除 8，我們說 4 是 8 的因數。</div>
+            <p class="kp-t">32 的所有因數有哪些？</p>
+            <div class="talk">我按順序寫出餘數是 0 的除法算式找出因數。<br>32÷1＝32 ……可以找到因數 1 和 32。<br>32÷2＝16 ……可以找到因數 2 和 16。<br>32÷4＝8 ……可以找到因數 4 和 8。<br>32÷8＝4 ……除數 8 和上面的商重複了。</div>
+            <div class="kp">一個數如果能分成兩個整數相乘，那麼這兩個整數都是這個數的因數。<div class="ex"><b>例</b> 10＝1×10，1 和 10 都是 10 的因數，10＝2×5，2 和 5 都是 10 的因數，10 的所有因數有 1、2、5、10。</div></div>
+            <div class="talk">找到的因數，有重複時就不用再找了。</div>
           </div>
           <div class="card">
-            <h3>因數還是倍數？</h3>
-            <p>想：<b>誰可以被誰整除？</b>　15 ÷ 3 = 5 整除 → 15 是 3 的倍數，3 是 15 的因數。</p>
-            <p class="muted">大的數是小的數的倍數，小的數是大的數的因數（前提是要整除）。</p>
+            <h3>2-3 倍數與因數的關係和應用</h3>
+            <div class="talk">9×7＝63<br>63 是 9 的倍數嗎？9×7＝63，9 的 7 倍是 63，63 是 9 的<b>倍數</b>。<br>9 是 63 的因數嗎？9×7＝63 所以 63÷9＝7，9 可以整除 63，9 是 63 的<b>因數</b>。</div>
+            <div class="kp">像這樣，8 是 40 的因數，40 是 8 的倍數，我們可以說當甲是乙的因數，乙也是甲的倍數。</div>
+            <div class="talk">150÷6＝25，6 是 150 的因數。6×25＝150，150 是 6 的倍數。</div>
+            <p class="kp-t">應用問題：先用文字列式，再判斷是求因數還是求倍數</p>
+            <ul class="apps">
+              <li><b>倍數的包含除</b>：一盒遊戲卡裡面的數量不到 30 張，每 7 張分一疊，剛好可以分完。<br><span class="list">遊戲卡張數 ÷ 7 ＝ 幾疊 ……遊戲卡張數是 7 的倍數</span></li>
+              <li><b>倍數的等分除</b>：全部糖果不到 200 顆，平分給 9 個小朋友，剛好可以分完。<br><span class="list">全部糖果顆數 ÷ 9 ＝ 每個小朋友有幾顆 ……全部糖果顆數是 9 的倍數</span></li>
+              <li><b>因數的包含除</b>：媽媽將 24 顆柚子裝進箱子裡，每箱的顆數一樣，每箱幾顆時，剛好可以裝完？<br><span class="list">24 ÷ 每箱幾顆 ＝ 幾箱 ……每箱幾顆是 24 的因數</span></li>
+              <li><b>因數的等分除</b>：72 片手工餅乾要平分到盤子裡，盤子的數量大概在 10 個到 20 個之間，剛好可以分完。<br><span class="list">72 ÷ 幾盤 ＝ 每盤餅乾數量 ……幾盤是 72 的因數</span></li>
+            </ul>
+            <p class="kp-t">想一想（遊戲卡的題目）</p>
+            <ol class="steps">
+              <li>題目中「數量不到 30 張」的 30 並不是遊戲卡張數，所以不能用 30÷7 算出答案。</li>
+              <li>「每 7 張一疊，剛好分完」，表示餘數是 0。那麼可能是幾張？29、28、27……？</li>
+              <li>依據題意用文字列式後，發現張數是 7 的倍數，且比 30 小。</li>
+              <li>從列式也可以這樣想：7 × 幾疊 ＝ 遊戲卡張數</li>
+            </ol>
+            <p class="kp-t">找 24 的因數：除法、乘法都可以</p>
+            <div class="row2">
+              <div class="talk">我用除法找 24 的因數。<br>24÷1＝24<br>24÷2＝12<br>24÷3＝8<br>24÷4＝6<br>24÷6＝4</div>
+              <div class="talk">我用乘法找 24 的因數。<br>24＝1×24<br>24＝2×12<br>24＝3×8<br>24＝4×6<br>24＝6×4</div>
+            </div>
+            <div class="talk">找 24 的因數除了用除法找，還可以用乘法來找。</div>
+          </div>
+        </div>
+      </div>
+      <div id="content-geo" hidden>
+        <div class="unit">
+          <div class="card">
+            <h3>3-1 三角形的邊長關係</h3>
+            <p class="goal">兩點間的直線距離最短・理解三角形的任意兩邊和大於第三邊・理解三角形較短的兩邊和大於最長邊</p>
+            <div class="kp">三角形中，「任意選擇兩條邊長的和」會大於「第三邊」。<div class="ex"><b>例</b> 7 公分、10 公分和 12 公分的三角形，從邊長看：12＋7＞10、12＋10＞7、10＋7＞12</div></div>
+            <div class="talk">我把三角形想成剛才的三角形路線，走兩個頂點之間的直線距離最短。</div>
+            <div class="row2">
+              <div class="talk">我觀察能圍成三角形的這幾組。<br>7＋10＝17，17＞12<br>5＋12＝17，17＞12<br>10＋10＝20，20＞10<br><b>較短的兩邊和都大於最長邊。</b></div>
+              <div class="talk">我觀察不能圍成三角形的這幾組。<br>7＋10＝17，17＝17<br>5＋5＝10，10＜17<br>7＋7＝14，14＜17<br><b>較短的兩邊都小於最長邊或和最長邊一樣長。</b></div>
+            </div>
+            <div class="kp">可以圍成三角形的三條邊長中，較短的兩邊合起來都比最長邊長。所以要檢查三條邊長能不能圍成三角形，只要將較短的兩邊長合起來和最長邊的邊長比一比，就能找到答案。</div>
+            <div class="talk">三角形中如果有超過一個最長邊，選其中一個當最長邊。</div>
           </div>
           <div class="card">
-            <h3>公因數・公倍數</h3>
-            <p>兩個數<b>都有</b>的因數叫公因數；兩個數<b>都有</b>的倍數叫公倍數。</p>
-            <p class="muted">12 和 18 的公因數：1、2、3、6　　4 和 6 的公倍數：12、24、36…</p>
+            <h3>3-2 三角形的內角和</h3>
+            <div class="kp">∠A、∠B 和 ∠C 可以拼成一個平角，平角是 180 度。</div>
+            <div class="kp">三角形 3 個角的角度和是 180 度。</div>
+            <div class="talk">已知三角形的 2 個內角，求第 3 角：三角形 3 個角的角度和是 180°。</div>
+            <p class="kp-t">一個三角形裡，會有 2 個直角嗎？</p>
+            <div class="talk">如果有 2 個直角，直角是 90 度，合起來是 180 度，再加上第三個角的角度會超過 180 度。所以不會有 2 個直角。</div>
+            <div class="talk">一個三角形裡，會有 2 個鈍角嗎？鈍角比 90 度大，2 個鈍角合起來的角度……</div>
+            <p class="kp-t">正三角形</p>
+            <div class="kp">∠A＝∠B＝∠C，正三角形的 3 個角一樣大。<div class="ex">正三角形中 1 個角的角度是幾度？180÷3＝______</div></div>
+            <p class="kp-t">等腰三角形</p>
+            <div class="talk">等腰三角形的兩個底角一樣大嗎？頂角和兩個底角的和是幾度？一個底角的度數可以怎麼算？</div>
+          </div>
+          <div class="card">
+            <h3>3-3 四邊形的性質</h3>
+            <div class="kp">∠A、∠B、∠C 和 ∠D 可以拼成一個周角，周角是 360 度。</div>
+            <div class="talk">∠B 和 ∠D 是對角，連接頂點 B 和 D 畫出對角線，把四邊形 ABCD 分成兩個三角形來看。四邊形 4 個角的角度和跟兩個三角形的角度和一樣大。<br>∠1＋∠2＋∠3＝180 度<br>∠4＋∠5＋∠6＝180 度</div>
+            <div class="kp">四邊形 4 個角的角度和是 360 度。</div>
+            <div class="talk">長方形的 4 個角都是直角。</div>
+            <p class="kp-t">平行四邊形</p>
+            <div class="talk">將平行四邊形沿著其中一條對角線剪下來分成 2 個三角形，這 2 個三角形會不會全等？<br>兩種不同的剪法都可以剪出 2 個全等的三角形。</div>
+            <div class="kp">平行四邊形的兩雙對邊分別一樣長，兩雙對角分別一樣大。</div>
+          </div>
+          <div class="card">
+            <h3>3-4 認識多邊形</h3>
+            <div class="talk">有 3 條邊的圖形叫作<b>三角形</b>，三角形有 3 個頂點，3 個角。<br>有 4 條邊的圖形叫作<b>四邊形</b>，四邊形有 4 個頂點，4 個角。<br>有 5 條邊的圖形叫作<b>五邊形</b>，五邊形有 5 個頂點，5 個角。<br>有 6 條邊的圖形叫作<b>六邊形</b>，六邊形有 6 個頂點，6 個角。<br>有 7 條邊的圖形叫作<b>七邊形</b>。有 8 條邊的圖形叫作<b>八邊形</b>。</div>
+            <div class="kp">像三角形、四邊形、五邊形……，這些都是由 3 條以上（含 3 條）直線邊所圍成的平面圖形，叫作<b>多邊形</b>。</div>
+            <div class="talk">3 條邊一樣長、3 個角一樣大 → 正三角形　　4 條邊一樣長、4 個角一樣大 → 正四邊形（正方形）<br>5 條邊一樣長、5 個角一樣大 → 正五邊形　　6 條邊一樣長、6 個角一樣大 → 正六邊形<br>7 條邊一樣長、7 個角一樣大 → 正七邊形　　8 條邊一樣長、8 個角一樣大 → 正八邊形</div>
+            <div class="kp">像正三角形、正四邊形、正五邊形、……，這些多邊形的每條邊都一樣長，每個角都一樣大，就叫作<b>正多邊形</b>。</div>
+            <div class="talk">辨識正多邊形：先找出每條邊都一樣長的圖形，再檢查這些圖形的每個角是不是一樣大。<br>我用直尺量邊長，用量角器量角度。／我先描出一邊的長，再用其他兩邊去比一比。先描出一個角，再用其他兩個角比一比。</div>
           </div>
         </div>
       </div>
@@ -1234,9 +1313,12 @@
         { name: '第二次定期評量', icon: '📒', items: [] },
         { name: '其他課文（還沒上到）', icon: '📚', items: [{ key: 'lessons', from: 7, to: 12, icon: '📚', title: '第七～十二課 課文', desc: '先放上來，上到再複習' }] }
       ] },
-    { id: 'math', name: '數學科', icon: '📐', theme: 't-indigo', desc: '平面圖形・因數與倍數',
+    { id: 'math', name: '數學科', icon: '📐', theme: 't-indigo', desc: '折線圖・倍數與因數・平面圖形',
       exams: [
-        { name: '第一次定期評量', icon: '📝', items: [{ key: 'geo', icon: '📐', title: '平面圖形', desc: '三角形 180°・四邊形 360°・觀念口訣' }, { key: 'num', icon: '🔢', title: '因數與倍數', desc: '因數・倍數・公因數公倍數' }] },
+        { name: '第一次定期評量', icon: '📝', items: [
+          { key: 'chart', icon: '📈', title: '第一單元 折線圖', desc: '生活中的統計圖・製作折線圖' },
+          { key: 'num', icon: '🔢', title: '第二單元 倍數與因數', desc: '認識倍數・認識因數・倍數與因數的關係和應用' },
+          { key: 'geo', icon: '📐', title: '第三單元 平面圖形', desc: '三角形的邊長關係・三角形的內角和・四邊形的性質・認識多邊形' }] },
         { name: '第二次定期評量', icon: '📒', items: [] }
       ] }
   ];
@@ -1283,7 +1365,7 @@
   function openContent(it) {
     const key = it.key;
     $('subj-exams').hidden = true; $('subj-content').hidden = false;
-    ['lessons', 'geo', 'num'].forEach(k => { $('content-' + k).hidden = k !== key; });
+    ['lessons', 'chart', 'geo', 'num'].forEach(k => { $('content-' + k).hidden = k !== key; });
     if (key === 'lessons') { readRange = [it.from || 1, it.to || LESSONS.length]; $('read-list-title').textContent = `📖 ${it.title}`; showReading(); }
     window.scrollTo({ top: 0 });
   }
